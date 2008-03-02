@@ -1,0 +1,69 @@
+/*
+ *  ATypes.h - basic Acinonyx types
+ *  Acinonyx
+ *
+ *  Created by Simon Urbanek
+ *  Copyright 2008 Simon Urbanek. All rights reserved.
+ *
+ *  lang: C
+ */
+
+#ifndef A_TYPES_H
+#define A_TYPES_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+	
+	/* basic types */
+
+	typedef float AFloat;
+	
+	typedef struct ARect_s { AFloat x,y,width,height; } ARect;
+	typedef struct APoint_s { AFloat x,y; } APoint;
+	typedef struct ASize_s { AFloat width, height; } ASize;
+
+	typedef struct AEvent_s {
+		int event;
+		int flags;
+		int key;
+		APoint location;
+	} AEvent;
+	
+#define AMkRect(x,y,w,h) ((ARect) { (x),(y),(w),(h) })
+#define AMkPoint(x,y) ((APoint) { (x),(y) })
+#define AMkSize(w,h) ((ASize) { (w),(h) })
+#define AMkEvent(e,f,k,l) ((AEvent) { (e),(f),(k),(l) })
+
+#define AUndefSize AMkSize(-1.0f, -1.0f)
+
+#define AEF_BUTTON1 0x001
+#define AEF_BUTTON2 0x002
+#define AEF_BUTTON3 0x004
+#define AEF_SHIFT   0x010
+#define AEF_CTRL    0x020
+#define AEF_ALT     0x040
+#define AEF_META    0x080
+
+#define AE_MOUSE_DOWN   0x0101
+#define AE_MOUSE_UP     0x0102
+#define AE_MOUSE_CLICK  0x0103
+#define AE_MOUSE_2CLICK 0x0104
+
+#define AE_MOUSE_IN     0x0106
+#define AE_MOUSE_OUT    0x0107
+
+#define AE_MOUSE_MOVE   0x0108
+
+#define AE_KEY_DOWN     0x0201
+#define AE_KEY_UP       0x0202
+#define AE_KEY_TYPED    0x0203
+
+// This macro is used after memory allocation to check for out of memory issues
+#define AMEM(x) // FIXME: replace with some error handling if x is NULL
+	
+#ifdef __cplusplus
+}
+#endif	
+
+#endif
