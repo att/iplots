@@ -19,6 +19,8 @@ extern "C" {
 
 	typedef float AFloat;
 	
+	typedef unsigned int vsize_t;
+	
 	typedef struct ARect_s { AFloat x,y,width,height; } ARect;
 	typedef struct APoint_s { AFloat x,y; } APoint;
 	typedef struct ASize_s { AFloat width, height; } ASize;
@@ -29,7 +31,7 @@ extern "C" {
 		int key;
 		APoint location;
 	} AEvent;
-	
+
 #define AMkRect(x,y,w,h) ((ARect) { (x),(y),(w),(h) })
 #define AMkPoint(x,y) ((APoint) { (x),(y) })
 #define AMkSize(w,h) ((ASize) { (w),(h) })
@@ -62,6 +64,10 @@ extern "C" {
 // This macro is used after memory allocation to check for out of memory issues
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
 	
+extern double NA_double;
+extern float NA_float;
+#define NA_int INT_MIN
+
 #ifdef __cplusplus
 }
 #endif	

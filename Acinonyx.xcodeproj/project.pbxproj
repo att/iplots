@@ -15,13 +15,14 @@
 		68BF1BEB0D79C63B0095B772 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8D1107310486CEB800E47090 /* Info.plist */; };
 		68BF1BF50D79C7350095B772 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68BF1BF40D79C7350095B772 /* OpenGL.framework */; };
 		68BF1C1A0D79CC900095B772 /* CocoaWindow.mm in Sources */ = {isa = PBXBuildFile; fileRef = 68BF1C190D79CC900095B772 /* CocoaWindow.mm */; };
+		68C25C9F0D7B68190065C27A /* ATools.c in Sources */ = {isa = PBXBuildFile; fileRef = 68C25C9E0D7B68190065C27A /* ATools.c */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -44,6 +45,10 @@
 		68BF1C190D79CC900095B772 /* CocoaWindow.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CocoaWindow.mm; sourceTree = "<group>"; };
 		68BF1C230D79CD770095B772 /* ATypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATypes.h; sourceTree = "<group>"; };
 		68BF1C240D79CD770095B772 /* AWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWindow.h; sourceTree = "<group>"; };
+		68C25C9B0D7B5A020065C27A /* AValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AValue.h; sourceTree = "<group>"; };
+		68C25C9C0D7B5E3F0065C27A /* AVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVector.h; sourceTree = "<group>"; };
+		68C25C9D0D7B68190065C27A /* ATools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATools.h; sourceTree = "<group>"; };
+		68C25C9E0D7B68190065C27A /* ATools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ATools.c; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Acinonyx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Acinonyx.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -146,6 +151,10 @@
 				687EE6720D7A485B003E56F9 /* AObject.cpp */,
 				687EE5950D79DFAF003E56F9 /* AVisual.h */,
 				687EE6900D7B0FAB003E56F9 /* ARenderer.h */,
+				68C25C9B0D7B5A020065C27A /* AValue.h */,
+				68C25C9C0D7B5E3F0065C27A /* AVector.h */,
+				68C25C9D0D7B68190065C27A /* ATools.h */,
+				68C25C9E0D7B68190065C27A /* ATools.c */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";
@@ -212,6 +221,7 @@
 				68BF1C1A0D79CC900095B772 /* CocoaWindow.mm in Sources */,
 				687EE55D0D79D281003E56F9 /* AContainer.cpp in Sources */,
 				687EE6730D7A485B003E56F9 /* AObject.cpp in Sources */,
+				68C25C9F0D7B68190065C27A /* ATools.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

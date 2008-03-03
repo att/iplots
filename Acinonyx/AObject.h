@@ -11,6 +11,7 @@
 #define A_OBJECT_H
 
 #include "ATypes.h"
+#include "ATools.h"
 #include <stdio.h>
 #include <stdlib.h>
 
