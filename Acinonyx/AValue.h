@@ -26,13 +26,13 @@ public:
 	} v;
 	AVtype_t _type;
 		
-	AValue(int value) { v.i = value; _type = AVint; }
-	AValue(AObject *obj) { v.o = obj; _type = AVobj; obj->retain(); }
-	AValue(const char *str, bool copy) { v.s = (char*)(copy?strdup(str):str); _type = AVstr; }
-	AValue(const char *str) { v.s = strdup(str); _type = AVstr;	}
-	AValue(float value) { v.f = value; _type = AVfloat; }
-	AValue(double value) { v.d = value; _type = AVdouble; }
-	AValue(bool value) { v.b = value; _type = AVbool; }
+	AValue(int value) { v.i = value; _type = AVint; OCLASS(AValue) }
+	AValue(AObject *obj) { v.o = obj; _type = AVobj; obj->retain(); OCLASS(AValue) }
+	AValue(const char *str, bool copy) { v.s = (char*)(copy?strdup(str):str); _type = AVstr; OCLASS(AValue) }
+	AValue(const char *str) { v.s = strdup(str); _type = AVstr;	OCLASS(AValue) }
+	AValue(float value) { v.f = value; _type = AVfloat; OCLASS(AValue) }
+	AValue(double value) { v.d = value; _type = AVdouble; OCLASS(AValue) }
+	AValue(bool value) { v.b = value; _type = AVbool; OCLASS(AValue) }
 	~AValue() {
 		switch (_type) {
 			case AVobj: if (v.o) v.o->release(); break;

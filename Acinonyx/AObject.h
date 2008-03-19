@@ -15,19 +15,38 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef ODEBUG
+typedef unsigned int object_serial_t;
+extern object_serial_t _globalObjectSerial;
+#define OCLASS(X) { _className = # X ; _classSize = sizeof(X); printf("+ %08x %06x %s [%d]\n", (int) this, _objectSerial, _className, _classSize); }
+#define DCLASS(X) { printf("- %08x %06x %s/%s [%d]\n", this, _objectSerial, _className, # X, _classSize); }
+#else
+#define OCLASS(X)
+#define DCLASS(X)
+#endif
+
 class AObject {
 	int arpp;
 	static int arpe;
 	static AObject *arp[1024];
 	int refcount;
-	
+#ifdef ODEBUG
+public:
+	const char *_className;
+	unsigned int _classSize;
+	object_serial_t _objectSerial;
+#endif
+
 public:
 	AObject() : refcount(1) {
-		printf("new AObject<%p>\n", this);
+#ifdef ODEBUG
+		_objectSerial = _globalObjectSerial++; // the only class handling serials is AObject to make sure that it is called only once
+#endif
+		OCLASS(AObject)
 	}
 	
 	virtual ~AObject() {
-		printf("AObject<%p> dealloc\n", this);
+		DCLASS(AObject)
 	}
 	
 	void retain() { refcount++; }

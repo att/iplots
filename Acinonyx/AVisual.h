@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef A_VISUAL_H_
+#define A_VISUAL_H_
+
 #include "AObject.h"
 #include "ARenderer.h"
 
@@ -43,7 +46,7 @@ protected:
 	void setParent(AContainer *parent) { _parent = parent; }
 public:
 	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(frame), _parent(parent), _flags(flags),
-	_min_size(AUndefSize), _max_size(AUndefSize) { };
+	_min_size(AUndefSize), _max_size(AUndefSize) { OCLASS(AVisual) };
 	
 	AContainer *parent() { return _parent; }
 	unsigned int flags() { return _flags; }
@@ -55,3 +58,5 @@ public:
 	// NOTE: setFrame inherited from ARenderer is non-virtual, defined in window coordinates and specific for rendering
 	virtual void moveAndResize(ARect frame) { setFrame(frame); }
 };
+
+#endif

@@ -24,8 +24,7 @@ class AContainer : public AVisual {
 	chList_t *chRoot, *chTail;
 public:
 #pragma mark --- contructor ---
-	AContainer(AContainer *parent, ARect frame, unsigned int flags) : AVisual(parent, frame, flags|AVF_CONTAINER), chRoot(0), chTail(0) {
-	}
+	AContainer(AContainer *parent, ARect frame, unsigned int flags) : AVisual(parent, frame, flags|AVF_CONTAINER), chRoot(0), chTail(0) { OCLASS(AContainer) }
 
 	~AContainer() {
 		removeAll();

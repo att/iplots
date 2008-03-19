@@ -26,6 +26,9 @@
  
  http://developer.apple.com/graphicsimaging/opengl/optimizingdata.html */
 
+#ifndef A_RENDERER_H_
+#define A_RENDERER_H_
+
 #include "AObject.h"
 #include <OpenGL/gl.h>
 
@@ -33,7 +36,7 @@ class ARenderer : public AObject {
 protected:
 	ARect _frame; // in window coords
 public:
-	ARenderer(ARect frame) : _frame(frame) {}
+	ARenderer(ARect frame) : _frame(frame) { OCLASS(ARenderer) }
 
 	void setFrame(ARect frame) { _frame = frame; }
 	ARect frame() { return _frame; }
@@ -98,7 +101,7 @@ public:
 	
 	void point(APoint p) { point(p.x, p.y); }
 	
-	void points(APoint *p, int n) {
+	void points(const APoint *p, int n) {
 		int i = 0;
 		glBegin(GL_POINTS);
 		while (i < n) {
@@ -108,7 +111,7 @@ public:
 		glEnd();
 	}
 	
-	void points(AFloat *x, AFloat *y, int n) {
+	void points(const AFloat *x, const AFloat *y, int n) {
 		int i = 0;
 		glBegin(GL_POINTS);
 		while (i < n) {
@@ -125,7 +128,7 @@ public:
 		glEnd();
 	}
 	
-	void polyV(AFloat *x, AFloat *y, int n) {
+	void polyV(const AFloat *x, const AFloat *y, int n) {
 		int i = 0;
 		while (i < n) {
 			glVertex2f(x[i], y[i]);
@@ -133,19 +136,19 @@ public:
 		}
 	}
 	
-	void polygon(AFloat *x, AFloat *y, int n) {
+	void polygon(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_POLYGON);
 		polyV(x, y, n);
 		glEnd();
 	}
 
-	void polygonO(AFloat *x, AFloat *y, int n) {
+	void polygonO(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_LINE_LOOP);
 		polyV(x, y, n);
 		glEnd();
 	}
 	
-	void polyline(AFloat *x, AFloat *y, int n) {
+	void polyline(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_LINE_STRIP);
 		polyV(x, y, n);
 		glEnd();		
@@ -158,7 +161,7 @@ public:
 		glEnd();
 	}
 
-	void tri(AFloat *x, AFloat *y, int n) {
+	void tri(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_TRIANGLES);
 		polyV(x, y, n);
 		glEnd();
@@ -176,15 +179,17 @@ public:
 		glEnd();
 	}
 	
-	void trimesh(AFloat *x, AFloat *y, int n) {
+	void trimesh(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_TRIANGLE_STRIP);
 		polyV(x, y, n);
 		glEnd();
 	}
 
-	void quadmesh(AFloat *x, AFloat *y, int n) {
+	void quadmesh(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_QUAD_STRIP);
 		polyV(x, y, n);
 		glEnd();
 	}
 };
+
+#endif

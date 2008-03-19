@@ -12,7 +12,11 @@
 class AAxis : public AVisual {
 	AScale *_scale;
 public:
-	AAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AVisual(parent, frame, flags), _scale(scale) { }
+	AAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AVisual(parent, frame, flags), _scale(scale) { scale->retain(); OCLASS(AAxis) }
+	virtual ~AAxis() {
+		if (_scale) _scale->release();
+		DCLASS(AAxis)
+	}
 };
 
 class AXAxis : public AAxis {

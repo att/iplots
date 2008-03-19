@@ -8,6 +8,8 @@
 
 #import "CocoaView.h"
 
+#include "AScatterPlot.h"
+
 // test class for a visual
 class MyVisual : public AVisual {
 public:
@@ -34,7 +36,15 @@ public:
 	0 };
     self = [super initWithFrame:frame pixelFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs]];
     if (self) {
-		visual = new MyVisual(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
+		ARect aFrame = AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
+		// visual = new MyVisual(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
+		float data_x[] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+		float data_y[] = { 1.0, 2.0, 1.5, 3.0, 5.0, 6.0 };		
+		AVector *vx = new AFloatVector(data_x, sizeof(data_x)/sizeof(data_x[0]));
+		AVector *vy = new AFloatVector(data_y, sizeof(data_y)/sizeof(data_y[0]));
+		visual = new AScatterPlot(NULL, aFrame, 0, vx, vy);
+		vx->release();
+		vy->release();
     }
     return self;
 }
@@ -65,6 +75,12 @@ public:
 		glEnd();
 	}
 #endif
+}
+
+- (void) dealloc
+{
+	if (visual) visual->release();
+	[super dealloc];
 }
 
 @end

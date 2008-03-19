@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef A_VECTOR_H_
+#define A_VECTOR_H_
+
 #include "AObject.h"
 #include "ATools.h"
 #include "AValue.h"
@@ -18,8 +21,8 @@ class AVector : public AObject {
 protected:
 	vsize_t _len;
 public:
-	AVector(vsize_t length) : _len(length) {}
-	virtual ~AVector() {}
+	AVector(vsize_t length) : _len(length) { OCLASS(AVector) }
+	virtual ~AVector() { DCLASS(AVector) }
 	
 	vsize_t length() const { return _len; }
 	
@@ -28,6 +31,7 @@ public:
 	virtual const int* asInts() RNS;
 	virtual const char** asStrings() RNS;
 	virtual AObject **asObjects() RNS;
+	virtual ADataRange range() { return AUndefDataRange; }
 	
 	AObject *objectAt(vsize_t i) { if (i >= _len) return NULL; AObject **x = asObjects(); return x?x[i]:NULL; }
 	const char *stringAt(vsize_t i) { if (i >= _len) return NULL; const char **x = asStrings(); return x?x[i]:NULL; }
@@ -44,19 +48,31 @@ protected:
 	int *i_data;
 public:
 	AFloatVector(float *data, vsize_t len, bool copy) : AVector(len), d_data(0), i_data(0) {
-		_data = (float*) (copy?memdup(data, len * sizeof(float)):data);
+		_data = (float*) (copy?memdup(data, len * sizeof(float)):data); OCLASS(AFloatVector)
 	}
 	AFloatVector(float *data, vsize_t len) : AVector(len), d_data(0), i_data(0) {
-		_data = (float*) memdup(data, len * sizeof(float));
+		_data = (float*) memdup(data, len * sizeof(float)); OCLASS(AFloatVector)
 	}
 	
 	virtual ~AFloatVector() {
 		free(_data);
 		if (d_data) free(d_data);
 		if (i_data) free(i_data);
+		DCLASS(AFloatVector)
 	}
 	
-	virtual const float *asFloats() const { return _data; }		
+	virtual ADataRange range() {
+		ADataRange r = AUndefDataRange;
+		if (length()) {
+			double e = r.begin = _data[0];
+			for (int i = 0; i < length(); i++)
+				if (_data[i] < r.begin) r.begin = _data[i]; else if (_data[i] > e) e = _data[i];
+			r.length = e - r.begin;
+		}
+		return r;
+	}
+	
+	virtual const float *asFloats() { return _data; }
 	virtual const double *asDoubles() {
 		if (!d_data) {
 			d_data = (double*) malloc(_len * sizeof(double));
@@ -80,18 +96,19 @@ protected:
 	int *i_data;
 public:
 	ADoubleVector(double *data, vsize_t len, bool copy) : AVector(len), f_data(0), i_data(0) {
-		_data = copy?(double*)memdup(data, len * sizeof(double)):data;
+		_data = copy?(double*)memdup(data, len * sizeof(double)):data; OCLASS(ADoubleVector)
 	}
 	ADoubleVector(double *data, vsize_t len) : AVector(len), f_data(0), i_data(0) {
-		_data = (double*)memdup(data, len * sizeof(double));
+		_data = (double*)memdup(data, len * sizeof(double)); OCLASS(ADoubleVector)
 	}	
 	virtual ~ADoubleVector() {
 		free(_data);
 		if (f_data) free(f_data);
 		if (i_data) free(i_data);
+		DCLASS(ADoubleVector)
 	}
 	
-	virtual const double *asDouble() const { return _data; }		
+	virtual const double *asDouble() { return _data; }		
 	virtual const float *asFloats() {
 		if (!f_data) {
 			f_data = (float*) malloc(_len * sizeof(float));
@@ -115,19 +132,20 @@ protected:
 	float *f_data;
 public:
 	AIntVector(const int *data, vsize_t len, bool copy) : AVector(len), f_data(0), d_data(0) {
-		_data = (int*)(copy?memdup(data, len * sizeof(int)):data);
+		_data = (int*)(copy?memdup(data, len * sizeof(int)):data); OCLASS(AIntVector)
 	}
 	AIntVector(const int *data, vsize_t len) : AVector(len), f_data(0), d_data(0) {
-		_data = (int*)memdup(data, len * sizeof(int));
+		_data = (int*)memdup(data, len * sizeof(int)); OCLASS(AIntVector)
 	}
 	
 	virtual ~AIntVector() {
 		free(_data);
 		if (d_data) free(d_data);
 		if (f_data) free(f_data);
+		DCLASS(AIntVector)
 	}
 	
-	virtual const int *asInts() const { return _data; }
+	virtual const int *asInts() { return _data; }
 	virtual const double *asDoubles() {
 		if (!d_data) {
 			d_data = (double*) malloc(_len * sizeof(double));
@@ -151,11 +169,12 @@ protected:
 	char **s_data;
 public:
 	AFactorVector(const int *data, int len, const char **names, int n_len) : AIntVector(data, len, false), _levels(n_len) {
-		_names = (char**) names;
+		_names = (char**) names; OCLASS(AFactorVector)
 	}
 	virtual ~AFactorVector() {
 		for (int i = 0; i < _levels; i++) if (_names[i]) free(_names[i]);
 		free(_names);
+		DCLASS(AFactorVector)
 	}
 	virtual const char **asStrings() {
 		if (!s_data) {
@@ -168,3 +187,4 @@ public:
 
 // TODO: mutable vectors ( + notification?)
 
+#endif

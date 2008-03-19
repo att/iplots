@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef A_SCALE_H_
+#define A_SCALE_H_
+
 #include "AVector.h"
 
 class AScale : public AObject {
@@ -16,12 +19,16 @@ class AScale : public AObject {
 	int n;
 public:
 	AScale(AVector *data, ARange graphicsRange, ADataRange dataRange) : _data(data), gr(graphicsRange),
-	dr(dataRange), n(dataRange.length) {}
+	dr(dataRange), n(dataRange.length) { data->retain(); OCLASS(AScale) }
+	virtual ~AScale() {
+		if (_data) _data->release();
+		DCLASS(AScale)
+	}
 	
 	ARange range() { return gr; }
 	ADataRange dataRange() { return dr; }
-	void setRange(ARange r) { gr = g; /* FIXME: notify ? */ }
-	void setDataRange(ADataRange r) { dr = d; }
+	void setRange(ARange r) { gr = r; /* FIXME: notify ? */ }
+	void setDataRange(ADataRange r) { dr = r; }
 
 	double value(AFloat pos) { return ((double)((pos - gr.begin) / gr.length)) * dr.length + dr.begin; }
 	AFloat position(double value) { return ((value - dr.begin) / dr.length) * gr.length + gr.begin; }
@@ -30,5 +37,8 @@ public:
 	
 	// FIXME: discrete layout?
 	int discreteValue(AFloat pos) { return -1; }
-	AFloat discretePosition(int value) { return g_o; }
-}
+	AFloat discretePosition(int value) { return gr.begin; }
+};
+
+#endif
+

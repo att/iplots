@@ -35,4 +35,13 @@ public:
 	return self;
 }
 
+
+- (void) dealloc
+{
+	[view release];
+	aWindow->release();
+	[super dealloc];
+}
+
+
 @end

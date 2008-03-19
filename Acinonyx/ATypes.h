@@ -28,6 +28,8 @@ extern "C" {
 	typedef struct ADataRange_s { double begin, length; } ADataRange;
 	typedef struct ARange_s { AFloat begin, length; } ARange;
 
+	typedef struct AColor_s { AFloat r,g,b,a; } AColor;
+	
 	typedef struct AEvent_s {
 		int event;
 		int flags;
@@ -39,10 +41,15 @@ extern "C" {
 #define AMkPoint(x,y) ((APoint) { (x),(y) })
 #define AMkSize(w,h) ((ASize) { (w),(h) })
 #define AMkRange(b,l) ((ARange) { (b),(l) })
+#define AMkDataRange(b,l) ((ADataRange) { (b),(l) })
 #define AMkEvent(e,f,k,l) ((AEvent) { (e),(f),(k),(l) })
+#define AMkColor(r,g,b,a) ((AColor) { (r),(g),(b),(a) })
 
 #define AUndefSize AMkSize(-1.0f, -1.0f)
-
+	// FIXME: AUndefRange needs a more reasonable definition
+#define AUndefRange AMkRange(0.0f, -1.0f)
+#define AUndefDataRange AMkDataRange(0.0, -1.0)
+	
 #define AEF_BUTTON1 0x001
 #define AEF_BUTTON2 0x002
 #define AEF_BUTTON3 0x004
