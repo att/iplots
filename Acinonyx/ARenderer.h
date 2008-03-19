@@ -9,6 +9,23 @@
 
 // coords: world -> screen -> window -> container
 
+/* Notes:
+  - layers could be implemented using display lists
+ 
+ //	creating a display list
+ GLuint listname = glGenLists( 1 );
+ glNewList( listname, GL_COMPILE or GL_COMPILE_AND_EXECUTE );
+ // glBegin/glEnd ...  
+ glEndList();
+ 
+ //	drawing with a display list
+ glCallList( listname );
+ 
+ //	disposing of a display list
+ glDeleteLists( listname, 1 );
+ 
+ http://developer.apple.com/graphicsimaging/opengl/optimizingdata.html */
+
 #include "AObject.h"
 #include <OpenGL/gl.h>
 
@@ -42,6 +59,10 @@ public:
 		glColor4f(r, g, b, a);
 	}
 
+	void color(AFloat col[4]) {
+		glColor4fv(col);
+	}
+	
 	void color(GLfloat r, GLfloat g, GLfloat b) {
 		glColor3f(r, g, b);
 	}
@@ -52,16 +73,55 @@ public:
 		glVertex2f(x2, y2);
 		glVertex2f(x1, y2);
 	}
-	
+
 	void rect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
 		glBegin(GL_QUADS);
 		rectV(x1, y1, x2, y2);
 		glEnd();
 	}
 
+	void rect(ARect aRect) { rect(aRect.x, aRect.y, aRect.width, aRect.height); }
+
 	void rectO(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
 		glBegin(GL_LINE_LOOP);
 		rectV(x1, y1, x2, y2);
+		glEnd();
+	}
+
+	void rectO(ARect aRect) { rectO(aRect.x, aRect.y, aRect.width, aRect.height); }
+
+	void point(AFloat x, AFloat y) {
+		glBegin(GL_POINTS);
+		glVertex2f(x, y);
+		glEnd();
+	}
+	
+	void point(APoint p) { point(p.x, p.y); }
+	
+	void points(APoint *p, int n) {
+		int i = 0;
+		glBegin(GL_POINTS);
+		while (i < n) {
+			glVertex2f(p[i].x, p[i].y);
+			i++;
+		}
+		glEnd();
+	}
+	
+	void points(AFloat *x, AFloat *y, int n) {
+		int i = 0;
+		glBegin(GL_POINTS);
+		while (i < n) {
+			glVertex2f(x[i], y[i]);
+			i++;
+		}
+		glEnd();
+	}
+
+	void line(AFloat x1, AFloat y1, AFloat x2, AFloat y2) {
+		glBegin(GL_LINE_STRIP);
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y2);
 		glEnd();
 	}
 	

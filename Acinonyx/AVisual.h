@@ -22,6 +22,9 @@ class AContainer;
 #define AVF_FIX_WIDTH   0x1000
 #define AVF_FIX_HEIGHT  0x2000
 
+#define AVF_XSPRING (AVF_FIX_RIGHT|AVF_FIX_LEFT)
+#define AVF_YSPRING (AVF_FIX_TOP|AVF_FIX_BOTTOM)
+
 /* clipping */
 #define AVF_CLIPPED    0x10000
 
@@ -36,6 +39,8 @@ protected:
 	AContainer *_parent;
 	ASize _min_size, _max_size;
 	unsigned int _flags;
+
+	void setParent(AContainer *parent) { _parent = parent; }
 public:
 	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(frame), _parent(parent), _flags(flags),
 	_min_size(AUndefSize), _max_size(AUndefSize) { };

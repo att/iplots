@@ -25,6 +25,9 @@ extern "C" {
 	typedef struct APoint_s { AFloat x,y; } APoint;
 	typedef struct ASize_s { AFloat width, height; } ASize;
 
+	typedef struct ADataRange_s { double begin, length; } ADataRange;
+	typedef struct ARange_s { AFloat begin, length; } ARange;
+
 	typedef struct AEvent_s {
 		int event;
 		int flags;
@@ -35,6 +38,7 @@ extern "C" {
 #define AMkRect(x,y,w,h) ((ARect) { (x),(y),(w),(h) })
 #define AMkPoint(x,y) ((APoint) { (x),(y) })
 #define AMkSize(w,h) ((ASize) { (w),(h) })
+#define AMkRange(b,l) ((ARange) { (b),(l) })
 #define AMkEvent(e,f,k,l) ((AEvent) { (e),(f),(k),(l) })
 
 #define AUndefSize AMkSize(-1.0f, -1.0f)

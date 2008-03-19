@@ -35,6 +35,11 @@
 		687EE5950D79DFAF003E56F9 /* AVisual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVisual.h; sourceTree = "<group>"; };
 		687EE6720D7A485B003E56F9 /* AObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AObject.cpp; sourceTree = "<group>"; };
 		687EE6900D7B0FAB003E56F9 /* ARenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARenderer.h; sourceTree = "<group>"; };
+		68A251960D7DE72800007CBD /* AScale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AScale.h; sourceTree = "<group>"; };
+		68A251970D7DE73300007CBD /* APlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APlot.h; sourceTree = "<group>"; };
+		68A251980D7DEE9700007CBD /* AVisualPrimitive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVisualPrimitive.h; sourceTree = "<group>"; };
+		68A251990D7DF2BA00007CBD /* AAxis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AAxis.h; sourceTree = "<group>"; };
+		68A2519A0D7DF62600007CBD /* AScatterPlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AScatterPlot.h; sourceTree = "<group>"; };
 		68BF1BC10D79C43A0095B772 /* CocoaApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaApp.h; sourceTree = "<group>"; };
 		68BF1BC20D79C43A0095B772 /* CocoaApp.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CocoaApp.mm; sourceTree = "<group>"; };
 		68BF1BC30D79C43A0095B772 /* CocoaView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaView.h; sourceTree = "<group>"; };
@@ -155,6 +160,11 @@
 				68C25C9C0D7B5E3F0065C27A /* AVector.h */,
 				68C25C9D0D7B68190065C27A /* ATools.h */,
 				68C25C9E0D7B68190065C27A /* ATools.c */,
+				68A251960D7DE72800007CBD /* AScale.h */,
+				68A251970D7DE73300007CBD /* APlot.h */,
+				68A251980D7DEE9700007CBD /* AVisualPrimitive.h */,
+				68A251990D7DF2BA00007CBD /* AAxis.h */,
+				68A2519A0D7DF62600007CBD /* AScatterPlot.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";
