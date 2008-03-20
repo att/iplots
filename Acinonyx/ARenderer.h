@@ -43,14 +43,19 @@ public:
 
 	void begin() {
 		glViewport(0.0f, 0.0f, _frame.width, _frame.height);
-		glClearColor(0.0, 0.0, 0.0, 0);
-		//glClearColor(1, 1, 0.7, 0);
+		//glClearColor(0.0, 0.0, 0.0, 0);
+		glClearColor(1, 1, 0.7, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glPushMatrix();
+		// change coordinates to graphics coords
+		glTranslatef(-1, -1, 0);
+		glScalef( 2.0 / _frame.width, 2.0 / _frame.height, 1);
+		// anti-aliasing trick
+		glTranslatef(0.5, 0.5, 0.0); // subpixel shift to make sure that lines don't wash over two integration regions. However, filled areas are probably still in trouble
 	}
 	
 	void end() {
@@ -58,11 +63,15 @@ public:
 		glFlush();
 	}
 	
+	void color(AColor c) {
+		glColor4f(c.r, c.g, c.b, c.a);
+	}
+
 	void color(GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
 		glColor4f(r, g, b, a);
 	}
 
-	void color(AFloat col[4]) {
+	void color(const AFloat col[4]) {
 		glColor4fv(col);
 	}
 	
@@ -83,7 +92,7 @@ public:
 		glEnd();
 	}
 
-	void rect(ARect aRect) { rect(aRect.x, aRect.y, aRect.width, aRect.height); }
+	void rect(ARect aRect) { rect(aRect.x, aRect.y, aRect.x + aRect.width, aRect.y + aRect.height); }
 
 	void rectO(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
 		glBegin(GL_LINE_LOOP);
@@ -91,7 +100,7 @@ public:
 		glEnd();
 	}
 
-	void rectO(ARect aRect) { rectO(aRect.x, aRect.y, aRect.width, aRect.height); }
+	void rectO(ARect aRect) { rectO(aRect.x, aRect.y, aRect.x + aRect.width, aRect.y + aRect.height); }
 
 	void point(AFloat x, AFloat y) {
 		glBegin(GL_POINTS);

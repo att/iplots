@@ -24,10 +24,10 @@ public:
 	AXAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { }
 	
 	virtual void draw() {
-		color(1.0, 0.0, 0.0, 0.3);
+		color(0.0, 0.0, 1.0, 0.3);
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
-		line(_frame.x + _frame.width, _frame.y, _frame.x + _frame.width, _frame.y + _frame.height);
+		line(_frame.x, _frame.y + _frame.height, _frame.x + _frame.width, _frame.y + _frame.height);
 	}
 };
 
@@ -39,6 +39,6 @@ public:
 		color(1.0, 0.0, 0.0, 0.3);
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
-		line(_frame.x, _frame.y + _frame.height, _frame.x + _frame.width, _frame.y + _frame.height);
+		line(_frame.x + _frame.width, _frame.y, _frame.x + _frame.width, _frame.y + _frame.height);
 	}
 };

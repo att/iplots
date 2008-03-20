@@ -27,10 +27,9 @@ public:
 								defer:NO];
 	if (self) {
 		aWindow = new ACocoaWindow(self, AMkRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
-		NSRect frame = [self frame];
+		NSRect frame = [self contentRectForFrameRect:[self frame]];
 		view = [[CocoaView alloc] initWithFrame:frame];
 		[self setContentView:view];
-		
 	}
 	return self;
 }

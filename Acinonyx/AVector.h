@@ -37,6 +37,8 @@ public:
 	const char *stringAt(vsize_t i) { if (i >= _len) return NULL; const char **x = asStrings(); return x?x[i]:NULL; }
 	double doubleAt(vsize_t i) { if (i >= _len) return NA_double; const double *x = asDoubles(); return x?x[i]:NA_double; }
 	
+	virtual void transformToFloats(AFloat *f, float a, float b) { } // a * data + b
+	virtual void transformToDoubles(double *f, double a, double b) { } // a * data + b
 };
 
 #undef RNS
@@ -86,6 +88,16 @@ public:
 			for (int i=0; i<_len; i++) i_data[i] = (int)_data[i];
 		}
 		return i_data;
+	}
+
+	virtual void transformToFloats(AFloat *f, float a, float b) { // a * data + b
+		for (int i = 0; i < length(); i++)
+			f[i] = _data[i] * a + b;
+	}
+
+	virtual void transformToDoubles(double *f, double a, double b) { // a * data + b
+		for (int i = 0; i < length(); i++)
+			f[i] = _data[i] * a + b;
 	}
 };
 

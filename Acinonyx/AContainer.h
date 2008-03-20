@@ -101,9 +101,9 @@ public:
 		return false;
 	}
 	
-	virtual void resize(ARect frame) {
-		// resize children ...
-		_frame = frame;
+	virtual void moveAndResize(ARect frame) {
+		setFrame(frame);
+		// resize children
 	}
 };
 

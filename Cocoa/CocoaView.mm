@@ -32,11 +32,11 @@ public:
 //		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAColorSize, 24,
 //		NSOpenGLPFAAlphaSize, 8,
-//		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, 1, NSOpenGLPFASamples, 4, /* <- anti-aliasing */
+		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, 1, NSOpenGLPFASamples, 4, /* <- anti-aliasing */
 	0 };
     self = [super initWithFrame:frame pixelFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs]];
     if (self) {
-		ARect aFrame = AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
+		ARect aFrame = AMkRect(0,0,frame.size.width,frame.size.height);
 		// visual = new MyVisual(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
 		float data_x[] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
 		float data_y[] = { 1.0, 2.0, 1.5, 3.0, 5.0, 6.0 };		
@@ -51,12 +51,12 @@ public:
 
 - (void)drawRect:(NSRect)rect {
 	NSRect frame = [self frame];
-	// NSLog(@" frame = %f,%f - %f x %f\n", frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
+	//NSLog(@" frame = %f,%f - %f x %f\n", frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
 
 	/*NSLog(@"OpenGL:\n - vendor = '%s'\n - renderer = '%s'\n - version = '%s'\n - exts = '%s'",
 	glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_EXTENSIONS)); */
 	
-	visual->setFrame(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
+	visual->moveAndResize(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
 	visual->begin();
 	visual->draw();
 	visual->end();

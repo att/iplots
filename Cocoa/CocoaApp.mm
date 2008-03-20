@@ -17,6 +17,9 @@
 	CocoaWindow *window = [[CocoaWindow alloc] initWithContentRect:rect];
     [window makeKeyAndOrderFront:nil];
 	[window setDelegate:self];
+	// no idea why, but the shadow is not there until you cycle the shadow setting...
+	[window setHasShadow:NO];
+	[window setHasShadow:YES];
 }
 
 @end

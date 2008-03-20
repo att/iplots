@@ -20,7 +20,8 @@ class AScatterPlot : public APlot {
 	int nPts;
 public:
 	AScatterPlot(AContainer *parent, ARect frame, int flags, AVector *x, AVector *y) : APlot(parent, frame, flags) {
-		AFloat mLeft = 20.0f, mTop = 10.0f, mBottom = 20.0f, mRight = 10.0f;
+		AFloat mLeft = 30.0f, mTop = 10.0f, mBottom = 20.0f, mRight = 10.0f;
+		// printf("AScatterPlot frame = (%f,%f - %f x %f)\n", _frame.x, _frame.y, _frame.width, _frame.height);
 		nScales = 2;
 		scales = (AScale**) malloc(sizeof(AScale*) * nScales);
 		scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
@@ -44,21 +45,20 @@ public:
 	}
 
 	void update() {
-		const double *xv = scales[0]->data()->asDoubles();
-		const double *yv = scales[1]->data()->asDoubles();
+		//const double *xv = scales[0]->data()->asDoubles();
+		//const double *yv = scales[1]->data()->asDoubles();
 	}
 	
 	virtual void draw() {
 		xa->draw();
 		ya->draw();
 		
-		glPointSize(2.5);
-		AVector *xv = scales[0]->data();
-		AVector *yv = scales[1]->data();
-		printf("xvec=%p, yvec=%p\n", xv, yv);
-		printf("x.flt=%p, y.flt=%p\n", xv->asFloats(), yv->asFloats());
+		glPointSize(5);
+		color(AMkColor(0.0,0.0,0.0,0.6));
+		points(scales[0]->locations(), scales[1]->locations(), scales[0]->data()->length());
+		color(AMkColor(1.0,0.0,0.0,0.5));
+		rect(0.0,0.0,10.0,10.0);
 		
-		points(scales[0]->data()->asFloats(), scales[1]->data()->asFloats(), scales[0]->data()->length());
 	}
 };
 
