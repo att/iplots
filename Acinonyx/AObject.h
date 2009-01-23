@@ -29,6 +29,7 @@ class AObject {
 	int arpp;
 	static int arpe;
 	static AObject *arp[1024];
+	static char desc_buf[512];
 	int refcount;
 #ifdef ODEBUG
 public:
@@ -88,6 +89,38 @@ public:
 		while (arpe > 0 && !arp[arpe]) arpe--;
 	}
 	
+	virtual char *describe() {
+#ifdef ODEBUG
+		snprintf(desc_buf, 512, "<%p %04x %s [%d]>", this, _objectSerial, _className, _classSize);
+#else
+		snprintf(desc_buf, 512, "<AObject %p>", this);
+#endif
+		return desc_buf;
+	}
+	
 };
+
+// Sentinel is the only class outside the AObject hierarchy and its sole purpose is
+// to allow automatic cleanup of locally created objects. It assumes ownership of an object
+// and releases that object as soon as the sentinel itself is released.
+
+class AObjectSentinel {
+public:
+	AObject *o;
+
+	AObjectSentinel(AObject *obj) {
+		o = obj;
+	}
+	
+	~AObjectSentinel() {
+		if (o) o->release();
+	}
+};
+
+// Use LOCAL as follows:
+// AObject *foo = new AObject( ... ); 
+// LOCAL(foo);
+
+#define LOCAL(X) AObjectSentinel local_os_ ## X = AObjectSentinel(X)
 
 #endif

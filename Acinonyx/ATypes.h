@@ -49,7 +49,11 @@ extern "C" {
 	// FIXME: AUndefRange needs a more reasonable definition
 #define AUndefRange AMkRange(0.0f, -1.0f)
 #define AUndefDataRange AMkDataRange(0.0, -1.0)
-	
+
+#define APointsAreEqual(A,B) (((A).x == (B).x) && ((A).y == (B).y))
+#define ASizesAreEqual(A,B) (((A).width == (B).width) && ((A).height == (B).height))
+#define ARectsAreEqual(A,B) (APointsAreEqual(A,B) && ASizesAreEqual(A,B))
+
 #define AEF_BUTTON1 0x001
 #define AEF_BUTTON2 0x002
 #define AEF_BUTTON3 0x004

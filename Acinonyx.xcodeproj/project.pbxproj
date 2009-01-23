@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		687EE55D0D79D281003E56F9 /* AContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 687EE55C0D79D281003E56F9 /* AContainer.cpp */; };
 		687EE6730D7A485B003E56F9 /* AObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 687EE6720D7A485B003E56F9 /* AObject.cpp */; };
+		689250C50F2A25CB00842A4B /* GLString.m in Sources */ = {isa = PBXBuildFile; fileRef = 689250C40F2A25CB00842A4B /* GLString.m */; };
 		68BF1BC50D79C43A0095B772 /* CocoaApp.mm in Sources */ = {isa = PBXBuildFile; fileRef = 68BF1BC20D79C43A0095B772 /* CocoaApp.mm */; };
 		68BF1BC60D79C43A0095B772 /* CocoaView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 68BF1BC40D79C43A0095B772 /* CocoaView.mm */; };
 		68BF1BCC0D79C5DB0095B772 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 68BF1BCA0D79C5DB0095B772 /* MainMenu.xib */; };
@@ -35,6 +36,8 @@
 		687EE5950D79DFAF003E56F9 /* AVisual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVisual.h; sourceTree = "<group>"; };
 		687EE6720D7A485B003E56F9 /* AObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AObject.cpp; sourceTree = "<group>"; };
 		687EE6900D7B0FAB003E56F9 /* ARenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARenderer.h; sourceTree = "<group>"; };
+		689250C30F2A25CB00842A4B /* GLString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLString.h; sourceTree = "<group>"; };
+		689250C40F2A25CB00842A4B /* GLString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLString.m; sourceTree = "<group>"; };
 		68A251960D7DE72800007CBD /* AScale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AScale.h; sourceTree = "<group>"; };
 		68A251970D7DE73300007CBD /* APlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APlot.h; sourceTree = "<group>"; };
 		68A251980D7DEE9700007CBD /* AVisualPrimitive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVisualPrimitive.h; sourceTree = "<group>"; };
@@ -45,7 +48,7 @@
 		68BF1BC30D79C43A0095B772 /* CocoaView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaView.h; sourceTree = "<group>"; };
 		68BF1BC40D79C43A0095B772 /* CocoaView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CocoaView.mm; sourceTree = "<group>"; };
 		68BF1BCB0D79C5DB0095B772 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		68BF1BF40D79C7350095B772 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = ../../../../System/Library/Frameworks/OpenGL.framework; sourceTree = "<group>"; };
+		68BF1BF40D79C7350095B772 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		68BF1C180D79CC900095B772 /* CocoaWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaWindow.h; sourceTree = "<group>"; };
 		68BF1C190D79CC900095B772 /* CocoaWindow.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CocoaWindow.mm; sourceTree = "<group>"; };
 		68BF1C230D79CD770095B772 /* ATypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATypes.h; sourceTree = "<group>"; };
@@ -113,6 +116,8 @@
 		29B97315FDCFA39411CA2CEA /* Cocoa */ = {
 			isa = PBXGroup;
 			children = (
+				689250C30F2A25CB00842A4B /* GLString.h */,
+				689250C40F2A25CB00842A4B /* GLString.m */,
 				68BF1BC10D79C43A0095B772 /* CocoaApp.h */,
 				68BF1BC20D79C43A0095B772 /* CocoaApp.mm */,
 				68BF1BC30D79C43A0095B772 /* CocoaView.h */,
@@ -232,6 +237,7 @@
 				687EE55D0D79D281003E56F9 /* AContainer.cpp in Sources */,
 				687EE6730D7A485B003E56F9 /* AObject.cpp in Sources */,
 				68C25C9F0D7B68190065C27A /* ATools.c in Sources */,
+				689250C50F2A25CB00842A4B /* GLString.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
