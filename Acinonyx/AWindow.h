@@ -39,6 +39,8 @@ public:
 		return false;
 	}
 	
+	virtual void redraw() {};
+	
 	virtual bool canClose() { return true; }
 	virtual void close() {};
 

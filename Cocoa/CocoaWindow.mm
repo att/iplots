@@ -15,6 +15,10 @@ public:
 	ACocoaWindow(CocoaWindow *window, ARect frame) : AWindow(frame) {
 		this->window = window;
 	}
+	
+	virtual void redraw() {
+		[window redraw];
+	}
 };
 
 @implementation CocoaWindow
@@ -30,10 +34,16 @@ public:
 		NSRect frame = [self contentRectForFrameRect:[self frame]];
 		view = [[CocoaView alloc] initWithFrame:frame];
 		[self setContentView:view];
+		[view setAWindow:aWindow];
 	}
 	return self;
 }
 
+- (void) redraw
+{
+	NSLog(@"%@: request redraw", self);
+	[view setNeedsDisplay:YES];
+}
 
 - (void) dealloc
 {

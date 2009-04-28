@@ -98,7 +98,8 @@ public:
 			if (c->o->event(event)) return true;
 			c = c->next;
 		}
-		return false;
+		// if no children handled this, resort to local processing (dispatching to virtual methods)
+		return AVisual::event(event);
 	}
 	
 	virtual void moveAndResize(ARect frame) {

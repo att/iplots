@@ -50,6 +50,7 @@ public:
 	}
 	
 	virtual void draw() {
+		printf("%s: draw\n", describe());
 		xa->draw();
 		ya->draw();
 		
@@ -58,6 +59,17 @@ public:
 		points(scales[0]->locations(), scales[1]->locations(), scales[0]->data()->length());
 		color(AMkColor(1.0,0.0,0.0,0.5));
 		rect(0.0,0.0,10.0,10.0);
+		
+		// FIXME: we should move this up the classes, but currently we don't call super so we can't
+		if (inSelection) {
+			ARect r = AMkRect(selectionStartPoint.x, selectionStartPoint.y, selectionEndPoint.x - selectionStartPoint.x, selectionEndPoint.y - selectionStartPoint.y);
+			if (r.width < 0) { r.x += r.width; r.width = -r.width; }
+			if (r.height < 0) { r.y += r.height; r.height = -r.height; }
+			color(AMkColor(1.0,0.0,0.0,0.3));
+			rect(r);
+			color(AMkColor(1.0,0.0,0.0,1.0));
+			rectO(r);			
+		}
 		
 	}
 };

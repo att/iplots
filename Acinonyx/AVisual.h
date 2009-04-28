@@ -45,7 +45,7 @@ protected:
 
 	void setParent(AContainer *parent) { _parent = parent; }
 public:
-	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(frame), _parent(parent), _flags(flags),
+	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(parent?((ARenderer*)parent)->window:NULL, frame), _parent(parent), _flags(flags),
 	_min_size(AUndefSize), _max_size(AUndefSize) { OCLASS(AVisual) };
 	
 	AContainer *parent() { return _parent; }
@@ -54,7 +54,26 @@ public:
 	bool isContainer() { return (_flags&AVF_CONTAINER)?true:false; }
 	
 	virtual void draw() { }
-	virtual bool event(AEvent event) { return false; }
+
+	virtual bool event(AEvent event) {
+		printf("%s: event(%x,%x,%d,(%g,%g))\n", describe(), event.event, event.flags, event.key, event.location.x, event.location.y);
+		switch (event.event) { // dispatch to virtual event methods
+			case AE_MOUSE_UP: return mouseUp(event);
+			case AE_MOUSE_DOWN: return mouseDown(event);
+			case AE_MOUSE_MOVE: return mouseMove(event);
+			case AE_KEY_UP: return keyUp(event);
+			case AE_KEY_DOWN: return keyDown(event);
+		}
+		return false;
+	}
+	
+	// we split up events for convenience when overriding - this may go to another class or not
+	virtual bool mouseDown(AEvent event) { return false; }
+	virtual bool mouseUp(AEvent event) { return false; }
+	virtual bool mouseMove(AEvent event) { return false; }
+	virtual bool keyDown(AEvent event) { return false; }
+	virtual bool keyUp(AEvent event) { return false; }
+	
 	// NOTE: setFrame inherited from ARenderer is non-virtual, defined in window coordinates and specific for rendering
 	virtual void moveAndResize(ARect frame) { setFrame(frame); }
 };

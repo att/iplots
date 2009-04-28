@@ -25,6 +25,23 @@ public:
 	}
 };
 
+// conversion between Cocoa events and AEvents
+
+static int NSEvent2AEFlags(NSEvent *e) {
+	int flags = 0;
+	NSUInteger ef = [e modifierFlags];
+	if (ef & NSShiftKeyMask) flags |= AEF_SHIFT;
+	if (ef & NSControlKeyMask) flags |= AEF_CTRL;
+	if (ef & NSAlternateKeyMask) flags |= AEF_ALT;
+	if (ef & NSCommandKeyMask) flags |= AEF_META;
+	return flags;
+}
+
+static APoint NSEventLoc2AEPoint(NSEvent *e) {
+	NSPoint pt = [e locationInWindow];
+	return AMkPoint(pt.x, pt.y);
+}
+
 @implementation CocoaView
 
 - (id)initWithFrame:(NSRect)frame {
@@ -75,6 +92,56 @@ public:
 		glEnd();
 	}
 #endif
+}
+
+- (void) setAWindow: (AWindow*) aWin
+{
+	if (visual) visual->window = aWin; // FIXME: memory management?
+}
+
+- (void)mouseDown:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_MOUSE_DOWN, NSEvent2AEFlags(theEvent) | AEF_BUTTON1, 0, NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)rightMouseDown:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_MOUSE_DOWN, NSEvent2AEFlags(theEvent) | AEF_BUTTON2, 0, NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_MOUSE_MOVE, NSEvent2AEFlags(theEvent), 0, NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)mouseDragged:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_MOUSE_MOVE, NSEvent2AEFlags(theEvent) | AEF_BUTTON1, 0, NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)rightMouseDragged:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_MOUSE_MOVE, NSEvent2AEFlags(theEvent) | AEF_BUTTON2, 0, NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_MOUSE_UP, NSEvent2AEFlags(theEvent) | AEF_BUTTON1, 0, NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)rightMouseUp:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_MOUSE_UP, NSEvent2AEFlags(theEvent) | AEF_BUTTON2, 0, NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)keyDown:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_KEY_DOWN, NSEvent2AEFlags(theEvent), [theEvent keyCode], NSEventLoc2AEPoint(theEvent)));
+}
+
+- (void)keyUp:(NSEvent *)theEvent
+{
+	visual->event(AMkEvent(AE_KEY_UP, NSEvent2AEFlags(theEvent), [theEvent keyCode], NSEventLoc2AEPoint(theEvent)));
 }
 
 - (void) dealloc

@@ -14,6 +14,7 @@
 	AVisual *visual;
 }
 
-- (void) drawRect: (NSRect) bounds ;
+- (void) drawRect: (NSRect) bounds;
+- (void) setAWindow: (AWindow*) aWin; // set the AWindow associated with this view
 
 @end

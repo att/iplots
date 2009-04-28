@@ -31,16 +31,26 @@
 
 #include "AObject.h"
 #include <OpenGL/gl.h>
+#include "AWindow.h"
 
 class ARenderer : public AObject {
 protected:
 	ARect _frame; // in window coords
 public:
-	ARenderer(ARect frame) : _frame(frame) { OCLASS(ARenderer) }
+	AWindow *window;
+
+	ARenderer(AWindow *aWindow, ARect frame) : window(aWindow), _frame(frame) { OCLASS(ARenderer) }
 
 	void setFrame(ARect frame) { _frame = frame; }
 	ARect frame() { return _frame; }
 
+	bool containsPoint(APoint pt) { return (!((pt.x < _frame.x) || (pt.y < _frame.y) || (pt.x > _frame.x + _frame.width) || (pt.y > _frame.y + _frame.height))); }
+	bool intersectsRect(ARect r) { return (!((r.x > _frame.x + _frame.width) || (r.x + r.width < _frame.x) || (r.y > _frame.y + _frame.height) || (r.y + r.height < _frame.y))); }
+	
+	void redraw() { if (window) window->redraw(); }
+	
+	// drawing methods
+	
 	void begin() {
 		glViewport(0.0f, 0.0f, _frame.width, _frame.height);
 		//glClearColor(0.0, 0.0, 0.0, 0);

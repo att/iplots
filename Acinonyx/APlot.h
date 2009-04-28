@@ -41,6 +41,49 @@ public:
 		DCLASS(APlot)
 	}
 	//virtual void drawLayer(int l) = 0;
+	
+	// we should move this to another class - this is here for now ...
+	
+	bool inSelection;
+	APoint selectionStartPoint, selectionEndPoint;
+
+	virtual bool mouseDown(AEvent e) {
+		if (!containsPoint(e.location)) return false;
+		if (e.flags & AEF_BUTTON1) {
+			inSelection = true;
+			selectionStartPoint = e.location;
+			return true;
+		}
+		return false;
+	}
+	
+	virtual bool mouseUp(AEvent e) {
+		if ((e.flags & AEF_BUTTON1) && inSelection) {
+			inSelection = false;
+			selectionEndPoint = e.location;
+			ARect r = AMkRect(selectionStartPoint.x, selectionStartPoint.y, selectionEndPoint.x - selectionStartPoint.x, selectionEndPoint.y - selectionStartPoint.y);
+			if (r.width < 0) { r.x += r.width; r.width = -r.width; }
+			if (r.height < 0) { r.y += r.height; r.height = -r.height; }
+			redraw();
+			performSelection(r);
+			return true;
+		}
+		return false;
+	}
+	
+	virtual bool mouseMove(AEvent e) {
+		if (inSelection) {
+			selectionEndPoint = e.location;
+			redraw();
+			return true;
+		}
+		return false;
+	}
+	
+	virtual bool performSelection(ARect where) {
+		printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
+		return false;
+	}
 };
 
 #endif

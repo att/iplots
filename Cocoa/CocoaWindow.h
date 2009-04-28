@@ -18,5 +18,6 @@
 }
 
 - (id) initWithContentRect: (NSRect) rect;
+- (void) redraw;
 
 @end
