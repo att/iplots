@@ -33,11 +33,12 @@ public:
 	AValue(float value) { v.f = value; _type = AVfloat; OCLASS(AValue) }
 	AValue(double value) { v.d = value; _type = AVdouble; OCLASS(AValue) }
 	AValue(bool value) { v.b = value; _type = AVbool; OCLASS(AValue) }
-	~AValue() {
+	virtual ~AValue() {
 		switch (_type) {
 			case AVobj: if (v.o) v.o->release(); break;
 			case AVstr: if (v.s) free(v.s); break;
 		}
+		DCLASS(AValue);
 	}
 	
 	// FIXME: to/from string conversions

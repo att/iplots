@@ -26,8 +26,9 @@ public:
 #pragma mark --- contructor ---
 	AContainer(AContainer *parent, ARect frame, unsigned int flags) : AVisual(parent, frame, flags|AVF_CONTAINER), chRoot(0), chTail(0) { OCLASS(AContainer) }
 
-	~AContainer() {
+	virtual ~AContainer() {
 		removeAll();
+		DCLASS(AContainer);
 	}
 	
 #pragma mark --- child list manipulation ---
