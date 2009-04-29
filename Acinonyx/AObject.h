@@ -39,7 +39,7 @@ public:
 #endif
 
 public:
-	AObject() : refcount(1) {
+	AObject() : arpp(0), refcount(1) {
 #ifdef ODEBUG
 		_objectSerial = _globalObjectSerial++; // the only class handling serials is AObject to make sure that it is called only once
 #endif
@@ -50,7 +50,7 @@ public:
 		DCLASS(AObject)
 	}
 	
-	void retain() { refcount++; }
+	AObject* retain() { refcount++; return this; }
 
 	void release() {
 		if (--refcount < 1 && arpp == 0)
@@ -91,7 +91,7 @@ public:
 	
 	virtual char *describe() {
 #ifdef ODEBUG
-		snprintf(desc_buf, 512, "<%p %04x %s [%d]>", this, _objectSerial, _className, _classSize);
+		snprintf(desc_buf, 512, "<%p/%d %04x %s [%d]>", this, refcount, _objectSerial, _className, _classSize);
 #else
 		snprintf(desc_buf, 512, "<AObject %p>", this);
 #endif

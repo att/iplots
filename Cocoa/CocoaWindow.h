@@ -11,13 +11,15 @@
 
 //struct ACocoaWindow;
 
+class AVisual;
+
 @interface CocoaWindow : NSWindow
 {
 	struct ACocoaWindow *aWindow;
 	CocoaView *view;
 }
 
-- (id) initWithContentRect: (NSRect) rect;
+- (id) initWithContentRect: (NSRect) rect visual: (AVisual*) aVisual;
 - (void) redraw;
 
 @end

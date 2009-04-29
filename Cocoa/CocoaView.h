@@ -14,6 +14,7 @@
 	AVisual *visual;
 }
 
+- (id)initWithFrame:(NSRect)frame visual: (AVisual*) aVisual;
 - (void) drawRect: (NSRect) bounds;
 - (void) setAWindow: (AWindow*) aWin; // set the AWindow associated with this view
 

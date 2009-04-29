@@ -44,7 +44,7 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 
 @implementation CocoaView
 
-- (id)initWithFrame:(NSRect)frame {
+- (id)initWithFrame:(NSRect)frame visual: (AVisual*) aVisual {
 	const NSOpenGLPixelFormatAttribute attrs[] = {
 //		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAColorSize, 24,
@@ -55,13 +55,7 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
     if (self) {
 		ARect aFrame = AMkRect(0,0,frame.size.width,frame.size.height);
 		// visual = new MyVisual(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
-		float data_x[] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-		float data_y[] = { 1.0, 2.0, 1.5, 3.0, 5.0, 6.0 };		
-		AVector *vx = new AFloatVector(data_x, sizeof(data_x)/sizeof(data_x[0]));
-		AVector *vy = new AFloatVector(data_y, sizeof(data_y)/sizeof(data_y[0]));
-		visual = new AScatterPlot(NULL, aFrame, 0, vx, vy);
-		vx->release();
-		vy->release();
+		visual = (AVisual*) aVisual->retain();
     }
     return self;
 }
@@ -146,6 +140,7 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 
 - (void) dealloc
 {
+	NSLog(@"%@: dealloc", self);
 	if (visual) visual->release();
 	[super dealloc];
 }
