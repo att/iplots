@@ -15,6 +15,8 @@
 
 #include "ATypes.h"
 
+extern AColor backgroundColor;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

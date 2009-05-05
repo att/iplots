@@ -36,7 +36,10 @@ public:
 	void setDataRange(ADataRange r) { dr = r; cacheDirty = true;}
 
 	double value(AFloat pos) { return ((double)((pos - gr.begin) / gr.length)) * dr.length + dr.begin; }
+	ADataRange toDataRange(ARange r) { ADataRange d = AMkDataRange(value(r.begin), value(r.begin+r.length)); d.length -= d.begin; return d; }
+
 	AFloat position(double value) { return ((value - dr.begin) / dr.length) * gr.length + gr.begin; }
+	ARange toRange(ADataRange r) { ARange v = AMkRange(position(r.begin), position(r.begin + r.length)); v.length -= v.begin; return v; }
 	
 	AVector *data() { return _data; }
 	AFloat *locations() {

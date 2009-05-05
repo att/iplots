@@ -37,6 +37,10 @@ public:
 		add(*xa);
 		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, scales[1]);
 		add(*ya);
+		// add home zoom entry
+		AZoomEntryBiVar *ze = new AZoomEntryBiVar(scales[0]->dataRange(), scales[1]->dataRange());
+		zoomStack->push(ze);
+		ze->release();
 		OCLASS(AScatterPlot)
 	}
 	
@@ -56,6 +60,30 @@ public:
 	void update() {
 		scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+	}
+	
+	virtual bool performZoom(ARect where) {
+		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
+		if (where.width < 3.0 && where.height < 3.0) { // consider this a single click = zoom out
+			bool homeZoom = zoomStack->isLast();
+			AZoomEntryBiVar *ze = (AZoomEntryBiVar*) ( homeZoom ? zoomStack->peek() : zoomStack->pop());
+			if (!ze) return false;
+			scales[0]->setDataRange(ze->range(0));
+			scales[1]->setDataRange(ze->range(1));
+			if (!homeZoom) ze->release();
+			redraw();
+			return true;
+		} else {
+			// convert where to data ranges
+			AZoomEntryBiVar *ze = new AZoomEntryBiVar(scales[0]->toDataRange(AMkRange(where.x,where.width)), scales[1]->toDataRange(AMkRange(where.y,where.height)));
+			zoomStack->push(ze);
+			scales[0]->setDataRange(ze->range(0));
+			scales[1]->setDataRange(ze->range(1));
+			ze->release();
+			redraw();
+			return true;
+		}
+		return false;
 	}
 	
 	virtual bool performSelection(ARect where, int type) {
@@ -102,9 +130,11 @@ public:
 	
 	virtual void draw() {
 		printf("%s: draw\n", describe());
-		xa->draw();
-		ya->draw();
+		//xa->draw();
+		//ya->draw();
 		
+		//clip(AMkRect(_frame.x + mLeft, _frame.y + mBottom, _frame.width - mLeft - mRight, _frame.height - mTop - mBottom));
+		clip(_frame);
 		glPointSize(ptSize);
 		color(AMkColor(0.0,0.0,0.0,ptAlpha));
 		AFloat *lx = scales[0]->locations();
@@ -118,9 +148,10 @@ public:
 				if (M_TRANS(ms[i]))
 					point(lx[i], ly[i]);
 		}
-		color(AMkColor(0.0,1.0,0.0,0.5));
-		rect(0.0,0.0,10.0,10.0);
-		
+		clipOff();
+		color(AMkColor(backgroundColor.r,backgroundColor.g,backgroundColor.b,0.5));
+		rect(0.0,0.0,mLeft,mBottom);
+		// draw children - in our case axes etc.
 		APlot::draw();
 	}
 };

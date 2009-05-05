@@ -24,6 +24,8 @@ public:
 	AXAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { }
 	
 	virtual void draw() {
+		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
+		rect(_frame);
 		color(0.0, 0.0, 1.0, 0.3);
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
@@ -37,6 +39,8 @@ public:
 	AYAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { }
 	
 	virtual void draw() {
+		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
+		rect(_frame);
 		color(1.0, 0.0, 0.0, 0.3);
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);

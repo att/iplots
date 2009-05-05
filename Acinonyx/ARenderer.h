@@ -57,7 +57,7 @@ public:
 	void begin() {
 		glViewport(0.0f, 0.0f, _frame.width, _frame.height);
 		//glClearColor(0.0, 0.0, 0.0, 0);
-		glClearColor(1, 1, 0.7, 0);
+		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_BLEND);
@@ -145,7 +145,16 @@ public:
 		if (_window) _window->glstring(AMkPoint(x,y), AMkPoint(0,0), txt);
 	}
 	
+	void clip(ARect where) {
+		glScissor(where.x, where.y, where.width, where.height);
+		printf("clip to (%g,%g - %g,%g)\n", where.x, where.y, where.width, where.height);
+		glEnable(GL_SCISSOR_TEST);
+	}
 	
+	void clipOff() {
+		printf("disable clipping\n");
+		glDisable(GL_SCISSOR_TEST);
+	}
 	
 	void points(const AFloat *x, const AFloat *y, int n) {
 		int i = 0;

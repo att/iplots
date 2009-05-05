@@ -9,6 +9,8 @@
 
 #include "ATools.h"
 
+AColor backgroundColor = AMkColor(1.0, 1.0, 0.7, 0.0);
+
 void *memdup(const void *buf, unsigned int len) {
 	void *v = malloc(len);
 	AMEM(v);

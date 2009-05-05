@@ -16,6 +16,7 @@
 #include "AScale.h"
 #include "AVisualPrimitive.h"
 #include "AContainer.h"
+#include "AStack.h"
 #include "ADataVector.h"
 
 #define SEL_REPLACE 0
@@ -24,15 +25,21 @@
 #define SEL_AND     3
 #define SEL_NOT     4
 
+class AZoomEntry : public AObject {
+public:
+	virtual ADataRange range(vsize_t coord) { return AUndefDataRange; };
+};
+
 class APlot : public AContainer {
 protected:
 	AScale **scales;
 	int nScales;
 	
 	AMutableObjectVector *vps;
-	
+	AStack *zoomStack;
+
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), scales(NULL), vps(new AMutableObjectVector(0)) { OCLASS(APlot) }
+	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), scales(NULL), vps(new AMutableObjectVector(0)), zoomStack(new AStack()) { OCLASS(APlot) }
 
 	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), vps(new AMutableObjectVector(0)) {
 		scales = (AScale**) malloc(sizeof(AScale*)*2);
@@ -46,6 +53,7 @@ public:
 			for (int i = 0; i < nScales; i++) scales[i]->release();
 			free(scales);
 		}
+		if (zoomStack) zoomStack->release();
 		if (vps) vps->release();
 		DCLASS(APlot)
 	}
@@ -133,7 +141,7 @@ public:
 			} else if (inZoom) {
 				inZoom = false;
 				inSelection = false;
-				// FIXME: performZoom
+				performZoom(r);
 				redraw();				
 			}
 			return true;
@@ -151,15 +159,37 @@ public:
 	}
 	
 	virtual bool performSelection(ARect where, int type) {
-		printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
+		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
 		return false;
 	}
 
+	virtual bool performZoom(ARect where) {
+		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
+		return false;
+	}
+	
 	virtual void moveAndResize(ARect frame) {
 		if (!ARectsAreEqual(frame, _frame)) {
 			AContainer::moveAndResize(frame);
 			update();
 		}
+	}
+};
+
+class AZoomEntryBiVar : public AZoomEntry {
+protected:
+	ADataRange r[2];
+public:
+	AZoomEntryBiVar(ADataRange r1, ADataRange r2) {
+		r[0] = r1;
+		r[1] = r2;
+		OCLASS(AZoomEntryBiVar)
+	}
+
+	virtual ADataRange range(vsize_t coord) {
+		if (coord == 0) return r[0];
+		if (coord == 1) return r[1];
+		return AUndefDataRange;
 	}
 };
 

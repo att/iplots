@@ -68,7 +68,7 @@ class AObjectVector : public AVector {
 protected:
 	AObject **_data;
 public:
-	AObjectVector(AObject **data, vsize_t len, bool copy) : AVector(len) {
+	AObjectVector(AObject **data, vsize_t len, bool copy = true) : AVector(len) {
 		data = (AObject**) (copy?memdup(data, len * sizeof(AObject*)):data);
 		for (vsize_t i = 0; i < len; i++) if (_data[i]) _data[i]->retain();		
 		OCLASS(AObjectVector);
@@ -118,14 +118,8 @@ class AMutableObjectVector : public AObjectVector {
 protected:
 	vsize_t _alloc;
 public:
-	AMutableObjectVector(vsize_t initSize) : AObjectVector(0, 0, false), _alloc(initSize) {
+	AMutableObjectVector(vsize_t initSize = 16) : AObjectVector(0, 0, false), _alloc(initSize) {
 		if (_alloc < 16) _alloc = 16; // 16 is the minimal size - we never use anything smaller
-		_data = (AObject**) malloc(sizeof(AObject*) * _alloc);
-		AMEM(_data);
-		OCLASS(AMutableObjectVector);
-	}
-
-	AMutableObjectVector() : AObjectVector(0, 0, false), _alloc(16) {
 		_data = (AObject**) malloc(sizeof(AObject*) * _alloc);
 		AMEM(_data);
 		OCLASS(AMutableObjectVector);
