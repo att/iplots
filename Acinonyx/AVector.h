@@ -43,16 +43,161 @@ public:
 
 #undef RNS
 
-class AFloatVector : public AVector {
+class AMarker;
+
+class AObjectWithMarker {
+protected:
+	AMarker *_marker;
+	
+public:
+	AObjectWithMarker(AMarker *m) : _marker(m ? ((AMarker*)((AObject*)m)->retain()) : m) {}
+	virtual ~AObjectWithMarker() { if (_marker) ((AObject*)_marker)->release(); }
+	
+	AMarker *marker() { return _marker; }
+};
+
+class ADataVector : public AVector, public AObjectWithMarker {
+public:
+	ADataVector(AMarker *mark, vsize_t len) : AVector(len), AObjectWithMarker(mark) { OCLASS(ADataVector); };
+	virtual ~ADataVector() {
+		DCLASS(ADataVector);
+	}
+};
+
+class AObjectVector : public AVector {
+protected:
+	AObject **_data;
+public:
+	AObjectVector(AObject **data, vsize_t len, bool copy) : AVector(len) {
+		data = (AObject**) (copy?memdup(data, len * sizeof(AObject*)):data);
+		for (vsize_t i = 0; i < len; i++) if (_data[i]) _data[i]->retain();		
+		OCLASS(AObjectVector);
+	}
+	
+	AObjectVector(AObject *first, ...) : AVector(0) {
+		if (first) {
+			va_list (varg);
+			va_start (varg, first);
+			unsigned int objects = 0;
+			for (AObject *obj = first; obj; obj = va_arg(varg, AObject*))
+				objects++;
+			va_end (varg);
+			_len = objects;
+			_data = (AObject**) malloc(_len * sizeof(AObject*));
+			AMEM(_data);
+			va_start (varg, first);
+			unsigned int i = 0;
+			for (AObject *obj = first; obj; obj = va_arg(varg, AObject*))
+				_data[i++] = obj->retain();
+			va_end (varg);
+		}
+		OCLASS(AObjectVector);
+	}
+
+	virtual ~AObjectVector() {
+		for (vsize_t i = 0; i < _len; i++) if (_data[i]) _data[i]->release();
+		free(_data);
+		DCLASS(AObjectVector);
+	}
+	
+	virtual vsize_t indexOf(AObject *obj) {
+		for (vsize_t i = 0; i < _len; i++)
+			if (_data[i] == obj) return i;
+		return ANotFound;
+	}	
+
+	virtual bool contains(AObject *obj) {
+		return indexOf(obj) != ANotFound;
+	}
+	
+	virtual AObject **asObjects() { return _data; };
+};
+
+// NOTE: mutable vectors are not thread-safe!
+class AMutableObjectVector : public AObjectVector {
+protected:
+	vsize_t _alloc;
+public:
+	AMutableObjectVector(vsize_t initSize) : AObjectVector(0, 0, false), _alloc(initSize) {
+		if (_alloc < 16) _alloc = 16; // 16 is the minimal size - we never use anything smaller
+		_data = (AObject**) malloc(sizeof(AObject*) * _alloc);
+		AMEM(_data);
+		OCLASS(AMutableObjectVector);
+	}
+
+	AMutableObjectVector() : AObjectVector(0, 0, false), _alloc(16) {
+		_data = (AObject**) malloc(sizeof(AObject*) * _alloc);
+		AMEM(_data);
+		OCLASS(AMutableObjectVector);
+	}
+	
+	virtual ~AMutableObjectVector() {
+		removeAll();
+		free(_data);
+		DCLASS(AMutableObjectVector);
+	}
+	
+	// if newSize is smaller than the current length, the vector is truncated
+	virtual void resize(vsize_t newSize) {
+		if (newSize < _len) {
+			for(vsize_t i = newSize; i < _len; i++) if (_data[i]) _data[i]->release();
+			_len = newSize;
+		}
+		_alloc = newSize;
+		if (_alloc < 16) _alloc = 16; // 16 is the minimal size - we never use anything smaller
+		AMEM(_data = realloc(_data, _alloc * sizeof(AObject*)));
+	}
+	
+	virtual vsize_t addObject(AObject *obj) {
+		if (_alloc <= _len)
+			resize(_alloc + (_alloc >> 1));
+		_data[_len++] = obj ? obj->retain() : obj;
+		return _len - 1;
+	}
+	
+	virtual void setObject(vsize_t index, AObject *obj) {
+		if (index >= _alloc)
+			resize(index + 64); // FIXME: this is rather arbitrary - we may think more about it
+		if (_len > index && _data[index]) _data[index]->release(); // replace previously held object
+		while (_len < index) _data[_len++] = 0;
+		_data[index] = obj ? obj->retain() : obj;
+	}
+	
+	virtual void remove(vsize_t index) {
+		if (index >= _len) return;
+		if (_data[index]) _data[index]->release();
+		_len--;
+		if (index == _len) return;
+		memmove(_data + index + 1, _data + index, _len - index);
+	}
+
+	// FIXME: currently it only removes the *first* instance of the object!
+	virtual void removeObject(AObject *obj) {
+		vsize_t i = indexOf(obj);
+		if (i != ANotFound)
+			remove(i);
+	}
+	
+	virtual void removeAll() {
+		for (vsize_t i = 0; i < _len; i++)
+			if (_data[i]) _data[i]->release();
+		_len = 0;
+	}
+};
+
+class AFloatVector : public ADataVector {
 protected:
 	float *_data;
 	double *d_data;
 	int *i_data;
 public:
-	AFloatVector(float *data, vsize_t len, bool copy) : AVector(len), d_data(0), i_data(0) {
+	AFloatVector(AMarker *m, float *data, vsize_t len, bool copy) : ADataVector(m, len), d_data(0), i_data(0) {
 		_data = (float*) (copy?memdup(data, len * sizeof(float)):data); OCLASS(AFloatVector)
 	}
-	AFloatVector(float *data, vsize_t len) : AVector(len), d_data(0), i_data(0) {
+	AFloatVector(float *data, vsize_t len, bool copy) : ADataVector(0, len), d_data(0), i_data(0) {
+		_data = (float*) (copy?memdup(data, len * sizeof(float)):data); OCLASS(AFloatVector)
+	}
+	AFloatVector(float *data, vsize_t len) : ADataVector(0, len), d_data(0), i_data(0) {
 		_data = (float*) memdup(data, len * sizeof(float)); OCLASS(AFloatVector)
 	}
 	
@@ -101,16 +246,19 @@ public:
 	}
 };
 
-class ADoubleVector : public AVector {
+class ADoubleVector : public ADataVector {
 protected:
 	double *_data;
 	float *f_data;
 	int *i_data;
 public:
-	ADoubleVector(double *data, vsize_t len, bool copy) : AVector(len), f_data(0), i_data(0) {
+	ADoubleVector(AMarker *m, double *data, vsize_t len, bool copy) : ADataVector(m, len), f_data(0), i_data(0) {
 		_data = copy?(double*)memdup(data, len * sizeof(double)):data; OCLASS(ADoubleVector)
 	}
-	ADoubleVector(double *data, vsize_t len) : AVector(len), f_data(0), i_data(0) {
+	ADoubleVector(double *data, vsize_t len, bool copy) : ADataVector(0, len), f_data(0), i_data(0) {
+		_data = copy?(double*)memdup(data, len * sizeof(double)):data; OCLASS(ADoubleVector)
+	}
+	ADoubleVector(const double *data, vsize_t len) : ADataVector(0, len), f_data(0), i_data(0) {
 		_data = (double*)memdup(data, len * sizeof(double)); OCLASS(ADoubleVector)
 	}	
 	virtual ~ADoubleVector() {
@@ -137,16 +285,19 @@ public:
 	}
 };
 
-class AIntVector : public AVector {
+class AIntVector : public ADataVector {
 protected:
 	int *_data;
 	double *d_data;
 	float *f_data;
 public:
-	AIntVector(const int *data, vsize_t len, bool copy) : AVector(len), f_data(0), d_data(0) {
+	AIntVector(AMarker *m, const int *data, vsize_t len, bool copy) : ADataVector(m, len), f_data(0), d_data(0) {
 		_data = (int*)(copy?memdup(data, len * sizeof(int)):data); OCLASS(AIntVector)
 	}
-	AIntVector(const int *data, vsize_t len) : AVector(len), f_data(0), d_data(0) {
+	AIntVector(const int *data, vsize_t len, bool copy) : ADataVector(0, len), f_data(0), d_data(0) {
+		_data = (int*)(copy?memdup(data, len * sizeof(int)):data); OCLASS(AIntVector)
+	}
+	AIntVector(const int *data, vsize_t len) : ADataVector(0, len), f_data(0), d_data(0) {
 		_data = (int*)memdup(data, len * sizeof(int)); OCLASS(AIntVector)
 	}
 	

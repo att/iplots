@@ -40,6 +40,8 @@ public:
 	}
 	
 	virtual void redraw() {};
+	virtual void glstring(APoint pt, APoint adj, const char *txt) {}; //  we need some implementation help here since gl cannot draw text
+
 	
 	virtual bool canClose() { return true; }
 	virtual void close() {};

@@ -28,6 +28,7 @@ public:
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
 		line(_frame.x, _frame.y + _frame.height, _frame.x + _frame.width, _frame.y + _frame.height);
+		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y + _frame.height / 2), AMkPoint(0.5,0.5), "X-AXIS");
 	}
 };
 

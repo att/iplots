@@ -36,18 +36,21 @@
 class ARenderer : public AObject {
 protected:
 	ARect _frame; // in window coords
+	AWindow *_window;
 public:
-	AWindow *window;
 
-	ARenderer(AWindow *aWindow, ARect frame) : window(aWindow), _frame(frame) { OCLASS(ARenderer) }
+	ARenderer(AWindow *aWindow, ARect frame) : _window(aWindow), _frame(frame) { OCLASS(ARenderer) }
 
 	void setFrame(ARect frame) { _frame = frame; }
 	ARect frame() { return _frame; }
 
+	AWindow *window() { return _window; }
+	virtual void setWindow(AWindow *win) { _window = win;  }
+	
 	bool containsPoint(APoint pt) { return (!((pt.x < _frame.x) || (pt.y < _frame.y) || (pt.x > _frame.x + _frame.width) || (pt.y > _frame.y + _frame.height))); }
 	bool intersectsRect(ARect r) { return (!((r.x > _frame.x + _frame.width) || (r.x + r.width < _frame.x) || (r.y > _frame.y + _frame.height) || (r.y + r.height < _frame.y))); }
 	
-	void redraw() { if (window) window->redraw(); }
+	void redraw() { if (_window) _window->redraw(); }
 	
 	// drawing methods
 	
@@ -129,6 +132,20 @@ public:
 		}
 		glEnd();
 	}
+	
+	void text(const APoint pt, const char *txt) {
+		if (_window) _window->glstring(pt, AMkPoint(0,0), txt);
+	}
+
+	void text(const APoint pt, const APoint adj, const char *txt) {
+		if (_window) _window->glstring(pt, adj, txt);
+	}
+	
+	void text(AFloat x, AFloat y, const char *txt) {
+		if (_window) _window->glstring(AMkPoint(x,y), AMkPoint(0,0), txt);
+	}
+	
+	
 	
 	void points(const AFloat *x, const AFloat *y, int n) {
 		int i = 0;

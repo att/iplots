@@ -78,9 +78,9 @@ public:
 	}
 	
 	// similar to isChild but checks recursively in container children
-	bool contains(AVisual &obj) {
+	bool contains(AVisual *obj) {
 		chList_t *c = chRoot;
-		while (c && c->o != &obj && !(c->o->isContainer() && ((AContainer*)c->o)->contains(obj))) c = c->next;
+		while (c && c->o != obj && !(c->o->isContainer() && ((AContainer*)c->o)->contains(obj))) c = c->next;
 		return c?true:false;
 		
 	}
@@ -91,6 +91,15 @@ public:
 			c->o->draw();
 			c = c->next;
 		}		
+	}
+
+	virtual void notification(AObject *source, notifid_t nid) {
+		AVisual::notification(source, nid);
+		chList_t *c = chRoot;
+		while (c) {
+			if (c->o != source) c->o->notification(source, nid);
+			c = c->next;
+		}
 	}
 
 	virtual bool event(AEvent event) {
@@ -134,10 +143,10 @@ public:
 			} else
 				cr.x = movX + cr.x / previousFrame.width * frame.width;
 			if (cf & AVF_FIX_TOP)
-				cr.y += movY;
+				cr.y += movY + deltaH;
 			else if (cf & AVF_FIX_HEIGHT) {
 				if (cf & AVF_FIX_BOTTOM)
-					cr.y += movY + deltaH;
+					cr.y += movY;
 				else
 					cr.y += movY + deltaH / 2;
 			} else

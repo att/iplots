@@ -3,7 +3,7 @@
  *  Acinonyx
  *
  *  Created by Simon Urbanek on 3/4/08.
- *  Copyright 2008 __MyCompanyName__. All rights reserved.
+ *  Copyright 2008 Simon Urbanek. All rights reserved.
  *
  */
 
@@ -12,17 +12,24 @@
 
 #include "APlot.h"
 #include "AAxis.h"
+#include "AMarker.h"
 
 class AScatterPlot : public APlot {
+	AMarker *marker;
 	AXAxis *xa;
 	AYAxis *ya;
-	APoint *pts;
-	int nPts;
+	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
+
 public:
-	AScatterPlot(AContainer *parent, ARect frame, int flags, AVector *x, AVector *y) : APlot(parent, frame, flags) {
-		AFloat mLeft = 30.0f, mTop = 10.0f, mBottom = 20.0f, mRight = 10.0f;
+	AScatterPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags) {
+		mLeft = 30.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
+		ptSize = 15.0;
+		ptAlpha = 0.6;
 		// printf("AScatterPlot frame = (%f,%f - %f x %f)\n", _frame.x, _frame.y, _frame.width, _frame.height);
 		nScales = 2;
+		marker = x->marker();
+		if (!marker) marker = y->marker();
+		if (marker) marker->retain();
 		scales = (AScale**) malloc(sizeof(AScale*) * nScales);
 		scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		scales[1] = new AScale(y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
@@ -30,47 +37,79 @@ public:
 		add(*xa);
 		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, scales[1]);
 		add(*ya);
-		nPts = x->length();
-		if (nPts < y->length()) nPts = y->length();
-		pts = (APoint*) malloc(sizeof(APoint) * nPts);
-		AMEM(pts);
 		OCLASS(AScatterPlot)
 	}
 	
 	virtual ~AScatterPlot() {
 		xa->release();
 		ya->release();
-		free(pts);
 		DCLASS(AScatterPlot)
 	}
 
-	void update() {
-		//const double *xv = scales[0]->data()->asDoubles();
-		//const double *yv = scales[1]->data()->asDoubles();
+	// this is subtle and holefully we'll get rid of this, but the constructor may be called with NULL parent so it has no windows and axes are not registered in the hierarchy ...
+	virtual void setWindow(AWindow *win) {
+		APlot::setWindow(win);
+		xa->setWindow(win);
+		ya->setWindow(win);
 	}
 	
+	void update() {
+		scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
+		scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+	}
+	
+	virtual bool performSelection(ARect where, int type) {
+		if (!marker) return false;
+		AFloat *lx = scales[0]->locations();
+		AFloat *ly = scales[1]->locations();
+		vsize_t nPts = scales[0]->data()->length();
+		marker->begin();
+		if (type == SEL_REPLACE)
+			marker->deselectAll();
+		if (type == SEL_XOR) {
+			for (vsize_t i = 0; i < nPts; i++)
+				if (ARectContains(where, AMkPoint(lx[i], ly[i])))
+					marker->selectXOR(i);
+		} else if (type == SEL_NOT) {
+			for (vsize_t i = 0; i < nPts; i++)
+				if (ARectContains(where, AMkPoint(lx[i], ly[i])))
+					marker->deselect(i);
+		} else if (type == SEL_AND) {
+			for (vsize_t i = 0; i < nPts; i++)
+				if (!ARectContains(where, AMkPoint(lx[i], ly[i])))
+					marker->deselect(i);
+		} else {
+			for (vsize_t i = 0; i < nPts; i++)
+				if (ARectContains(where, AMkPoint(lx[i], ly[i])))
+					marker->select(i);
+		}
+		marker->end();
+		redraw();
+		return true;
+	}
+
 	virtual void draw() {
 		printf("%s: draw\n", describe());
 		xa->draw();
 		ya->draw();
 		
-		glPointSize(5);
-		color(AMkColor(0.0,0.0,0.0,0.6));
-		points(scales[0]->locations(), scales[1]->locations(), scales[0]->data()->length());
-		color(AMkColor(1.0,0.0,0.0,0.5));
+		glPointSize(ptSize);
+		color(AMkColor(0.0,0.0,0.0,ptAlpha));
+		AFloat *lx = scales[0]->locations();
+		AFloat *ly = scales[1]->locations();
+		points(lx, ly, scales[0]->data()->length());
+		if (marker) {
+			mark_t *ms = marker->rawMarks();
+			vsize_t n = marker->length();
+			color(AMkColor(1.0,0.0,0.0,1.0));
+			for (vsize_t i = 0; i < n; i++)
+				if (M_TRANS(ms[i]))
+					point(lx[i], ly[i]);
+		}
+		color(AMkColor(0.0,1.0,0.0,0.5));
 		rect(0.0,0.0,10.0,10.0);
 		
-		// FIXME: we should move this up the classes, but currently we don't call super so we can't
-		if (inSelection) {
-			ARect r = AMkRect(selectionStartPoint.x, selectionStartPoint.y, selectionEndPoint.x - selectionStartPoint.x, selectionEndPoint.y - selectionStartPoint.y);
-			if (r.width < 0) { r.x += r.width; r.width = -r.width; }
-			if (r.height < 0) { r.y += r.height; r.height = -r.height; }
-			color(AMkColor(1.0,0.0,0.0,0.3));
-			rect(r);
-			color(AMkColor(1.0,0.0,0.0,1.0));
-			rectO(r);			
-		}
-		
+		APlot::draw();
 	}
 };
 

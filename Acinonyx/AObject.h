@@ -89,6 +89,8 @@ public:
 		while (arpe > 0 && !arp[arpe]) arpe--;
 	}
 	
+	virtual void notification(AObject *source, notifid_t nid) { };
+
 	virtual char *describe() {
 #ifdef ODEBUG
 		snprintf(desc_buf, 512, "<%p/%d %04x %s [%d]>", this, refcount, _objectSerial, _className, _classSize);

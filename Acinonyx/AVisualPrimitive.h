@@ -15,7 +15,9 @@ protected:
 public:
 	AVisualPrimitive() { c = AMkColor(0.0, 0.0, 0.0, 1.0); f = AMkColor(0.0, 0.0, 0.0, 0.0); OCLASS(AVisualPrimitive) }
 	void drawColor(AFloat r, AFloat g, AFloat b, AFloat a) { c = AMkColor(r,g,b,a); }
+	void drawColor(AColor aColor) { c = aColor; }
 	void fillColor(AFloat r, AFloat g, AFloat b, AFloat a) { f = AMkColor(r,g,b,a); }
+	void fillColor(AColor aColor) { f = aColor; }
 	
 	virtual void draw(ARenderer &renderer) = 0;
 };
@@ -26,8 +28,10 @@ public:
 	ALinePrimitive(APoint p1, APoint p2) : _p1(p1), _p2(p2) {}
 
 	virtual void draw(ARenderer &renderer) {
-		if (c.a > 0.0f) renderer.color((AFloat*)(&c));
-		renderer.line(_p1.x, _p1.y, _p2.x, _p2.y);
+		if (c.a > 0.0f) {
+			renderer.color((AFloat*)(&c));
+			renderer.line(_p1.x, _p1.y, _p2.x, _p2.y);
+		}
 	}
 };
 

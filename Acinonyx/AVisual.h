@@ -45,7 +45,7 @@ protected:
 
 	void setParent(AContainer *parent) { _parent = parent; }
 public:
-	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(parent?((ARenderer*)parent)->window:NULL, frame), _parent(parent), _flags(flags),
+	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(parent?((ARenderer*)parent)->window():NULL, frame), _parent(parent), _flags(flags),
 	_min_size(AUndefSize), _max_size(AUndefSize) { OCLASS(AVisual) };
 	
 	AContainer *parent() { return _parent; }
@@ -56,7 +56,9 @@ public:
 	virtual void draw() { }
 
 	virtual bool event(AEvent event) {
+#ifdef EDEBUG
 		printf("%s: event(%x,%x,%d,(%g,%g))\n", describe(), event.event, event.flags, event.key, event.location.x, event.location.y);
+#endif
 		switch (event.event) { // dispatch to virtual event methods
 			case AE_MOUSE_UP: return mouseUp(event);
 			case AE_MOUSE_DOWN: return mouseDown(event);
