@@ -269,19 +269,46 @@ public:
 	}
 	
 	virtual const double *asDouble() { return _data; }		
+
+	virtual ADataRange range() {
+		ADataRange r = AUndefDataRange;
+		if (length()) {
+			double e = r.begin = _data[0];
+			for (int i = 0; i < length(); i++)
+				if (_data[i] < r.begin) r.begin = _data[i]; else if (_data[i] > e) e = _data[i];
+			r.length = e - r.begin;
+		}
+		return r;
+	}
+	
 	virtual const float *asFloats() {
 		if (!f_data) {
 			f_data = (float*) malloc(_len * sizeof(float));
-			for (int i=0; i<_len; i++) f_data[i] = (float)_data[i];
+			AMEM(f_data);
+			for (vsize_t i = 0; i < _len; i++)
+				f_data[i] = (float) _data[i];
 		}
 		return f_data;
 	}
+
 	virtual const int *asInts() {
 		if (!i_data) {
 			i_data = (int*) malloc(_len * sizeof(int));
-			for (int i=0; i<_len; i++) i_data[i] = (int)_data[i];
+			AMEM(i_data);
+			for (vsize_t i = 0; i < _len; i++)
+				i_data[i] = (int)_data[i];
 		}
 		return i_data;
+	}
+	
+	virtual void transformToFloats(AFloat *f, float a, float b) { // a * data + b
+		for (int i = 0; i < length(); i++)
+			f[i] = _data[i] * a + b;
+	}
+	
+	virtual void transformToDoubles(double *f, double a, double b) { // a * data + b
+		for (int i = 0; i < length(); i++)
+			f[i] = _data[i] * a + b;
 	}
 };
 

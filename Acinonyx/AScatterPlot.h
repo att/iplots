@@ -23,7 +23,7 @@ class AScatterPlot : public APlot {
 public:
 	AScatterPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags) {
 		mLeft = 30.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
-		ptSize = 15.0;
+		ptSize = 5.0;
 		ptAlpha = 0.6;
 		// printf("AScatterPlot frame = (%f,%f - %f x %f)\n", _frame.x, _frame.y, _frame.width, _frame.height);
 		nScales = 2;
@@ -88,6 +88,18 @@ public:
 		return true;
 	}
 
+	virtual bool keyDown(AEvent e) {
+		switch (e.key) {
+			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; redraw(); }; break;
+			case KEY_UP: ptSize += 1.0; redraw(); break;
+			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; redraw(); }; break;
+			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; redraw(); } break;
+			default:
+				return false;
+		}
+		return true;
+	}
+	
 	virtual void draw() {
 		printf("%s: draw\n", describe());
 		xa->draw();

@@ -82,6 +82,11 @@ extern "C" {
 #define AE_KEY_UP       0x0202
 #define AE_KEY_TYPED    0x0203
 
+#define KEY_LEFT  123
+#define KEY_RIGHT 124	
+#define KEY_DOWN  125
+#define KEY_UP    126
+	
 // This macro is used after memory allocation to check for out of memory issues
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
 	

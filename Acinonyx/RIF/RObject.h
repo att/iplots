@@ -24,18 +24,26 @@ public:
 	RObject(SEXP rObj) : ptr(rObj) {
 		R_PreserveObject(rObj);
 #ifdef ODEBUG
-		printf("R %08x <- %08x\n", (int) this, (int) rObj);
+		printf("R %08x <- %08x (%d)\n", (int) this, (int) rObj, TYPEOF(rObj));
 #endif
 		OCLASS(RObject);
 	}
 	
 	virtual ~RObject() {
-		R_ReleaseObject(rObj);
+		R_ReleaseObject(ptr);
 #ifdef ODEBUG
-		printf("R %08x -> %08x\n", (int) this, (int) rObj);
+		printf("R %08x -> %08x\n", (int) this, (int) ptr);
 #endif
 		DCLASS(RObject)
 	}
+
+	vsize_t length() { return LENGTH(ptr); }
+	int type() { return TYPEOF(ptr); }
+	
+	bool isNULL() { return (ptr == R_NilValue) || (ptr == NULL); }
+	
+	int *integers() { return INTEGER(ptr); }
+	double *doubles() { return REAL(ptr); }
 
 	SEXP value() { return ptr; }
 };
