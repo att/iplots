@@ -10,6 +10,7 @@
 #include "AVisual.h"
 
 class AAxis : public AVisual {
+protected:
 	AScale *_scale;
 public:
 	AAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AVisual(parent, frame, flags), _scale(scale) { scale->retain(); OCLASS(AAxis) }
@@ -30,7 +31,16 @@ public:
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
 		line(_frame.x, _frame.y + _frame.height, _frame.x + _frame.width, _frame.y + _frame.height);
-		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y + _frame.height / 2), AMkPoint(0.5,0.5), "X-AXIS");
+		line(_frame.x, _frame.y + _frame.height / 2, _frame.x, _frame.y + _frame.height);
+		line(_frame.x + _frame.width, _frame.y + _frame.height / 2, _frame.x + _frame.width, _frame.y + _frame.height);
+		
+		// show outer labels
+		char buf[64];
+		ADataRange dr = _scale->dataRange();
+		snprintf(buf, 64, "%g", dr.begin);
+		text(AMkPoint(_frame.x, _frame.y + _frame.height / 2), AMkPoint(0.0, 0.5), buf);
+		snprintf(buf, 64, "%g", dr.begin + dr.length);
+		text(AMkPoint(_frame.x + _frame.width, _frame.y + _frame.height / 2), AMkPoint(1.0, 0.5), buf);
 	}
 };
 

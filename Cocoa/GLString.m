@@ -335,6 +335,7 @@
 		glEnable (GL_TEXTURE_RECTANGLE_EXT);  
 		
 		glBindTexture (GL_TEXTURE_RECTANGLE_EXT, texName);
+#if FLIP_TEX /* this was the original code but we need a flipped version */
 		glBegin (GL_QUADS);
 		glTexCoord2f (0.0f, 0.0f); // draw upper left in world coordinates
 		glVertex2f (bounds.origin.x, bounds.origin.y);
@@ -348,7 +349,21 @@
 		glTexCoord2f (texSize.width, 0.0f); // draw lower right in world coordinates
 		glVertex2f (bounds.origin.x + bounds.size.width, bounds.origin.y);
 		glEnd ();
+#else
+		glBegin (GL_QUADS);
+		glTexCoord2f (0.0f, 0.0f); // draw upper left in world coordinates
+		glVertex2f (bounds.origin.x, bounds.origin.y + bounds.size.height);
 		
+		glTexCoord2f (0.0f, texSize.height); // draw lower left in world coordinates
+		glVertex2f (bounds.origin.x, bounds.origin.y);
+		
+		glTexCoord2f (texSize.width, texSize.height); // draw upper right in world coordinates
+		glVertex2f (bounds.origin.x + bounds.size.width, bounds.origin.y);
+		
+		glTexCoord2f (texSize.width, 0.0f); // draw lower right in world coordinates
+		glVertex2f (bounds.origin.x + bounds.size.width, bounds.origin.y + bounds.size.height);
+		glEnd ();
+#endif
 		glPopAttrib();
 	}
 }

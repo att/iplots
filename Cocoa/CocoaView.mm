@@ -10,21 +10,6 @@
 
 #include "AScatterPlot.h"
 
-// test class for a visual
-class MyVisual : public AVisual {
-public:
-	MyVisual(ARect frame) : AVisual(NULL, frame, 0) {}
-	
-	virtual void draw() {
-		color(1,1,0.7,1);
-		triP(AMkPoint(-1.0, -1.0),AMkPoint(1.0, -1.0),AMkPoint(1.0, 1.0));
-
-		color(1.0f, 0.0f, 0.0f ,0.5f);
-		triP(AMkPoint(0,1),AMkPoint(-0.2,-0.3),AMkPoint(0.2, -0.3));
-		triP(AMkPoint(-1,0),AMkPoint(1,0),AMkPoint(0,-1));
-	}
-};
-
 // conversion between Cocoa events and AEvents
 
 static int NSEvent2AEFlags(NSEvent *e) {
@@ -61,6 +46,7 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 }
 
 - (void)drawRect:(NSRect)rect {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSRect frame = [self frame];
 	// NSLog(@" frame = %f,%f - %f x %f\n", frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
 
@@ -86,11 +72,12 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 		glEnd();
 	}
 #endif
+	[pool release];
 }
 
 - (void) setAWindow: (AWindow*) aWin
 {
-	if (visual) visual->window = aWin; // FIXME: memory management?
+	if (visual) visual->setWindow(aWin);
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
@@ -137,6 +124,13 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 {
 	visual->event(AMkEvent(AE_KEY_UP, NSEvent2AEFlags(theEvent), [theEvent keyCode], NSEventLoc2AEPoint(theEvent)));
 }
+
+/*
+- (BOOL) performKeyEquivalent: (NSEvent*) event
+{
+	NSLog(@"%@: performKeyEquivalent: %@", self, event);
+	return NO;
+}*/
 
 - (void) dealloc
 {
