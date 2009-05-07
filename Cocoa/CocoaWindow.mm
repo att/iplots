@@ -42,13 +42,14 @@ public:
 	self = [super initWithContentRect:rect
 							styleMask:NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask
 							  backing:NSBackingStoreRetained
-								defer:NO];
+								defer:YES];
 	if (self) {
 		aWindow = new ACocoaWindow(self, AMkRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
 		NSRect frame = [self contentRectForFrameRect:[self frame]];
 		view = [[CocoaView alloc] initWithFrame:frame visual:aVisual];
 		[self setContentView:view];
 		[self makeFirstResponder:view];
+		[self setContentMinSize:NSMakeSize(150.0, 100.0)];
 		[view setAWindow:aWindow];
 	}
 	return self;

@@ -41,16 +41,15 @@ protected:
 	}
 
 public:
-	AMarker(vsize_t len) : AIntVector(0, len, false) {
+	AMarker(vsize_t len) : AIntVector(0, len, false), ANotifierInterface(false) {
 		_len = len;
 		_data = (int*) calloc(sizeof(len), len);
 		AMEM(_data);
-		_dependents = new AMutableObjectVector();
 		OCLASS(AMarker)
 	};
 	
 	virtual ~AMarker() {
-		DCLASS(AMarker);
+		DCLASS(AMarker)
 	};
 	
 	// begin batch transactions - those will be grouped for notification

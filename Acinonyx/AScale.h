@@ -140,7 +140,8 @@ public:
 	
 	vsize_t discreteValue(AFloat pos) {
 		if (gr.length == 0.0) return ANotFound;
-		AFloat width = gr.length / ((AFloat) (n + 1));
+		if (n == 1) return (gr.begin >= pos && gr.begin + gr.length <= pos) ? 0 : ANotFound;
+		AFloat width = gr.length / ((AFloat) (n));
 		int i = (int) ((pos - gr.begin) / width);
 		if (i < 0 || i >= n) return ANotFound;
 		return (vsize_t) permutationAt(i);
@@ -149,20 +150,20 @@ public:
 	AFloat discreteCenter(vsize_t value) {
 		vsize_t i = permutationOf(value);
 		if (i >= n) return ANotFound;
-		AFloat width = gr.length / ((AFloat) (n + 1));
-		return gr.begin + (0.5 + ((AFloat) i)) * width;
+		AFloat width = gr.length / ((AFloat) (n));
+		return gr.begin + (0.5 + (AFloat) i) * width;
 	}
 	
 	ARange discreteRange(vsize_t value) {
 		vsize_t i = permutationOf(value);
 		if (i >= n) return AUndefRange;
-		AFloat width = gr.length / ((AFloat) (n + 1));
+		AFloat width = gr.length / ((AFloat) (n));
 		AFloat left = gr.begin + ((AFloat) i) * width;
 		return AMkRange(left, width);
 	}
 
 	AFloat discreteWidth(vsize_t value) { 
-		return gr.length / ((AFloat) (n + 1));
+		return gr.length / ((AFloat) (n));
 	}
 };
 

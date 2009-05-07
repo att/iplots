@@ -57,7 +57,7 @@ extern "C" {
 #define APointsAreEqual(A,B) (((A).x == (B).x) && ((A).y == (B).y))
 #define ASizesAreEqual(A,B) (((A).width == (B).width) && ((A).height == (B).height))
 #define ARectsAreEqual(A,B) (APointsAreEqual(A,B) && ASizesAreEqual(A,B))
-
+#define ADataRangesAreEqual(A,B) (((A).begin == (B).begin) && ((A).length == (B).length))
 #define ARectContains(A,B) (((B).x >= (A).x) && ((B).x <= (A).x + (A).width) && ((B).y >= (A).y) && ((B).y <= (A).y + (A).width)) 
 	
 #define AEF_BUTTON1 0x001

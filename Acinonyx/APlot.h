@@ -39,9 +39,11 @@ protected:
 	AStack *zoomStack;
 
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), scales(NULL), vps(new AMutableObjectVector(0)), zoomStack(new AStack()) { OCLASS(APlot) }
+	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()) {
+		OCLASS(APlot)
+	}
 
-	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), vps(new AMutableObjectVector(0)) {
+	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), vps(new AMutableObjectVector()) {
 		scales = (AScale**) malloc(sizeof(AScale*)*2);
 		scales[0] = xScale;
 		scales[1] = yScale;

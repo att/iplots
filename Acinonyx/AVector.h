@@ -57,20 +57,29 @@ public:
 };
 
 class ADataVector : public AVector, public AObjectWithMarker {
+	char *_name;
 public:
-	ADataVector(AMarker *mark, vsize_t len) : AVector(len), AObjectWithMarker(mark) { OCLASS(ADataVector); };
+	ADataVector(AMarker *mark, vsize_t len, const char *name = NULL) : AVector(len), AObjectWithMarker(mark) {
+		_name = name ? strdup(name) : NULL;
+		OCLASS(ADataVector);
+	};
 	virtual ~ADataVector() {
+		if (_name) free(_name);
 		DCLASS(ADataVector);
 	}
+	
+	const char *name() { return _name; }
+	void setName(const char *newName) { if (_name) free(_name); _name = strdup(newName); }
 };
 
 class AObjectVector : public AVector {
 protected:
 	AObject **_data;
+	bool retainContents;
 public:
-	AObjectVector(AObject **data, vsize_t len, bool copy = true) : AVector(len) {
+	AObjectVector(AObject **data, vsize_t len, bool copy = true, bool retain = true) : AVector(len), retainContents(retain) {
 		data = (AObject**) (copy?memdup(data, len * sizeof(AObject*)):data);
-		for (vsize_t i = 0; i < len; i++) if (_data[i]) _data[i]->retain();		
+		if (retainContents) for (vsize_t i = 0; i < len; i++) if (_data[i]) _data[i]->retain();		
 		OCLASS(AObjectVector);
 	}
 	
@@ -88,14 +97,14 @@ public:
 			va_start (varg, first);
 			unsigned int i = 0;
 			for (AObject *obj = first; obj; obj = va_arg(varg, AObject*))
-				_data[i++] = obj->retain();
+				_data[i++] = retainContents ? obj->retain() : obj;
 			va_end (varg);
 		}
 		OCLASS(AObjectVector);
 	}
 
 	virtual ~AObjectVector() {
-		for (vsize_t i = 0; i < _len; i++) if (_data[i]) _data[i]->release();
+		if (retainContents) for (vsize_t i = 0; i < _len; i++) if (_data[i]) _data[i]->release();
 		free(_data);
 		DCLASS(AObjectVector);
 	}
@@ -118,7 +127,7 @@ class AMutableObjectVector : public AObjectVector {
 protected:
 	vsize_t _alloc;
 public:
-	AMutableObjectVector(vsize_t initSize = 16) : AObjectVector(0, 0, false), _alloc(initSize) {
+	AMutableObjectVector(vsize_t initSize = 16, bool retain=true) : AObjectVector(0, 0, false, retain), _alloc(initSize) {
 		if (_alloc < 16) _alloc = 16; // 16 is the minimal size - we never use anything smaller
 		_data = (AObject**) malloc(sizeof(AObject*) * _alloc);
 		AMEM(_data);
@@ -126,15 +135,15 @@ public:
 	}
 	
 	virtual ~AMutableObjectVector() {
-		removeAll();
-		free(_data);
+		/* removeAll(); -- actually the superclass already does all this
+		 free(_data); */
 		DCLASS(AMutableObjectVector);
 	}
 	
 	// if newSize is smaller than the current length, the vector is truncated
 	virtual void resize(vsize_t newSize) {
 		if (newSize < _len) {
-			for(vsize_t i = newSize; i < _len; i++) if (_data[i]) _data[i]->release();
+			if (retainContents) for(vsize_t i = newSize; i < _len; i++) if (_data[i]) _data[i]->release();
 			_len = newSize;
 		}
 		_alloc = newSize;
@@ -145,7 +154,7 @@ public:
 	virtual vsize_t addObject(AObject *obj) {
 		if (_alloc <= _len)
 			resize(_alloc + (_alloc >> 1));
-		_data[_len++] = obj ? obj->retain() : obj;
+		_data[_len++] = (retainContents && obj) ? obj->retain() : obj;
 		return _len - 1;
 	}
 	
@@ -154,12 +163,12 @@ public:
 			resize(index + 64); // FIXME: this is rather arbitrary - we may think more about it
 		if (_len > index && _data[index]) _data[index]->release(); // replace previously held object
 		while (_len < index) _data[_len++] = 0;
-		_data[index] = obj ? obj->retain() : obj;
+		_data[index] = (retainContents && obj) ? obj->retain() : obj;
 	}
 	
 	virtual void remove(vsize_t index) {
 		if (index >= _len) return;
-		if (_data[index]) _data[index]->release();
+		if (retainContents && _data[index]) _data[index]->release();
 		_len--;
 		if (index == _len) return;
 		memmove(_data + index + 1, _data + index, _len - index);
@@ -173,8 +182,9 @@ public:
 	}
 	
 	virtual void removeAll() {
-		for (vsize_t i = 0; i < _len; i++)
-			if (_data[i]) _data[i]->release();
+		if (retainContents)
+			for (vsize_t i = 0; i < _len; i++)
+				if (_data[i]) _data[i]->release();
 		_len = 0;
 	}
 };

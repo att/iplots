@@ -26,6 +26,7 @@ extern object_serial_t _globalObjectSerial;
 #endif
 
 class AObject {
+protected:
 	int arpp;
 	static int arpe;
 	static AObject *arp[1024];
@@ -50,9 +51,17 @@ public:
 		DCLASS(AObject)
 	}
 	
-	AObject* retain() { refcount++; return this; }
+	AObject* retain() {
+#ifdef ODEBUG
+		printf("> %08x %06x %s [%d] %d++\n", this, _objectSerial, _className, _classSize, refcount);
+#endif
+		refcount++; return this;
+	}
 
 	void release() {
+#ifdef ODEBUG
+		printf("< %08x %06x %s [%d] %d--\n", this, _objectSerial, _className, _classSize, refcount);
+#endif
 		if (--refcount < 1 && arpp == 0)
 			delete this;
 	}

@@ -173,6 +173,23 @@ public:
 		glEnd();
 	}
 	
+	void lineFrom(AFloat x, AFloat y) {
+		glBegin(GL_LINE_STRIP);
+		glVertex2f(x, y);
+	}
+	
+	void lineBegin() {
+		glBegin(GL_LINE_STRIP);
+	}
+		
+	void lineTo(AFloat x, AFloat y) {
+		glVertex2f(x, y);
+	}
+	
+	void lineEnd() {
+		glEnd();
+	}
+	
 	void polyV(const AFloat *x, const AFloat *y, int n) {
 		int i = 0;
 		while (i < n) {

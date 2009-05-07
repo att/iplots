@@ -154,6 +154,16 @@ public:
 		// draw children - in our case axes etc.
 		APlot::draw();
 	}
+
+	virtual char *describe() {
+#ifdef ODEBUG
+		snprintf(desc_buf, 512, "<%p/%d %04x %s [%d]>", this, refcount, _objectSerial, _className, _classSize);
+#else
+		snprintf(desc_buf, 512, "<AScatterPlot %p>", this);
+#endif
+		return desc_buf;
+	}
+	
 };
 
 #endif
