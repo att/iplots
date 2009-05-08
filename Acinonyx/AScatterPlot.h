@@ -29,7 +29,10 @@ public:
 		nScales = 2;
 		marker = x->marker();
 		if (!marker) marker = y->marker();
-		if (marker) marker->retain();
+		if (marker) {
+			marker->retain();
+			marker->add(this);
+		}
 		scales = (AScale**) malloc(sizeof(AScale*) * nScales);
 		scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		scales[1] = new AScale(y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
@@ -86,12 +89,12 @@ public:
 		return false;
 	}
 	
-	virtual bool performSelection(ARect where, int type) {
+	virtual bool performSelection(ARect where, int type, bool batch = false) {
 		if (!marker) return false;
 		AFloat *lx = scales[0]->locations();
 		AFloat *ly = scales[1]->locations();
 		vsize_t nPts = scales[0]->data()->length();
-		marker->begin();
+		if (!batch) marker->begin();
 		if (type == SEL_REPLACE)
 			marker->deselectAll();
 		if (type == SEL_XOR) {
@@ -111,8 +114,7 @@ public:
 				if (ARectContains(where, AMkPoint(lx[i], ly[i])))
 					marker->select(i);
 		}
-		marker->end();
-		redraw();
+		if (!batch) marker->end();
 		return true;
 	}
 

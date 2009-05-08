@@ -47,6 +47,9 @@ extern "C" {
 #define AMkEvent(e,f,k,l) ((AEvent) { (e),(f),(k),(l) })
 #define AMkColor(r,g,b,a) ((AColor) { (r),(g),(b),(a) })
 
+#define AMAX(X,Y) (((X) > (Y))?(X):(Y))
+#define AMIN(X,Y) (((X) < (Y))?(X):(Y))
+	
 #define AUndefSize AMkSize(-1.0f, -1.0f)
 	// FIXME: AUndefRange needs a more reasonable definition
 #define AUndefRange AMkRange(0.0f, -1.0f)
@@ -59,6 +62,7 @@ extern "C" {
 #define ARectsAreEqual(A,B) (APointsAreEqual(A,B) && ASizesAreEqual(A,B))
 #define ADataRangesAreEqual(A,B) (((A).begin == (B).begin) && ((A).length == (B).length))
 #define ARectContains(A,B) (((B).x >= (A).x) && ((B).x <= (A).x + (A).width) && ((B).y >= (A).y) && ((B).y <= (A).y + (A).width)) 
+#define ARectsIntersect(A,B) (!((A).x + (A).width < (B).x) || ((A).x > (B).x + (B).width) || ((A).y + (A).height < (B).y) || ((A).y > (B).y + (B).height))
 	
 #define AEF_BUTTON1 0x001
 #define AEF_BUTTON2 0x002

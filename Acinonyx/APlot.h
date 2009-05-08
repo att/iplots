@@ -160,7 +160,8 @@ public:
 		return false;
 	}
 	
-	virtual bool performSelection(ARect where, int type) {
+	// in batch mode the marker's batch mode won't be chenged such that multiple selections can be performed (e.g. selection sequence). The correct usage then is: marker->begin(); performSelection(,,true); ...; marker->end();
+	virtual bool performSelection(ARect where, int type, bool batch = false) {
 		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
 		return false;
 	}

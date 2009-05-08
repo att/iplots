@@ -76,6 +76,7 @@ public:
 		zoomStack->push(ze);
 		ze->release();
 		 */
+		update();
 		OCLASS(AParallelCoordPlot)
 	}
 	
@@ -104,6 +105,15 @@ public:
 		scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		for(vsize_t i = 1; i < nScales; i++)
 			scales[i]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+
+		vsize_t i = 0;
+		while (i < coords) {
+			ptGrid[i] = 0;
+			vsize_t si = scales[0]->permutationAt(i);
+			if (si != ANotFound && !commonScale)
+				ptGrid[i] = scales[si + 2]->locations();
+			i++;
+		}
 	}
 	
 	virtual void draw() {
@@ -119,14 +129,11 @@ public:
 		color(AMkColor(0.0, 0.0, 0.5, 0.4));
 		vsize_t i = 0;
 		while (i < coords) {
-			ptGrid[i] = 0;
 			vsize_t si = scales[0]->permutationAt(i);
 			if (si != ANotFound) {
 				AFloat xpos = scales[0]->discreteCenter(i);
 				ARange gr = scales[si]->range();
 				line(xpos, gr.begin, xpos, gr.length);
-				if (!commonScale)
-					ptGrid[i] = scales[si + 2]->locations();
 			}
 			i++;
 		}
@@ -160,8 +167,68 @@ public:
 			}
 			j++;
 		}
-		
-		
+
 		APlot::draw();
-	}		
+	}
+	
+	virtual bool performSelection(ARect where, int type, bool batch = false) {
+		if (!marker) return false;
+		vsize_t n = _data[0]->length();
+		if (!batch) marker->begin();
+		if (type == SEL_REPLACE)
+			marker->deselectAll();
+		if (type == SEL_XOR) {
+			for (vsize_t i = 0; i < coords; i++)
+				if (ptGrid[i]) {
+					AFloat xpos = scales[0]->discreteCenter(i);
+					if ((xpos >= where.x) && (xpos <= where.x + where.width))
+						for(vsize_t j = 0; j < n; j++)
+							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j])
+								marker->selectXOR(j);
+				}
+		} else if (type == SEL_NOT) {
+			for (vsize_t i = 0; i < coords; i++)
+				if (ptGrid[i]) {
+					AFloat xpos = scales[0]->discreteCenter(i);
+					if ((xpos >= where.x) && (xpos <= where.x + where.width))
+						for(vsize_t j = 0; j < n; j++)
+							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j])
+								marker->deselect(j);
+				}
+		} else if (type == SEL_AND) {
+			// FIXME: check whether this is what we want if more than one axis is selected
+			for (vsize_t i = 0; i < coords; i++)
+				if (ptGrid[i]) {
+					AFloat xpos = scales[0]->discreteCenter(i);
+					if ((xpos >= where.x) && (xpos <= where.x + where.width))
+						for(vsize_t j = 0; j < n; j++)
+							if (!(where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j]))
+								marker->deselect(j);
+				}
+		} else {
+			for (vsize_t i = 0; i < coords; i++)
+				if (ptGrid[i]) {
+					AFloat xpos = scales[0]->discreteCenter(i);
+					if ((xpos >= where.x) && (xpos <= where.x + where.width))
+						for(vsize_t j = 0; j < n; j++)
+							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j])
+								marker->select(j);
+				}
+		}
+		if (!batch) marker->end();
+		return true;
+	}
+	
+	virtual bool keyDown(AEvent e) {
+		switch (e.key) {
+			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; redraw(); }; break;
+			case KEY_UP: ptSize += 1.0; redraw(); break;
+			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; redraw(); }; break;
+			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; redraw(); } break;
+			default:
+				return false;
+		}
+		return true;
+	}
+	
 };

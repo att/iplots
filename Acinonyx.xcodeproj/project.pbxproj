@@ -40,6 +40,7 @@
 		687CA2570FB06D7E00D249DB /* REngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = REngine.cpp; sourceTree = "<group>"; };
 		687CA2DD0FB0762900D249DB /* AStack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AStack.h; sourceTree = "<group>"; };
 		687CA3B80FB1D11000D249DB /* AParallelCoordPlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AParallelCoordPlot.h; sourceTree = "<group>"; };
+		687CA53D0FB447EC00D249DB /* AStatVisual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AStatVisual.h; sourceTree = "<group>"; };
 		687EE55B0D79D281003E56F9 /* AContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AContainer.h; sourceTree = "<group>"; };
 		687EE55C0D79D281003E56F9 /* AContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AContainer.cpp; sourceTree = "<group>"; };
 		687EE55E0D79D319003E56F9 /* AObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AObject.h; sourceTree = "<group>"; };
@@ -181,9 +182,18 @@
 			name = Plots;
 			sourceTree = "<group>";
 		};
+		687CA53A0FB447DA00D249DB /* StatVis */ = {
+			isa = PBXGroup;
+			children = (
+				687CA53D0FB447EC00D249DB /* AStatVisual.h */,
+			);
+			name = StatVis;
+			sourceTree = "<group>";
+		};
 		68BF1C220D79CD440095B772 /* Acinonyx */ = {
 			isa = PBXGroup;
 			children = (
+				687CA53A0FB447DA00D249DB /* StatVis */,
 				687CA1440FAF0F1100D249DB /* Plots */,
 				687A31E00FAA6DC800EAF459 /* RIF */,
 				68BF1C230D79CD770095B772 /* ATypes.h */,
