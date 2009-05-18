@@ -15,8 +15,21 @@
 #define R_NO_REMAP 1
 #define USE_RINTERNALS 1
 
+/*-- we need to re-map our DEBUG --*/
+#ifdef DEBUG
+#define A_DEBUG 1
+#undef DEBUG
+#endif
+
 #include <R.h>
 #include <Rinternals.h>
+
+#ifdef DEBUG
+#undef DEBUG
+#ifdef A_DEBUG
+#define DEBUG
+#endif
+#endif
 
 class RObject : public AObject {
 	SEXP ptr;

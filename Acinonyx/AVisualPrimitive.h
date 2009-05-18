@@ -3,11 +3,15 @@
  *  Acinonyx
  *
  *  Created by Simon Urbanek on 3/4/08.
- *  Copyright 2008 __MyCompanyName__. All rights reserved.
+ *  Copyright 2008 Simon Urbanek. All rights reserved.
  *
  */
 
+#ifndef A_VISUAL_PRIMITIVE_H
+#define A_VISUAL_PRIMITIVE_H
+
 #include "ARenderer.h"
+#include "AMarker.h"
 
 class AVisualPrimitive : public AObject {
 protected:
@@ -21,9 +25,11 @@ public:
 	
 	virtual void draw(ARenderer &renderer) = 0;
 	
+	virtual void update() { };
 	virtual char *query(int level) { return NULL; }
 	virtual bool containsPoint(APoint pt) { return false; }
 	virtual bool intersects(ARect rect) { return false; }
+	virtual bool select(AMarker *marker, int type) { return false; }
 };
 
 class ALinePrimitive : public AVisualPrimitive {
@@ -81,3 +87,64 @@ public:
 		return ARectContains(_r, pt);
 	}
 };
+
+class APolygonPrimitive : public AVisualPrimitive {
+protected:
+	APoint *_pt;
+	vsize_t _pts;
+public:
+	APolygonPrimitive(APoint *p, vsize_t pts, bool copy=true) : _pts(pts) {
+		_pt = copy ? (APoint*) memdup(p, pts * sizeof(APoint)) : p;
+		AMEM(_pt);
+		OCLASS(APolygonPrimitive)
+	}
+	
+	virtual void draw(ARenderer &renderer) {
+		if (f.a) {
+			renderer.color(f);
+			renderer.polygon(_pt, _pts);
+		}
+		if (c.a) {
+			renderer.color(c);
+			renderer.polyline(_pt, _pts);
+		}
+	}
+	
+//	virtual bool intersects(ARect rect) {
+//	}
+};
+
+class ATextPrimitive : public AVisualPrimitive {
+protected:
+	APoint _pt, _adj;
+	char *_text;
+public:
+	ATextPrimitive(APoint pt, const char *text, bool copy=true) : _pt(pt) {
+		_text = copy ? strdup(text) : (char*) text;
+		_adj = AMkPoint(0.5, 0.5);
+		OCLASS(ATextPrimitive)
+	}
+	
+	virtual ~ATextPrimitive() {
+		free(_text);
+		DCLASS(ATextPrimitive)
+	}
+	
+	virtual void draw(ARenderer &renderer) {
+		if (c.a) {
+			renderer.color(c);
+			renderer.text(_pt, _adj, _text);
+		}
+	}
+	
+	/*
+	virtual bool intersects(ARect rect) {
+		return ARectsIntersect(rect, _r);
+	}
+	
+	virtual bool containsPoint(APoint pt) {
+		return ARectContains(_r, pt);
+	}*/
+};
+
+#endif

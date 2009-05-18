@@ -168,7 +168,7 @@
 		}
 		glPopAttrib();
 	} else
-		NSLog (@"StringTexture -genTexture: Failure to get current OpenGL context\n");
+		NSLog (@"StringTexture -genTexture: Failure to get current OpenGL context");
 	
 	[bitmap release];
 	[image release];
@@ -368,12 +368,45 @@
 	}
 }
 
+- (void) drawAtPoint:(NSPoint)point withAdjustment: (NSPoint) adj rotation: (float) rot
+{
+	if (requiresUpdate)
+		[self genTexture];
+	if (texName) {
+		NSPoint ll, lr, ul, ur;
+		
+		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT); // GL_COLOR_BUFFER_BIT for glBlendFunc, GL_ENABLE_BIT for glEnable / glDisable
+		
+		glDisable (GL_DEPTH_TEST); // ensure text is not remove by depth buffer test.
+		glEnable (GL_BLEND); // for text fading
+		glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // ditto
+		glEnable (GL_TEXTURE_RECTANGLE_EXT);  
+		
+		glBindTexture (GL_TEXTURE_RECTANGLE_EXT, texName);
+		glBegin (GL_QUADS);
+		glTexCoord2f (0.0f, 0.0f); // draw upper left in world coordinates
+		glVertex2f (ul.x, ul.y);
+		
+		glTexCoord2f (0.0f, texSize.height); // draw lower left in world coordinates
+		glVertex2f (ll.x, ll.y);
+		
+		glTexCoord2f (texSize.width, texSize.height); // draw lower right in world coordinates
+		glVertex2f (lr.x, lr.y);
+		
+		glTexCoord2f (texSize.width, 0.0f); // draw upper right in world coordinates
+		glVertex2f (ur.x, ur.y);
+		glEnd ();
+
+		glPopAttrib();
+	}		
+}
+
 - (void) drawAtPoint:(NSPoint)point
 {
 	if (requiresUpdate)
 		[self genTexture]; // ensure size is calculated for bounds
 	if (texName) // if successful
-		[self drawWithBounds:NSMakeRect (point.x, point.y, texSize.width, texSize.height)];
+		[self drawWithBounds:NSMakeRect (point.x, point.y, texSize.width*0.5, texSize.height*0.5)];
 }
 
 @end

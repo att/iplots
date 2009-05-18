@@ -9,8 +9,7 @@
 
 class AParallelCoordPlot : public APlot {
 protected:
-	AMarker *marker;
-	AXAxis *xa; // x-axis (virtual, coords)
+	ADiscreteXAxis *xa; // x-axis (virtual, coords)
 	AYAxis *ca, **ya;
 	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 	vsize_t coords;
@@ -67,7 +66,7 @@ public:
 		ptGrid = (AFloat**) malloc(sizeof(AFloat*) * coords);
 		AMEM(ptGrid);
 		
-		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, scales[0]);
+		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, scales[0]);
 		add(*xa);
 		/* ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, scales[1]);
 		add(*ya); 
@@ -93,14 +92,7 @@ public:
 		// scales get released by APlot destructor
 		DCLASS(AScatterPlot)
 	}
-	
-	// this is subtle and holefully we'll get rid of this, but the constructor may be called with NULL parent so it has no windows and axes are not registered in the hierarchy ...
-	virtual void setWindow(AWindow *win) {
-		APlot::setWindow(win);
-		xa->setWindow(win);
-		//ya->setWindow(win);
-	}
-	
+		
 	void update() {
 		scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		for(vsize_t i = 1; i < nScales; i++)
@@ -117,7 +109,7 @@ public:
 	}
 	
 	virtual void draw() {
-		printf("%s: draw\n", describe());
+		ALog("%s: draw", describe());
 		//xa->draw();
 		//ya->draw();
 		

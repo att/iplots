@@ -61,8 +61,9 @@ extern "C" {
 #define ASizesAreEqual(A,B) (((A).width == (B).width) && ((A).height == (B).height))
 #define ARectsAreEqual(A,B) (APointsAreEqual(A,B) && ASizesAreEqual(A,B))
 #define ADataRangesAreEqual(A,B) (((A).begin == (B).begin) && ((A).length == (B).length))
-#define ARectContains(A,B) (((B).x >= (A).x) && ((B).x <= (A).x + (A).width) && ((B).y >= (A).y) && ((B).y <= (A).y + (A).width)) 
-#define ARectsIntersect(A,B) (!((A).x + (A).width < (B).x) || ((A).x > (B).x + (B).width) || ((A).y + (A).height < (B).y) || ((A).y > (B).y + (B).height))
+#define ARectContains(A,B) (((B).x >= (A).x) && ((B).x <= (A).x + (A).width) && ((B).y >= (A).y) && ((B).y <= (A).y + (A).height)) 
+#define ARectsIntersect(A,B) (!(((A).x + (A).width < (B).x) || ((A).x > (B).x + (B).width) || ((A).y + (A).height < (B).y) || ((A).y > (B).y + (B).height)))
+#define ARect4(X) (X).x, (X).y, (X).width, (X).height
 	
 #define AEF_BUTTON1 0x001
 #define AEF_BUTTON2 0x002
@@ -98,6 +99,14 @@ extern double NA_double;
 extern float NA_float;
 #define NA_int INT_MIN
 
+#ifdef EDEBUG
+#ifdef DEBUG
+#define ELog ALog
+#else
+#define ELog printf
+#endif
+#endif
+	
 #ifdef __cplusplus
 }
 #endif	

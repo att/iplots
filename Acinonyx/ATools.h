@@ -12,10 +12,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "ATypes.h"
 
-extern AColor backgroundColor;
+extern AColor backgroundColor, pointColor, hiliteColor, barColor;
+
+extern long profilerTime, startupTime;
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +26,23 @@ extern "C" {
 
 void *memdup(const void *buf, unsigned int len);
 
+	/*-- profiling support --*/
+#ifdef PROFILE
+#define profStart() profilerTime=time_ms();
+#define _prof(X) X;
+	long time_ms();
+	void profReport(char *fmt, ...);
+#else
+#define profStart()
+#define _prof(X)
+#endif
+
+#ifdef DEBUG
+	void ALog(char *fmt, ...);
+#else
+#define ALog(X, ...)
+#endif
+	
 #ifdef __cplusplus
 }
 #endif

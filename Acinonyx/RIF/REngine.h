@@ -43,21 +43,23 @@ class REngine : public AObject {
 	static REngine *_main;
 	
 public:
-	REngine() {
-		char *argv[] = { "R", "--no-save", "--vanilla", 0 };
-		if (!getenv("R_HOME")) {
+	REngine(bool init_new=true) {
+		if (init_new) {
+			char *argv[] = { "R", "--no-save", "--vanilla", 0 };
+			if (!getenv("R_HOME")) {
 			// FIXME: we use crude guesses for now
 #if __APPLE__
-			setenv("R_HOME", "/Library/Frameworks/R.framework/Resources", 1);
-			if (rarch && !getenv("R_ARCH")) setenv("R_ARCH", rarch, 1);
+				setenv("R_HOME", "/Library/Frameworks/R.framework/Resources", 1);
+				if (rarch && !getenv("R_ARCH")) setenv("R_ARCH", rarch, 1);
 #else
-			setenv("R_HOME","/usr/local/lib/R");
+				setenv("R_HOME","/usr/local/lib/R");
 #endif
+			}
+			int stat = Rf_initialize_R(3, argv);
+			if (stat < 0)
+				fprintf(stderr, "ERROR: cannot start R: %d\n", stat);
+			setup_Rmainloop();
 		}
-		int stat = Rf_initialize_R(3, argv);
-		if (stat < 0)
-			fprintf(stderr, "ERROR: cannot start R: %d\n", stat);
-		setup_Rmainloop();
 		if (!_main) _main = this;
 	}
 	

@@ -22,11 +22,15 @@ public:
 	}
 	
 	virtual void glstring(APoint pt, APoint adj, const char *txt) {
-		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
+		NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont userFontOfSize:20] forKey:NSFontAttributeName];
+		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt] attributes:attr];
+		//NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
 		GLString *gs = [[GLString alloc] initWithAttributedString:str];
 		NSPoint loc = NSMakePoint(pt.x, pt.y);
 		[gs genTexture];
 		NSSize ts = [gs texSize];
+		// rendering hack - we generate a texture double the size to achieve nicer results
+		ts.width *= 0.5; ts.height *= 0.5;
 		if (adj.x) loc.x -= ts.width * adj.x;
 		if (adj.y) loc.y -= ts.height * adj.y;
 		[gs drawAtPoint:loc];
@@ -45,6 +49,7 @@ public:
 								defer:YES];
 	if (self) {
 		aWindow = new ACocoaWindow(self, AMkRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
+		aWindow->setRootVisual(aVisual);
 		NSRect frame = [self contentRectForFrameRect:[self frame]];
 		view = [[CocoaView alloc] initWithFrame:frame visual:aVisual];
 		[self setContentView:view];

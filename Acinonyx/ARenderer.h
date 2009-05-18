@@ -55,6 +55,7 @@ public:
 	// drawing methods
 	
 	void begin() {
+		profStart()
 		glViewport(0.0f, 0.0f, _frame.width, _frame.height);
 		//glClearColor(0.0, 0.0, 0.0, 0);
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
@@ -69,11 +70,14 @@ public:
 		glScalef( 2.0 / _frame.width, 2.0 / _frame.height, 1);
 		// anti-aliasing trick
 		glTranslatef(0.5, 0.5, 0.0); // subpixel shift to make sure that lines don't wash over two integration regions. However, filled areas are probably still in trouble
+		_prof(profReport("$renderer.begin"))
 	}
 	
 	void end() {
+		_prof(profReport("^renderer.end"))
 		glPopMatrix();
 		glFlush();
+		_prof(profReport("$renderer.end"))
 	}
 	
 	void color(AColor c) {
@@ -147,12 +151,12 @@ public:
 	
 	void clip(ARect where) {
 		glScissor(where.x, where.y, where.width, where.height);
-		printf("clip to (%g,%g - %g,%g)\n", where.x, where.y, where.width, where.height);
+		ALog("clip to (%g,%g - %g,%g)", where.x, where.y, where.width, where.height);
 		glEnable(GL_SCISSOR_TEST);
 	}
 	
 	void clipOff() {
-		printf("disable clipping\n");
+		ALog("disable clipping");
 		glDisable(GL_SCISSOR_TEST);
 	}
 	
@@ -198,16 +202,42 @@ public:
 		}
 	}
 	
+	void polyP(const APoint *pt, int n) {
+		int i = 0;
+		while (i < n) {
+			glVertex2f(pt[i].x, pt[i].y);
+			i++;
+		}
+	}
+
+	void polygon(const APoint *pt, int n) {
+		glBegin(GL_POLYGON);
+		polyP(pt, n);
+		glEnd();
+	}
+	
 	void polygon(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_POLYGON);
 		polyV(x, y, n);
 		glEnd();
 	}
 
+	void polygonO(const APoint *pt, int n) {
+		glBegin(GL_LINE_LOOP);
+		polyP(pt, n);
+		glEnd();
+	}
+	
 	void polygonO(const AFloat *x, const AFloat *y, int n) {
 		glBegin(GL_LINE_LOOP);
 		polyV(x, y, n);
 		glEnd();
+	}
+
+	void polyline(const APoint *pt, int n) {
+		glBegin(GL_LINE_STRIP);
+		polyP(pt, n);
+		glEnd();		
 	}
 	
 	void polyline(const AFloat *x, const AFloat *y, int n) {

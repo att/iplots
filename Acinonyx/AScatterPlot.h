@@ -15,7 +15,7 @@
 #include "AMarker.h"
 
 class AScatterPlot : public APlot {
-	AMarker *marker;
+protected:
 	AXAxis *xa;
 	AYAxis *ya;
 	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
@@ -51,13 +51,6 @@ public:
 		xa->release();
 		ya->release();
 		DCLASS(AScatterPlot)
-	}
-
-	// this is subtle and holefully we'll get rid of this, but the constructor may be called with NULL parent so it has no windows and axes are not registered in the hierarchy ...
-	virtual void setWindow(AWindow *win) {
-		APlot::setWindow(win);
-		xa->setWindow(win);
-		ya->setWindow(win);
 	}
 	
 	void update() {
@@ -131,7 +124,7 @@ public:
 	}
 	
 	virtual void draw() {
-		printf("%s: draw\n", describe());
+		ALog("%s: draw", describe());
 		//xa->draw();
 		//ya->draw();
 		

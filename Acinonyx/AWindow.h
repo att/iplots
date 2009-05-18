@@ -18,8 +18,21 @@
 class AWindow : public AObject
 {
 	AObject *modalOwner;
+	AObject *_rootVisual;
 public:
-	AWindow(ARect frame) : modalOwner(0) { OCLASS(AWindow) };
+	AWindow(ARect frame) : modalOwner(0), _rootVisual(0) { OCLASS(AWindow) };
+	virtual ~AWindow() {
+		if (_rootVisual) _rootVisual->release();
+		DCLASS(AWindow)
+	}
+
+	AObject *rootVisual() { return _rootVisual; }
+	
+	void setRootVisual(AObject *rv) {
+		if (_rootVisual) _rootVisual->release();
+		_rootVisual = rv;
+		if (rv) rv->retain();
+	}
 	
 	// enter modal mode with the given owner. returns false if owner is NULL or if already in modal mode by other owner, true otherwise
 	virtual bool enterModal(AObject *owner) {

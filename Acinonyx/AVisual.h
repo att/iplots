@@ -57,7 +57,7 @@ public:
 
 	virtual bool event(AEvent event) {
 #ifdef EDEBUG
-		printf("%s: event(%x,%x,%d,(%g,%g))\n", describe(), event.event, event.flags, event.key, event.location.x, event.location.y);
+		ELog("%s: event(%x,%x,%d,(%g,%g))", describe(), event.event, event.flags, event.key, event.location.x, event.location.y);
 #endif
 		switch (event.event) { // dispatch to virtual event methods
 			case AE_MOUSE_UP: return mouseUp(event);

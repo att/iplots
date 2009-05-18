@@ -85,6 +85,12 @@ public:
 		
 	}
 	
+	virtual void setWindow(AWindow *win) {
+		AVisual::setWindow(win); // set our window and then all children
+		chList_t *c = chRoot;
+		while (c) { if (c->o) c->o->setWindow(win); c = c->next; }
+	}
+	
 	virtual void draw() {
 		chList_t *c = chRoot;
 		while (c) {
@@ -120,9 +126,9 @@ public:
 		AFloat movX = frame.x - _frame.x;
 		AFloat movY = frame.y - _frame.y;
 		
-		printf("%s.moveAndResize: (%f, %f) %f x %f -> (%f, %f) %f x %f\n", describe(),
-		       previousFrame.x, previousFrame.y, previousFrame.width, previousFrame.height,
-		       frame.x, frame.y, frame.width, frame.height);
+		ALog("%s.moveAndResize: (%f, %f) %f x %f -> (%f, %f) %f x %f", describe(),
+			 previousFrame.x, previousFrame.y, previousFrame.width, previousFrame.height,
+			 frame.x, frame.y, frame.width, frame.height);
 		
 		setFrame(frame);
 		
@@ -132,7 +138,7 @@ public:
 			unsigned int cf = c->o->flags();
 			ARect cr = c->o->frame();
 			ARect pr = cr;
-			printf("child frame %s: (%f, %f) (%f x %f) flags: %04x\n", c->o->describe(), cr.x, cr.y, cr.width, cr.height, cf);
+			ALog("child frame %s: (%f, %f) (%f x %f) flags: %04x", c->o->describe(), cr.x, cr.y, cr.width, cr.height, cf);
 			if (cf & AVF_FIX_LEFT)
 				cr.x += movX;
 			else if (cf & AVF_FIX_WIDTH) {
@@ -151,7 +157,7 @@ public:
 					cr.y += movY + deltaH / 2;
 			} else
 				cr.y = movY + cr.y / previousFrame.height * frame.height;
-			printf("  step 1: %f, %f (from %f, %f)\n", cr.x, cr.y, pr.x, pr.y);
+			ALog("  step 1: %f, %f (from %f, %f)", cr.x, cr.y, pr.x, pr.y);
 			if ((cf & AVF_FIX_WIDTH) == 0) { // change width only if it's not fixed
 				if (cf & AVF_FIX_RIGHT)
 					cr.width += deltaW - ( cr.x - pr.x - movX ); // it's delta minus the part taken by previous x adjustment (disregarding movX)
@@ -168,7 +174,7 @@ public:
 				else
 					cr.height = (cr.y + cr.height) * frame.height / previousFrame.height - cr.y;
 			}
-			printf("  step 2: %f x %f (from %f x %f)\n", cr.width, cr.height, pr.width, pr.height);
+			ALog("  step 2: %f x %f (from %f x %f)", cr.width, cr.height, pr.width, pr.height);
 			if (!ARectsAreEqual(cr, pr))
 				c->o->moveAndResize(cr);
 			c = c->next;

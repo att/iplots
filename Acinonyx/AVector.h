@@ -354,6 +354,64 @@ public:
 		}
 		return f_data;
 	}
+	
+	virtual ADataRange range() {
+		ADataRange r = AUndefDataRange;
+		if (length()) {
+			double e = r.begin = _data[0];
+			for (int i = 0; i < length(); i++)
+				if (_data[i] < r.begin) r.begin = _data[i]; else if (_data[i] > e) e = _data[i];
+			r.length = e - r.begin;
+		}
+		return r;
+	}
+	
+	virtual void transformToFloats(AFloat *f, float a, float b) { // a * data + b
+		for (int i = 0; i < length(); i++)
+			f[i] = ((float)_data[i]) * a + b;
+	}
+	
+	virtual void transformToDoubles(double *f, double a, double b) { // a * data + b
+		for (int i = 0; i < length(); i++)
+			f[i] = ((double)_data[i]) * a + b;
+	}	
+};
+
+class AUnivarTable : public AObject {
+protected:
+	vsize_t *_counts;
+	vsize_t _size;
+	vsize_t _other;
+	vsize_t _max;
+public:
+	AUnivarTable(vsize_t size) : _size(size), _other(0), _max(0) {
+		_counts = (vsize_t*) calloc(_size, sizeof(vsize_t));
+		OCLASS(AUnivarTable)
+	}
+		
+	virtual ~AUnivarTable() {
+		free(_counts);
+		DCLASS(AUnivarTable);
+	}
+	
+	vsize_t size() { return _size; }
+	
+	vsize_t *counts() { return _counts; }
+	
+	vsize_t other() { return _other; }
+	
+	vsize_t maxCount() { return _max; }
+	
+	vsize_t count(vsize_t index) { return (index < _size) ? _counts[index] : 0; }
+	
+	void reset() { memset(_counts, 0, sizeof(vsize_t) * _size); _other = 0; _max = 0; }
+	
+	void add(vsize_t entry) {
+		if (entry < _size) {
+			vsize_t c = ++_counts[entry];
+			if (c > _max) _max = c;
+		} else _other++;
+	}
 };
 
 class AFactorVector : public AIntVector {
@@ -361,13 +419,15 @@ protected:
 	char **_names;
 	int _levels;
 	char **s_data;
+	AUnivarTable *_tab;
 public:
-	AFactorVector(const int *data, int len, const char **names, int n_len) : AIntVector(data, len, false), _levels(n_len) {
-		_names = (char**) names; OCLASS(AFactorVector)
+	AFactorVector(AMarker *mark, const int *data, int len, const char **names, int n_len, bool copy=true) : AIntVector(mark, data, len, copy), _levels(n_len), _tab(0) {
+		_names = (char**) (copy ? memdup(names, n_len * sizeof(char*)) : names); OCLASS(AFactorVector)
 	}
 	virtual ~AFactorVector() {
 		for (int i = 0; i < _levels; i++) if (_names[i]) free(_names[i]);
 		free(_names);
+		if (_tab) _tab->release();
 		DCLASS(AFactorVector)
 	}
 	virtual const char **asStrings() {
@@ -377,6 +437,27 @@ public:
 		}
 		return (const char**) s_data;
 	}
+	
+	// FIXME: we'll need to make it virtual in the super class ..
+	virtual const char *stringAt(vsize_t i) {
+		if (i >= _len) return NULL;
+		int l = _data[i];
+		return (l >= 0 && l < _levels) ?  _names[l] : NULL;
+	}
+
+	AUnivarTable *table() {
+		if (!_tab) {
+			_prof(profReport("^AFactorVector.table"))
+			_tab = new AUnivarTable(_levels);
+			for (vsize_t i = 0; i < _len; i++)
+				_tab->add((vsize_t) _data[i]);
+			_prof(profReport("$AFactorVector.table"))
+		}
+		return _tab;
+	}
+	
+	int levels() { return _levels; }
+	char **levelStrings() { return _names; }
 };
 
 // TODO: mutable vectors ( + notification?)

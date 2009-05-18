@@ -37,9 +37,10 @@ protected:
 	
 	AMutableObjectVector *vps;
 	AStack *zoomStack;
-
+	AMarker *marker; // subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives)
+	
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()) {
+	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0) {
 		OCLASS(APlot)
 	}
 
@@ -69,6 +70,7 @@ public:
 			vsize_t i = 0, n = vps->length();
 			while (i < n) {
 				AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
+				ALog("%s: draw", o->describe());
 				o->draw(*this);
 			}
 		}
@@ -78,9 +80,9 @@ public:
 			ARect r = AMkRect(dragStartPoint.x, dragStartPoint.y, dragEndPoint.x - dragStartPoint.x, dragEndPoint.y - dragStartPoint.y);
 			if (r.width < 0) { r.x += r.width; r.width = -r.width; }
 			if (r.height < 0) { r.y += r.height; r.height = -r.height; }
-			if (inSelection)
-				color(AMkColor(1.0,0.0,0.0,0.3));
-			else if (inZoom)
+			if (inSelection) {
+				color(AMkColor(1.0,0.4,0.4,0.5));
+			} else if (inZoom)
 				color(AMkColor(0.0,0.0,1.0,0.3));				
 			rect(r);
 			if (inSelection)
@@ -92,6 +94,27 @@ public:
 		
 		// draw all children
 		AContainer::draw();
+	}
+
+	// in batch mode the marker's batch mode won't be chenged such that multiple selections can be performed (e.g. selection sequence). The correct usage then is: marker->begin(); performSelection(,,true); ...; marker->end();
+	// this implementation uses stat primitives
+	virtual bool performSelection(ARect where, int type, bool batch = false) {
+		if (!marker) return false;
+		if (!vps->length()) return false;
+		if (!batch) marker->begin();
+		if (type == SEL_REPLACE)
+			marker->deselectAll();
+		vsize_t i = 0, n = vps->length();
+		bool pointSelection = (!where.width && !where.height);
+		APoint point = AMkPoint(where.x, where.y);
+		ALog("%s performSelection[%g,%g %g,%g] (point selection: %s)", describe(), ARect4(where), pointSelection?"YES":"NO");
+		while (i < n) {
+			AVisualPrimitive *vp = (AVisualPrimitive*) vps->objectAt(i++);
+			if ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point)))
+				vp->select(marker, type);
+		}
+		if (!batch) marker->end();
+		return true;
 	}
 	
 	virtual void notification(AObject *source, notifid_t nid)
@@ -160,12 +183,6 @@ public:
 		return false;
 	}
 	
-	// in batch mode the marker's batch mode won't be chenged such that multiple selections can be performed (e.g. selection sequence). The correct usage then is: marker->begin(); performSelection(,,true); ...; marker->end();
-	virtual bool performSelection(ARect where, int type, bool batch = false) {
-		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
-		return false;
-	}
-
 	virtual bool performZoom(ARect where) {
 		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
 		return false;
