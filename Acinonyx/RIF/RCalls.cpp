@@ -10,16 +10,21 @@
 #include "RCalls.h"
 
 #include "REngine.h"
-#include "AMarker.h"
-#include "AVisual.h"
+
+#include "AScatterPlot.h"
+#include "AParallelCoordPlot.h"
+#include "ABarChart.h"
 
 extern "C" {
 	SEXP A_Init();
-	SEXP A_RegisterVar(SEXP v);
 	SEXP A_ReleaseObject(SEXP o);
 	SEXP A_MarkerCreate(SEXP len);
-	SEXP A_MarkerAdd(SEXP m);
-	SEXP A_WindowCreate(SEXP);
+	SEXP A_MarkerAdd(SEXP m, SEXP o);
+	SEXP A_WindowCreate(SEXP w, SEXP pos);
+	SEXP A_Describe(SEXP o);
+	SEXP A_VarMark(SEXP v);
+	SEXP A_VarRegister(SEXP v, SEXP mark);
+	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
 }
 
 static void AObjFinalizer(SEXP ref) {
@@ -49,7 +54,7 @@ SEXP A_Init() {
 	return R_NilValue;
 }
 
-SEXP A_RegisterVar(SEXP v, SEXP mark) {
+SEXP A_VarRegister(SEXP v, SEXP mark) {
 	AObject *vo = NULL;
 	AMarker *m = (mark == R_NilValue) ? NULL : (AMarker*) SEXP2A(mark);
 	if (TYPEOF(v) == REALSXP) {
@@ -67,6 +72,18 @@ SEXP A_RegisterVar(SEXP v, SEXP mark) {
 			vo = new AIntVector(m, INTEGER(v), LENGTH(v), true);
 	} else Rf_error("unsupported data type");
 	return A2SEXP(vo);	
+}
+
+SEXP A_VarMark(SEXP v) {
+	ADataVector *dv = (ADataVector*) SEXP2A(v);
+	AMarker *mark = dv->marker();
+	return mark ? A2SEXP(mark) : R_NilValue;
+}
+
+SEXP A_Describe(SEXP o) {
+	AObject *oo = SEXP2A(o);
+	if (oo) return Rf_mkString(oo->describe());
+	return R_NilValue;
 }
 
 SEXP A_ReleaseObject(SEXP v) {
@@ -87,11 +104,34 @@ SEXP A_MarkerAdd(SEXP sM, SEXP sO) {
 	return sM;
 }
 
-void *ACocoa_CreateWindow(AVisual *visual, APoint position);
+#ifndef GLUT
+extern "C" { void *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
 
-SEXP AWindowCreate(SEXP sVis, SEXP sPos)
+SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 {
 	AVisual *vis = (AVisual*) SEXP2A(sVis);
-	void *win = ACocoa_CreateWindow(vis, AMkPoint(REAL(sPos)[0], REAL(sPos)[1]));
+	double *pos = REAL(sPos);
+	void *win = ACocoa_CreateWindow(vis, AMkPoint(pos[0], pos[1]));
 	return PTR2SEXP(win);
+}
+#else
+#include "AGLUTWindow.h"
+
+SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
+{
+	AVisual *vis = (AVisual*) SEXP2A(sVis);
+	double *pos = REAL(sPos);
+	ARect frame = vis->frame();
+	AGLUTWindow *win = new AGLUTWindow(AMkRect(pos[0], pos[1], frame.width, frame.height));
+	return PTR2SEXP(win);
+}
+#endif
+
+SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect)
+{
+	ADataVector *xv = (ADataVector*) SEXP2A(x);
+	ADataVector *yv = (ADataVector*) SEXP2A(y);
+	double *rv = REAL(rect);
+	AScatterPlot *sp = new AScatterPlot(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, xv, yv);
+	return A2SEXP(sp);
 }

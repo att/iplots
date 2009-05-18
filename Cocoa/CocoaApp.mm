@@ -15,6 +15,8 @@
 
 #import "REngine.h"
 
+extern "C" { CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
+
 CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 {
 	ARect aFrame = visual->frame();

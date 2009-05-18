@@ -52,10 +52,11 @@ public:
 		aWindow->setRootVisual(aVisual);
 		NSRect frame = [self contentRectForFrameRect:[self frame]];
 		view = [[CocoaView alloc] initWithFrame:frame visual:aVisual];
+		[view setAWindow:aWindow];
+		[self setOpaque:YES];
 		[self setContentView:view];
 		[self makeFirstResponder:view];
 		[self setContentMinSize:NSMakeSize(150.0, 100.0)];
-		[view setAWindow:aWindow];
 	}
 	return self;
 }

@@ -31,7 +31,7 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 
 - (id)initWithFrame:(NSRect)frame visual: (AVisual*) aVisual {
 	const NSOpenGLPixelFormatAttribute attrs[] = {
-//		NSOpenGLPFAAccelerated,
+		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAColorSize, 24,
 //		NSOpenGLPFAAlphaSize, 8,
 		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, 1, NSOpenGLPFASamples, 4, /* <- anti-aliasing */
@@ -53,25 +53,14 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 	/*NSLog(@"OpenGL:\n - vendor = '%s'\n - renderer = '%s'\n - version = '%s'\n - exts = '%s'",
 	glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_EXTENSIONS)); */
 	
-	visual->moveAndResize(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
+	ARect nvframe = AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
+	ARect vframe = visual->frame();
+	if (!ARectsAreEqual(nvframe, vframe))
+		visual->moveAndResize(nvframe);
 	visual->begin();
 	visual->draw();
 	visual->end();
 
-#if 0
-	glLineWidth(1.0);
-	int y = 0;
-	while (y < 1000) {
-		float x = -1.0f;
-		glBegin( GL_LINE_STRIP );
-		while (x < 1.0f) {
-			glVertex3f(x, sin(x/3.f+((float)y)*0.01), 0.0f);
-			x+= 0.01f;
-		}
-		y++;
-		glEnd();
-	}
-#endif
 	[pool release];
 }
 
@@ -124,6 +113,8 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 {
 	visual->event(AMkEvent(AE_KEY_UP, NSEvent2AEFlags(theEvent), [theEvent keyCode], NSEventLoc2AEPoint(theEvent)));
 }
+
+- (BOOL)isOpaque { return YES; }
 
 /*
 - (BOOL) performKeyEquivalent: (NSEvent*) event

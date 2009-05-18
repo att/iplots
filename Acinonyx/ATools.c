@@ -10,10 +10,10 @@
 #include "ATools.h"
 
 // common color scheme
-AColor backgroundColor = AMkColor(1.0, 1.0, 0.7, 1.0);
-AColor pointColor      = AMkColor(0.0, 0.0, 0.0, 1.0);
-AColor hiliteColor     = AMkColor(1.0, 0.0, 0.0, 1.0);
-AColor barColor        = AMkColor(0.8, 0.8, 0.8, 1.0);
+AColor backgroundColor = { 1.0, 1.0, 0.7, 1.0 };
+AColor pointColor      = { 0.0, 0.0, 0.0, 1.0 };
+AColor hiliteColor     = { 1.0, 0.0, 0.0, 1.0 };
+AColor barColor        = { 0.8, 0.8, 0.8, 1.0 };
 
 void *memdup(const void *buf, unsigned int len) {
 	void *v = malloc(len);

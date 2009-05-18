@@ -32,6 +32,8 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* Acinonyx_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Acinonyx_Prefix.pch; sourceTree = "<group>"; };
+		68249C630FC1C2FD009EAA6B /* AGLUTWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AGLUTWindow.cpp; sourceTree = "<group>"; };
+		68249C640FC1C2FD009EAA6B /* AGLUTWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AGLUTWindow.h; sourceTree = "<group>"; };
 		687A31E30FAA6DF600EAF459 /* RObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RObject.h; sourceTree = "<group>"; };
 		687A31ED0FAA71D500EAF459 /* R.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R.framework; path = /Library/Frameworks/R.framework; sourceTree = "<absolute>"; };
 		687CA1480FAF346B00D249DB /* ANotfier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANotfier.h; sourceTree = "<group>"; };
@@ -197,9 +199,19 @@
 			name = StatVis;
 			sourceTree = "<group>";
 		};
+		688A321E0FC1AFF100532F79 /* GLUT */ = {
+			isa = PBXGroup;
+			children = (
+				68249C630FC1C2FD009EAA6B /* AGLUTWindow.cpp */,
+				68249C640FC1C2FD009EAA6B /* AGLUTWindow.h */,
+			);
+			path = GLUT;
+			sourceTree = SOURCE_ROOT;
+		};
 		68BF1C220D79CD440095B772 /* Acinonyx */ = {
 			isa = PBXGroup;
 			children = (
+				688A321E0FC1AFF100532F79 /* GLUT */,
 				687CA53A0FB447DA00D249DB /* StatVis */,
 				687CA1440FAF0F1100D249DB /* Plots */,
 				687A31E00FAA6DC800EAF459 /* RIF */,

@@ -3,12 +3,24 @@
 
 ASRC = Acinonyx/AContainer.cpp Acinonyx/AObject.cpp Acinonyx/RIF/RCalls.cpp Acinonyx/RIF/REngine.cpp
 CSRC = Acinonyx/ATools.c
-MACSRC = Cocoa/CocoaApp.mm Cocoa/CocoaView.mm Cocoa/CocoaWindow.mm
+MMSRC = Cocoa/CocoaApp.mm Cocoa/CocoaView.mm Cocoa/CocoaWindow.mm
+MSRC = Cocoa/GLString.m
+GLUTSRC = GLUT/AGLUTWindow.cpp
 
-OBJ = $(ASRC:%.cpp=%.o) $(CSRC:%.c=%.o) $(MACSRC:%.mm=%.o)
+OBJ = $(ASRC:%.cpp=%.o) $(CSRC:%.c=%.o) $(MMSRC:%.mm=%.o) $(MSRC:%.m=%.o)
 
-Acinonyx.so: $(ASRC) $(CSRC) $(MACSRC)
+FOBJ=AContainer.o AObject.o ATools.o CocoaApp.o CocoaView.o CocoaWindow.o RCalls.o REngine.o GLString.o
+
+
+Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
 	PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -ICocoa' R CMD SHLIB -o $@ $^
 
+glut.so: $(ASRC) $(CSRC) $(GLUTSRC)
+	PKG_LIBS='-framework GLUT -framework OpenGL' PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -IGLUT -DGLUT' R CMD SHLIB -o $@ $^
+
+#Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
+#	g++ -c -IAcinonyx -IAcinonyx/RIF -ICocoa -I/Library/Frameworks/R.framework/Headers -g -O0 $^
+#	g++ -dynamiclib -Wl,-headerpad_max_install_names -mmacosx-version-min=10.4 -undefined dynamic_lookup -single_module -multiply_defined suppress -o $@ $(FOBJ)
+
 clean:
-	rm -rf $(OBJ) Acynonyx.so
+	rm -rf $(OBJ) $(FOBJ) Acinonyx.so glut.so
