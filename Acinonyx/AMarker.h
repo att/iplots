@@ -35,14 +35,19 @@ typedef unsigned int mark_t;
 class AMarker : public ANotifierInterface, public AIntVector {
 protected:
 	bool _batch;
+	bool _changed;
 	
 	void weChanged() {
-		if (!_batch) sendNotification(this, N_MarkerChanged);
+		if (_changed && !_batch) {
+			sendNotification(this, N_MarkerChanged);
+			_changed = false;
+		}
 	}
 
 public:
 	AMarker(vsize_t len) : AIntVector(0, len, false), ANotifierInterface(false) {
 		_len = len;
+		_changed = false;
 		_data = (int*) calloc(sizeof(len), len);
 		AMEM(_data);
 		OCLASS(AMarker)
@@ -77,38 +82,50 @@ public:
 	};
 	
 	void select(vsize_t index) {
-		if (index < _len)
+		if (index < _len && M_TRANS(_data[index]) == 0) {
 			_data[index] |= M_MARK_BIT;
+			_changed = true;
+		}
 		weChanged();
 	};
 
 	void selectXOR(vsize_t index) {
 		if (index < _len)
 			_data[index] ^= M_MARK_BIT;
+		_changed = true;
 		weChanged();
 	};
 
 	void deselect(vsize_t index) {
-		if (index < _len)
+		if (index < _len && M_TRANS(_data[index])) {
 			_data[index] &= ~M_MARK_BIT;
+			_changed = true;
+		}
 		weChanged();
 	};
 
 	void invertSelection() {
 		for (vsize_t i = 0; i < _len; i++)
 			_data[i] ^= M_MARK_BIT;
+		_changed = true;
 		weChanged();
 	};
 
 	void selectAll() {
 		for (vsize_t i = 0; i < _len; i++)
-			_data[i] |= M_MARK_BIT;
+			if (M_TRANS(_data[i]) == 0) {
+				_changed = true;
+				_data[i] |= M_MARK_BIT;
+			}				
 		weChanged();
 	};
 
 	void deselectAll() {
 		for (vsize_t i = 0; i < _len; i++)
-			_data[i] &= ~M_MARK_BIT;
+			if (M_TRANS(_data[i])) {
+				_changed = true;
+				_data[i] &= ~M_MARK_BIT;
+			}
 		weChanged();
 	};
 	
