@@ -44,7 +44,7 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	AMarker *mark = new AMarker(o->length());
 	ADataVector *vx = new ADoubleVector(mark, o->doubles(), o->length(), true);
 	o->release();
-	o = eng->parseAndEval("y<-rnorm(n)");	
+	o = eng->parseAndEval("y<-rnorm(n)");
 	ADataVector *vy = new ADoubleVector(mark, o->doubles(), o->length(), true);
 	o->release();
 	

@@ -45,7 +45,7 @@ public:
 {
 	self = [super initWithContentRect:rect
 							styleMask:NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask
-							  backing:NSBackingStoreRetained
+							  backing:NSBackingStoreBuffered//NSBackingStoreRetained
 								defer:YES];
 	if (self) {
 		aWindow = new ACocoaWindow(self, AMkRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
@@ -56,6 +56,7 @@ public:
 		[self setOpaque:YES];
 		[self setContentView:view];
 		[self makeFirstResponder:view];
+		[self setAcceptsMouseMovedEvents:YES];
 		[self setContentMinSize:NSMakeSize(150.0, 100.0)];
 	}
 	return self;
@@ -74,6 +75,5 @@ public:
 	if (aWindow) aWindow->release();
 	[super dealloc];
 }
-
 
 @end
