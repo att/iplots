@@ -15,15 +15,36 @@
 #include "AParallelCoordPlot.h"
 #include "ABarChart.h"
 
+// R API to Acinonyx
 extern "C" {
 	SEXP A_Init();
 	SEXP A_ReleaseObject(SEXP o);
+	SEXP A_Describe(SEXP o);
+
 	SEXP A_MarkerCreate(SEXP len);
 	SEXP A_MarkerAdd(SEXP m, SEXP o);
+
 	SEXP A_WindowCreate(SEXP w, SEXP pos);
-	SEXP A_Describe(SEXP o);
+
 	SEXP A_VarMark(SEXP v);
 	SEXP A_VarRegister(SEXP v, SEXP mark);
+	
+	SEXP A_ScaleValue(SEXP sScale, SEXP sPos);
+	SEXP A_ScalePosition(SEXP sScale, SEXP sPos);
+
+	SEXP A_LineCreate(SEXP pos);
+	SEXP A_BarCreate(SEXP pos);
+	SEXP A_PolygonCreate(SEXP sx, SEXP sy);
+
+	SEXP A_VPSetFill(SEXP vp, SEXP col);
+	SEXP A_VPSetColor(SEXP vp, SEXP col);
+
+	SEXP A_PlotPrimitives(SEXP sPlot);
+	SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim);
+	SEXP A_PlotRemovePrimitive(SEXP sPlot, SEXP sPrim);
+	SEXP A_PlotScale(SEXP sPlot, SEXP sSNR);
+	SEXP A_PlotScales(SEXP sPlot);
+
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
 }
 
@@ -53,6 +74,7 @@ static AObject *SEXP2A(SEXP o) {
 SEXP A_Init() {
 	return R_NilValue;
 }
+
 
 SEXP A_VarRegister(SEXP v, SEXP mark) {
 	AObject *vo = NULL;
@@ -102,6 +124,120 @@ SEXP A_MarkerAdd(SEXP sM, SEXP sO) {
 	AObject *o = SEXP2A(sO);
 	m->add(o);
 	return sM;
+}
+
+SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim) {
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	AVisualPrimitive *vp = (AVisualPrimitive*) SEXP2A(sPrim);
+	if (pl && vp) pl->addPrimitive(vp);
+	return sPlot;
+}
+
+SEXP A_PlotRemovePrimitive(SEXP sPlot, SEXP sPrim)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	AVisualPrimitive *vp = (AVisualPrimitive*) SEXP2A(sPrim);
+	if (pl && vp) pl->removePrimitive(vp);
+	return sPlot;
+}
+
+SEXP A_PlotScale(SEXP sPlot, SEXP sSNR)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (pl) {
+		AScale *s = pl->scale(Rf_asInteger(sSNR));
+		if (s) return A2SEXP(s);
+	}
+	return R_NilValue;
+}
+
+SEXP A_PlotScales(SEXP sPlot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	return Rf_ScalarInteger(pl ? pl->scales() : 0);
+}
+
+SEXP A_PlotPrimitives(SEXP sPlot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (pl) {
+		AObjectVector *p = pl->primitives();
+		vsize_t n = p->length();
+		SEXP res = Rf_protect(Rf_allocVector(VECSXP, n));
+		for (vsize_t i = 0; i < n; i++)
+			SET_VECTOR_ELT(res, i, A2SEXP(p->objectAt(i)));
+		UNPROTECT(1);
+		return res;
+	}
+	return R_NilValue;
+}
+
+SEXP A_ScalePosition(SEXP sScale, SEXP sPos) {
+	AScale *s = (AScale*) SEXP2A(sScale);
+	vsize_t n = LENGTH(sPos);
+	SEXP res = Rf_allocVector(REALSXP, n);
+	double *d = REAL(res);
+	double *p = REAL(sPos);
+	if (!s) {
+		memcpy(d, p, sizeof(double) * n);
+		return res;
+	}
+	for(vsize_t i = 0; i < n; i++)
+		d[i] = s->position(p[i]);
+	return res;
+}
+
+SEXP A_ScaleValue(SEXP sScale, SEXP sPos) {
+	AScale *s = (AScale*) SEXP2A(sScale);
+	vsize_t n = LENGTH(sPos);
+	SEXP res = Rf_allocVector(REALSXP, n);
+	double *d = REAL(res);
+	double *p = REAL(sPos);
+	if (!s) {
+		memcpy(d, p, sizeof(double) * n);
+		return res;
+	}
+	for(vsize_t i = 0; i < n; i++)
+		d[i] = s->value(p[i]);
+	return res;
+}
+
+SEXP A_LineCreate(SEXP pos) {
+	double *pp = REAL(pos);
+	ALinePrimitive* p = new ALinePrimitive(AMkPoint(pp[0], pp[1]), AMkPoint(pp[2], pp[3]));
+	return A2SEXP(p);
+}
+
+SEXP A_BarCreate(SEXP pos) {
+	double *pp = REAL(pos);
+	ABarPrimitive* p = new ABarPrimitive(AMkRect(pp[0], pp[1], pp[2], pp[3]));
+	return A2SEXP(p);
+}
+
+SEXP A_PolygonCreate(SEXP sx, SEXP sy) {
+	double *x = REAL(sx),  *y = REAL(sy);
+	APoint *pt = (APoint*) malloc(sizeof(APoint) * LENGTH(sx));
+	vsize_t n = LENGTH(x);
+	for(vsize_t i = 0; i < n; i++)
+		pt[i] = AMkPoint(x[i], y[i]);
+	APolygonPrimitive *p = new APolygonPrimitive(pt, n, false);
+	return A2SEXP(p);
+}
+
+SEXP A_VPSetColor(SEXP vp, SEXP col) {
+	double *c = REAL(col);
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (p) 
+		p->drawColor(c[0], c[1], c[2], c[3]);
+	return R_NilValue;
+}
+
+SEXP A_VPSetFill(SEXP vp, SEXP col) {
+	double *c = REAL(col);
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (p) 
+		p->fillColor(c[0], c[1], c[2], c[3]);
+	return R_NilValue;
 }
 
 #ifndef GLUT

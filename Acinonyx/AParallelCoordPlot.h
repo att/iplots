@@ -53,20 +53,20 @@ public:
 		for (vsize_t ii = 0; ii < coordinates; ii++)
 			_data[ii]->retain();
 		
-		scales = (AScale**) malloc(sizeof(AScale*) * nScales);
-		AMEM(scales);
-		scales[0] = new AScale(NULL, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), coords);
-		scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), computeCommonScaleRange());
+		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		AMEM(_scales);
+		_scales[0] = new AScale(NULL, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), coords);
+		_scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), computeCommonScaleRange());
 		i = 0;
 		while (i < coords) {
-			scales[i + 2] = new AScale(data[i], AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), data[i]->range());
+			_scales[i + 2] = new AScale(data[i], AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), data[i]->range());
 			i++;
 		}
 
 		ptGrid = (AFloat**) malloc(sizeof(AFloat*) * coords);
 		AMEM(ptGrid);
 		
-		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, scales[0]);
+		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
 		add(*xa);
 		/* ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, scales[1]);
 		add(*ya); 
@@ -94,16 +94,16 @@ public:
 	}
 		
 	void update() {
-		scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
+		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		for(vsize_t i = 1; i < nScales; i++)
-			scales[i]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+			_scales[i]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
 
 		vsize_t i = 0;
 		while (i < coords) {
 			ptGrid[i] = 0;
-			vsize_t si = scales[0]->permutationAt(i);
+			vsize_t si = _scales[0]->permutationAt(i);
 			if (si != ANotFound && !commonScale)
-				ptGrid[i] = scales[si + 2]->locations();
+				ptGrid[i] = _scales[si + 2]->locations();
 			i++;
 		}
 	}
@@ -121,10 +121,10 @@ public:
 		color(AMkColor(0.0, 0.0, 0.5, 0.4));
 		vsize_t i = 0;
 		while (i < coords) {
-			vsize_t si = scales[0]->permutationAt(i);
+			vsize_t si = _scales[0]->permutationAt(i);
 			if (si != ANotFound) {
-				AFloat xpos = scales[0]->discreteCenter(i);
-				ARange gr = scales[si]->range();
+				AFloat xpos = _scales[0]->discreteCenter(i);
+				ARange gr = _scales[si]->range();
 				line(xpos, gr.begin, xpos, gr.length);
 			}
 			i++;
@@ -136,7 +136,7 @@ public:
 		while (j < n) {
 			lineBegin();
 			for (vsize_t ci = 0; ci < coords; ci++) {
-				AFloat xpos = scales[0]->discreteCenter(ci);
+				AFloat xpos = _scales[0]->discreteCenter(ci);
 				if (ptGrid[ci])
 					lineTo(xpos, ptGrid[ci][j]);
 			}
@@ -151,7 +151,7 @@ public:
 			if (marker->isSelected(j)) {
 				lineBegin();
 				for (vsize_t ci = 0; ci < coords; ci++) {
-					AFloat xpos = scales[0]->discreteCenter(ci);
+					AFloat xpos = _scales[0]->discreteCenter(ci);
 					if (ptGrid[ci])
 						lineTo(xpos, ptGrid[ci][j]);
 				}
@@ -172,7 +172,7 @@ public:
 		if (type == SEL_XOR) {
 			for (vsize_t i = 0; i < coords; i++)
 				if (ptGrid[i]) {
-					AFloat xpos = scales[0]->discreteCenter(i);
+					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
 							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j])
@@ -181,7 +181,7 @@ public:
 		} else if (type == SEL_NOT) {
 			for (vsize_t i = 0; i < coords; i++)
 				if (ptGrid[i]) {
-					AFloat xpos = scales[0]->discreteCenter(i);
+					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
 							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j])
@@ -191,7 +191,7 @@ public:
 			// FIXME: check whether this is what we want if more than one axis is selected
 			for (vsize_t i = 0; i < coords; i++)
 				if (ptGrid[i]) {
-					AFloat xpos = scales[0]->discreteCenter(i);
+					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
 							if (!(where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j]))
@@ -200,7 +200,7 @@ public:
 		} else {
 			for (vsize_t i = 0; i < coords; i++)
 				if (ptGrid[i]) {
-					AFloat xpos = scales[0]->discreteCenter(i);
+					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
 							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j])

@@ -9,7 +9,11 @@
 
 #include "AWindow.h"
 
+#ifdef __APPLE__
 #include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 
 class AGLUTWindow : public AWindow {
 protected:
@@ -24,8 +28,9 @@ public:
 	
 	virtual void glstring(APoint pt, APoint adj, const char *txt) {
 		int len, i;
-		// FIXME: implement adj, color?
-		glDisable(GL_LIGHTING);
+		//FIXME: implement adj, color?
+		// all this doesn't really work - dunny why ...
+		//glDisable(GL_LIGHTING);
 		glRasterPos2f(pt.x, pt.y);
 		len = (int) strlen(txt);
 		for (i = 0; i < len; i++) {

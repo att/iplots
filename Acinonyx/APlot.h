@@ -32,7 +32,7 @@ public:
 
 class APlot : public AContainer {
 protected:
-	AScale **scales;
+	AScale **_scales;
 	int nScales;
 	
 	AMutableObjectVector *vps;
@@ -40,27 +40,31 @@ protected:
 	AMarker *marker; // subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives)
 	
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0) {
+	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0) {
 		OCLASS(APlot)
 	}
 
 	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), vps(new AMutableObjectVector()) {
-		scales = (AScale**) malloc(sizeof(AScale*)*2);
-		scales[0] = xScale;
-		scales[1] = yScale;
+		_scales = (AScale**) malloc(sizeof(AScale*)*2);
+		_scales[0] = xScale;
+		_scales[1] = yScale;
 		OCLASS(APlot)
 	}
 
 	virtual ~APlot() {
-		if (scales) {
-			for (int i = 0; i < nScales; i++) scales[i]->release();
-			free(scales);
+		if (_scales) {
+			for (int i = 0; i < nScales; i++) _scales[i]->release();
+			free(_scales);
 		}
 		if (zoomStack) zoomStack->release();
 		if (vps) vps->release();
 		DCLASS(APlot)
 	}
 	//virtual void drawLayer(int l) = 0;
+	
+	vsize_t scales() { return nScales; }
+	
+	AScale *scale(vsize_t index) { return (index < nScales) ? _scales[index] : NULL; }
 	
 	virtual void update() { }; // this is called when gemotry update is requested (e.g. on resize)
 	
@@ -101,6 +105,7 @@ public:
 	virtual bool performSelection(ARect where, int type, bool batch = false) {
 		if (!marker) return false;
 		if (!vps->length()) return false;
+		_prof(profReport("^performSelection %s", describe()))
 		if (!batch) marker->begin();
 		if (type == SEL_REPLACE)
 			marker->deselectAll();
@@ -114,6 +119,7 @@ public:
 				vp->select(marker, type);
 		}
 		if (!batch) marker->end();
+		_prof(profReport("$performSelection %s", describe()))
 		return true;
 	}
 	
@@ -126,6 +132,18 @@ public:
 		}
 	}
 
+	void addPrimitive(AVisualPrimitive *vp) {
+		vps->addObject(vp);
+	}
+	
+	void removePrimitive(AVisualPrimitive *vp) {
+		vps->removeObject(vp);
+	}
+	
+	AObjectVector *primitives() {
+		return vps;
+	}
+	
 	// we should move this to another class - this is here for now ...
 	
 	bool inSelection, inZoom;

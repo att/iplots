@@ -32,13 +32,13 @@ public:
 			marker->add(this);
 		}
 		bars = 0;
-		scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
 		AUnivarTable *tab = x->table();
-		scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), bars = x->levels());
-		scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), tab->maxCount());
-		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, scales[0]);
+		_scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), bars = x->levels());
+		_scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), tab->maxCount());
+		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
 		add(*xa);
-		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, scales[1]);
+		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, _scales[1]);
 		add(*ya);
 		createPrimitives();
 		OCLASS(ABarChart)
@@ -51,21 +51,21 @@ public:
 	}
 
 	ARect rectForBar(AUnivarTable *tab, group_t group) {
-		ARange xr = scales[0]->discreteRange((int)group - 1);
+		ARange xr = _scales[0]->discreteRange((int)group - 1);
 		if (!spines && xr.length > 40.0) { xr.begin = xr.begin + xr.length / 2 - 20.0; xr.length = 40.0; }
 		if (xr.length > 5.0) { xr.begin += xr.length * 0.1; xr.length *= 0.8; }
 		if (spines) {
 			double prop = tab->maxCount() ? (((double) tab->count(group)) / ((double) tab->maxCount())) : 0;
 			xr.begin += (1.0 - prop) / 2 * xr.length;
 			xr.length *= prop;
-			ARange gr = scales[1]->range();
+			ARange gr = _scales[1]->range();
 			return AMkRect(xr.begin, gr.begin, xr.length, gr.length);
 		} else
-			return AMkRect(xr.begin, scales[1]->position(0), xr.length, scales[1]->position(tab->count(group)) - scales[1]->position(0));
+			return AMkRect(xr.begin, _scales[1]->position(0), xr.length, _scales[1]->position(tab->count(group)) - _scales[1]->position(0));
 	}
 	
 	void createPrimitives() {
-		AFactorVector *data = (AFactorVector*) scales[0]->data();
+		AFactorVector *data = (AFactorVector*) _scales[0]->data();
 		AUnivarTable *tab = data->table();
 		vps->removeAll();
 		for(vsize_t i = 0; i < bars; i++) {
@@ -77,10 +77,10 @@ public:
 	}
 	
 	void update() {
-		scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
-		scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
+		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
 
-		AFactorVector *data = (AFactorVector*) scales[0]->data();
+		AFactorVector *data = (AFactorVector*) _scales[0]->data();
 		AUnivarTable *tab = data->table();
 		vsize_t i = 0, bars = vps->length();
 		while (i < bars) {

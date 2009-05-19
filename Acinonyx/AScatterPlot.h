@@ -33,15 +33,15 @@ public:
 			marker->retain();
 			marker->add(this);
 		}
-		scales = (AScale**) malloc(sizeof(AScale*) * nScales);
-		scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
-		scales[1] = new AScale(y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
-		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, scales[0]);
+		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		_scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
+		_scales[1] = new AScale(y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
+		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
 		add(*xa);
-		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, scales[1]);
+		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, _scales[1]);
 		add(*ya);
 		// add home zoom entry
-		AZoomEntryBiVar *ze = new AZoomEntryBiVar(scales[0]->dataRange(), scales[1]->dataRange());
+		AZoomEntryBiVar *ze = new AZoomEntryBiVar(_scales[0]->dataRange(), _scales[1]->dataRange());
 		zoomStack->push(ze);
 		ze->release();
 		OCLASS(AScatterPlot)
@@ -54,8 +54,8 @@ public:
 	}
 	
 	void update() {
-		scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
-		scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
+		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
 	}
 	
 	virtual bool performZoom(ARect where) {
@@ -64,17 +64,17 @@ public:
 			bool homeZoom = zoomStack->isLast();
 			AZoomEntryBiVar *ze = (AZoomEntryBiVar*) ( homeZoom ? zoomStack->peek() : zoomStack->pop());
 			if (!ze) return false;
-			scales[0]->setDataRange(ze->range(0));
-			scales[1]->setDataRange(ze->range(1));
+			_scales[0]->setDataRange(ze->range(0));
+			_scales[1]->setDataRange(ze->range(1));
 			if (!homeZoom) ze->release();
 			redraw();
 			return true;
 		} else {
 			// convert where to data ranges
-			AZoomEntryBiVar *ze = new AZoomEntryBiVar(scales[0]->toDataRange(AMkRange(where.x,where.width)), scales[1]->toDataRange(AMkRange(where.y,where.height)));
+			AZoomEntryBiVar *ze = new AZoomEntryBiVar(_scales[0]->toDataRange(AMkRange(where.x,where.width)), _scales[1]->toDataRange(AMkRange(where.y,where.height)));
 			zoomStack->push(ze);
-			scales[0]->setDataRange(ze->range(0));
-			scales[1]->setDataRange(ze->range(1));
+			_scales[0]->setDataRange(ze->range(0));
+			_scales[1]->setDataRange(ze->range(1));
 			ze->release();
 			redraw();
 			return true;
@@ -84,9 +84,9 @@ public:
 	
 	virtual bool performSelection(ARect where, int type, bool batch = false) {
 		if (!marker) return false;
-		AFloat *lx = scales[0]->locations();
-		AFloat *ly = scales[1]->locations();
-		vsize_t nPts = scales[0]->data()->length();
+		AFloat *lx = _scales[0]->locations();
+		AFloat *ly = _scales[1]->locations();
+		vsize_t nPts = _scales[0]->data()->length();
 		if (!batch) marker->begin();
 		if (type == SEL_REPLACE)
 			marker->deselectAll();
@@ -132,9 +132,9 @@ public:
 		clip(_frame);
 		glPointSize(ptSize);
 		color(AMkColor(0.0,0.0,0.0,ptAlpha));
-		AFloat *lx = scales[0]->locations();
-		AFloat *ly = scales[1]->locations();
-		points(lx, ly, scales[0]->data()->length());
+		AFloat *lx = _scales[0]->locations();
+		AFloat *ly = _scales[1]->locations();
+		points(lx, ly, _scales[0]->data()->length());
 		if (marker) {
 			mark_t *ms = marker->rawMarks();
 			vsize_t n = marker->length();

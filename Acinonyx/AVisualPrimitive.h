@@ -88,6 +88,12 @@ public:
 	}
 };
 
+static int isLeft( APoint P0, APoint P1, APoint P2 )
+{
+    return ( (P1.x - P0.x) * (P2.y - P0.y)
+            - (P2.x - P0.x) * (P1.y - P0.y) );
+}
+
 class APolygonPrimitive : public AVisualPrimitive {
 protected:
 	APoint *_pt;
@@ -97,6 +103,11 @@ public:
 		_pt = copy ? (APoint*) memdup(p, pts * sizeof(APoint)) : p;
 		AMEM(_pt);
 		OCLASS(APolygonPrimitive)
+	}
+	
+	virtual ~APolygonPrimitive() {
+		free(_pt);
+		DCLASS(APolygonPrimitive)
 	}
 	
 	virtual void draw(ARenderer &renderer) {
@@ -112,6 +123,47 @@ public:
 	
 //	virtual bool intersects(ARect rect) {
 //	}
+		
+	virtual bool containsPoint(APoint P) {
+		if (_pts < 2) return false;
+		// use the winding rule to determine whether the point is contained
+		int wn = 0;
+		for (vsize_t i = 0; i < _pts - 1; i++) {
+			if (_pt[i].y <= P.y) {
+				if (_pt[i + 1].y > P.y)
+					if (isLeft(_pt[i], _pt[i + 1], P) > 0)
+						++wn;
+			} else {
+				if (_pt[i + 1].y <= P.y)
+					if (isLeft(_pt[i], _pt[i + 1], P) < 0)
+						--wn;
+			}
+		}
+		// finish off with the closing line point[n - 1], point[0]
+		vsize_t i = _pts - 1;
+		if (_pt[i].y <= P.y) {
+			if (_pt[0].y > P.y)
+				if (isLeft(_pt[i], _pt[0], P) > 0)
+					++wn;
+		} else {
+			if (_pt[0].y <= P.y)
+				if (isLeft(_pt[i], _pt[0], P) < 0)
+					--wn;
+		}
+		return (wn != 0);
+		/*
+		bool c = 0;
+		for (vsize_t i = 0, j = _pts - 1; i < _pts; j = i++)
+			if ((((_pt[i].y <= pt.y) && (pt.y < _pt[j].y)) ||
+				 ((_pt[j].y <= pt.y) && (pt.y < _pt[i].y))) &&
+				(pt.x < (_pt[j].x - _pt[i].x) * (pt.y - _pt[i].y) / (_pt[j].y - _pt[i].y) + _pt[i].x))
+				c = !c;
+		return c;
+		 */
+	}
+	
+#undef PNEXT
+	
 };
 
 class ATextPrimitive : public AVisualPrimitive {
