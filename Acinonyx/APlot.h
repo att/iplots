@@ -40,11 +40,11 @@ protected:
 	AMarker *marker; // subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives)
 	
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0) {
+	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false) {
 		OCLASS(APlot)
 	}
 
-	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), vps(new AMutableObjectVector()) {
+	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), vps(new AMutableObjectVector()), inSelection(false), inZoom(false) {
 		_scales = (AScale**) malloc(sizeof(AScale*)*2);
 		_scales[0] = xScale;
 		_scales[1] = yScale;

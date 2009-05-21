@@ -138,15 +138,15 @@ public:
 	}
 	
 	void text(const APoint pt, const char *txt) {
-		if (_window) _window->glstring(pt, AMkPoint(0,0), txt);
+		if (_window) _window->glstring(pt, AMkPoint(0,0), 0.0, txt);
 	}
 
-	void text(const APoint pt, const APoint adj, const char *txt) {
-		if (_window) _window->glstring(pt, adj, txt);
+	void text(const APoint pt, const char *txt, APoint adj, AFloat rot=0.0) {
+		if (_window) _window->glstring(pt, adj, rot, txt);
 	}
 	
-	void text(AFloat x, AFloat y, const char *txt) {
-		if (_window) _window->glstring(AMkPoint(x,y), AMkPoint(0,0), txt);
+	void text(AFloat x, AFloat y, const char *txt, AFloat rot=0.0) {
+		if (_window) _window->glstring(AMkPoint(x,y), AMkPoint(0,0), rot, txt);
 	}
 	
 	void clip(ARect where) {

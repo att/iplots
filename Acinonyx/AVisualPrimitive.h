@@ -185,7 +185,7 @@ public:
 	virtual void draw(ARenderer &renderer) {
 		if (c.a) {
 			renderer.color(c);
-			renderer.text(_pt, _adj, _text);
+			renderer.text(_pt, _text, _adj);
 		}
 	}
 	

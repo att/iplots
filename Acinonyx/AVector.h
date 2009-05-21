@@ -171,7 +171,7 @@ public:
 		if (retainContents && _data[index]) _data[index]->release();
 		_len--;
 		if (index == _len) return;
-		memmove(_data + index + 1, _data + index, _len - index);
+		memmove(_data + index, _data + index + 1, _len - index);
 	}
 
 	// FIXME: currently it only removes the *first* instance of the object!
@@ -383,8 +383,9 @@ protected:
 	vsize_t _size;
 	vsize_t _other;
 	vsize_t _max;
+	char **_names;
 public:
-	AUnivarTable(vsize_t size) : _size(size), _other(0), _max(0) {
+	AUnivarTable(vsize_t size, bool named=true) : _size(size), _names(NULL), _other(0), _max(0) {
 		_counts = (vsize_t*) calloc(_size, sizeof(vsize_t));
 		OCLASS(AUnivarTable)
 	}
@@ -404,6 +405,19 @@ public:
 	
 	vsize_t count(vsize_t index) { return (index < _size) ? _counts[index] : 0; }
 	
+	char **names() { return _names; }
+	
+	char *name(vsize_t index) { return (_names && index < _size) ? _names[index] : 0; }
+	
+	void setName(vsize_t index, const char *name) {
+		if (!_names) _names = (char**) calloc(_size, sizeof(char*));
+		if (index < _size) {
+			if (_names[index] && !strcmp(name, _names[index])) return;
+			if (_names[index]) free(_names[index]);
+			_names[index] = strdup(name);
+		}
+	}
+
 	void reset() { memset(_counts, 0, sizeof(vsize_t) * _size); _other = 0; _max = 0; }
 	
 	void add(vsize_t entry) {
@@ -451,6 +465,8 @@ public:
 			_tab = new AUnivarTable(_levels);
 			for (vsize_t i = 0; i < _len; i++)
 				_tab->add((vsize_t) _data[i]);
+			if (_names) for (vsize_t i = 0; i < _levels; i++)
+				_tab->setName(i, _names[i]);
 			_prof(profReport("$AFactorVector.table"))
 		}
 		return _tab;

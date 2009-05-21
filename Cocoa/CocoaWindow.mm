@@ -21,7 +21,7 @@ public:
 		[window redraw];
 	}
 	
-	virtual void glstring(APoint pt, APoint adj, const char *txt) {
+	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {
 		NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont userFontOfSize:20] forKey:NSFontAttributeName];
 		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt] attributes:attr];
 		//NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
