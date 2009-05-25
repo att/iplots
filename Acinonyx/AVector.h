@@ -33,6 +33,8 @@ public:
 	virtual AObject **asObjects() RNS;
 	virtual ADataRange range() { return AUndefDataRange; }
 	
+	virtual bool isFactor() { return false; }
+	
 	AObject *objectAt(vsize_t i) { if (i >= _len) return NULL; AObject **x = asObjects(); return x?x[i]:NULL; }
 	const char *stringAt(vsize_t i) { if (i >= _len) return NULL; const char **x = asStrings(); return x?x[i]:NULL; }
 	double doubleAt(vsize_t i) { if (i >= _len) return NA_double; const double *x = asDoubles(); return x?x[i]:NA_double; }
@@ -452,6 +454,8 @@ public:
 		return (const char**) s_data;
 	}
 	
+	virtual bool isFactor() { return true; }
+
 	// FIXME: we'll need to make it virtual in the super class ..
 	virtual const char *stringAt(vsize_t i) {
 		if (i >= _len) return NULL;

@@ -60,8 +60,9 @@ public:
 		APoint centerAdj = AMkPoint(0.5, 0.5);
 		color(pointColor);
 		AUnivarTable *tab = NULL;
-		if (_scale->data())
-			tab = ((AFactorVector*)_scale->data())->table();
+		AVector *dv = _scale->data();
+		if (dv && dv->isFactor())
+			tab = ((AFactorVector*)dv)->table();
 		while (i <= n) {
 			AFloat c = _scale->discreteCenter(i++);
 			line(c, _frame.y + _frame.height, c, _frame.y + _frame.height * 0.8);
@@ -102,5 +103,15 @@ public:
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
 		line(_frame.x + _frame.width, _frame.y, _frame.x + _frame.width, _frame.y + _frame.height);
+		line(_frame.x + _frame.width / 2, _frame.y + _frame.height, _frame.x + _frame.width, _frame.y + _frame.height);
+		line(_frame.x + _frame.width / 2, _frame.y, _frame.x + _frame.width, _frame.y);
+
+		// show outer labels
+		char buf[64];
+		ADataRange dr = _scale->dataRange();
+		snprintf(buf, 64, "%g", dr.begin);
+		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y), buf, AMkPoint(0.5, 1.0), -90.0);
+		snprintf(buf, 64, "%g", dr.begin + dr.length);
+		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y + _frame.height), buf, AMkPoint(0.5, 0.0), -90.0);
 	}
 };

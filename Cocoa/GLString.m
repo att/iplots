@@ -375,6 +375,36 @@
 	if (texName) {
 		NSPoint ll, lr, ul, ur;
 		
+		ll = point;
+		double th = rot * pi / 180.0; // theta
+		double cth = cos(th), sth = sin(th); // cos(theta), sin(theta)
+		// base point in x (width) and y (height) direction (delta from point of text origin)
+		lr.x = texSize.width * cth;
+		lr.y = texSize.width * sth;
+		ul.x = - texSize.height * sth;
+		ul.y = texSize.height * cth;
+		// diagonal point
+		ur.x = lr.x + ul.x;
+		ur.y = lr.y + ul.y;
+		// multiply adj by the diagonal
+		adj.x *= - ur.x;
+		adj.y *= - ur.y;
+		// adjust the origin
+		ll.x += adj.x;
+		ll.y += adj.y;
+		// make sure the texture is pixel-aligned
+		ll.x = round(ll.x) - 0.5;
+		ll.y = round(ll.y) - 0.5;
+		// adjust all other points according to the text origin
+		lr.x += ll.x;
+		lr.y += ll.y;
+		ul.x += ll.x;
+		ul.y += ll.y;
+		ur.x += ll.x;
+		ur.y += ll.y;
+
+		// ALog("points: A(%g,%g) B(%g,%g), C(%g,%g), D(%g,%g) (th=%g, cth=%g, sth=%g)", ll.x, ll.y, lr.x, lr.y, ur.x, ur.y, ul.x, ul.y, th, cth, sth);
+		
 		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT); // GL_COLOR_BUFFER_BIT for glBlendFunc, GL_ENABLE_BIT for glEnable / glDisable
 		
 		glDisable (GL_DEPTH_TEST); // ensure text is not remove by depth buffer test.

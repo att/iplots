@@ -22,7 +22,7 @@ protected:
 
 public:
 	AScatterPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags) {
-		mLeft = 30.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
+		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 		ptSize = 5.0;
 		ptAlpha = 0.6;
 		// printf("AScatterPlot frame = (%f,%f - %f x %f)\n", _frame.x, _frame.y, _frame.width, _frame.height);

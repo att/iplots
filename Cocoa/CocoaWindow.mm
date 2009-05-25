@@ -22,6 +22,7 @@ public:
 	}
 	
 	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {
+#if 0 // double-the-size-code but that doesn't support rotation
 		NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont userFontOfSize:20] forKey:NSFontAttributeName];
 		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt] attributes:attr];
 		//NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
@@ -36,6 +37,18 @@ public:
 		[gs drawAtPoint:loc];
 		[gs release];
 		[str release];
+#else
+		NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont userFontOfSize:10] forKey:NSFontAttributeName];
+		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt] attributes:attr];
+		//NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
+		GLString *gs = [[GLString alloc] initWithAttributedString:str];
+		NSPoint loc = NSMakePoint(pt.x, pt.y), adjp = NSMakePoint(adj.x, adj.y);
+		[gs genTexture];
+		NSSize ts = [gs texSize];
+		[gs drawAtPoint:loc withAdjustment:adjp rotation:rot];
+		[gs release];
+		[str release];
+#endif
 	}
 };
 
