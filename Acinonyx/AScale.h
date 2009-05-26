@@ -23,7 +23,7 @@ protected:
 	int nLoc;
 	bool cacheDirty;
 	vsize_t n;
-	vsize_t *perm;
+	APermutation *perm;
 	AScale *_prev, *_next; // shared axes linked list
 	bool shareDataRange, shareRange;
 	
@@ -45,17 +45,26 @@ protected:
 public:
 	AScale(AVector *data, ARange graphicsRange, ADataRange dataRange) : _data(data), gr(graphicsRange),
 	dr(dataRange), n(dataRange.length), _locations(NULL), nLoc(0), perm(NULL), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
-		if (data) data->retain();
+		if (data) {
+			data->retain();
+			perm = data->permutation();
+			if (perm) perm->retain();
+		}
 		OCLASS(AScale)
 	}
 	
-	AScale(AVector *data, ARange graphicsRange, vsize_t entries) : _data(data), gr(graphicsRange), dr(AMkDataRange(0.0, entries - 1)), n(entries), _locations(NULL), nLoc(0), perm(NULL), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
-		if (data) data->retain();
+	AScale(AVector *data, ARange graphicsRange, vsize_t entries) : _data(data), gr(graphicsRange), dr(AMkDataRange(0.0, entries - 1)), n(entries), _locations(NULL), nLoc(0), perm(new APermutation(entries)), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
+		if (data) {
+			data->retain();
+			perm = data->permutation();
+			if (perm) perm->retain();
+		}
 		OCLASS(AScale)
 	}
 	
 	virtual ~AScale() {
 		if (_data) _data->release();
+		if (perm) perm->release();
 		if (_prev && _next) _prev->_next = _next; // this should never really happen since _prev has retained us ...
 		else if (_next) {
 			_next->_prev = NULL;
@@ -63,6 +72,14 @@ public:
 		}
 		DCLASS(AScale)
 	}
+	
+	void setPermutation(APermutation *p) {
+		if (perm) perm->release();
+		p = perm;
+		p->retain();
+	}
+	
+	APermutation *permutation() { return perm; }
 	
 	AScale *getSharedRoot() {
 		return _prev ? _prev->getSharedRoot() : this;
@@ -103,22 +120,7 @@ public:
 
 	AFloat position(double value) { return ((value - dr.begin) / dr.length) * gr.length + gr.begin; }
 	ARange toRange(ADataRange r) { ARange v = AMkRange(position(r.begin), position(r.begin + r.length)); v.length -= v.begin; return v; }
-	
-	vsize_t permutationOf(vsize_t index) {
-		if (!perm) return index;
-		return (index >= n) ? index : perm[index];
-	}
-	
-	vsize_t permutationAt(vsize_t index) {
-		if (!perm) return index;
-		for(vsize_t i = 0; i < n; i++)
-			if (perm[i] == index)
-				return i;
-		return index;
-	}
-	
-	vsize_t *permutations() { return perm; }
-	
+		
 	AVector *data() { return _data; }
 	AFloat *locations() {
 		if (!_data) return NULL;
@@ -138,35 +140,12 @@ public:
 		}
 		return _locations;
 	}
+	
+	vsize_t permutationAt(vsize_t index) { return perm ? perm->permutationAt(index) : index; }
+	vsize_t permutationOf(vsize_t index) { return perm ? perm->permutationOf(index) : index; }
+	void swap(vsize_t a, vsize_t b) { if (!perm) perm = new APermutation(n); perm->swap(a,b); }
+	void moveToIndex(vsize_t a, vsize_t ix) { if (!perm) perm = new APermutation(n); perm->moveToIndex(a, ix); }
 		
-	void initializePermutations() {
-		if (!perm)
-			perm = (vsize_t*) malloc(sizeof(vsize_t) * n);
-		for (vsize_t i = 0; i < n; i++) perm[i] = i;
-	}
-	
-	void swap(vsize_t a, vsize_t b) {
-		if (!perm) initializePermutations();
-		vsize_t h = perm[a]; perm[a] = perm[b]; perm[b] = h;
-	}
-	
-	void moveToIndex(vsize_t a, vsize_t ix) {
-		if (!perm) initializePermutations();
-		if (ix >= n) ix = n - 1;
-		vsize_t prev = perm[a];
-		if (prev == ix) return;
-		if (ix < prev) {
-			for (vsize_t i = 0; i < n; i++)
-				if (perm[i] >= ix && perm[i] < prev)
-					perm[i]++;
-		} else { /* prev < ix */
-			for (vsize_t i = 0; i < n; i++)
-				if (perm[i] > prev && perm[i] <= ix)
-					perm[i]--;
-		}
-		perm[a] = ix;
-	}
-	
 	vsize_t discreteValue(AFloat pos) {
 		if (gr.length == 0.0) return ANotFound;
 		if (n == 1) return (gr.begin >= pos && gr.begin + gr.length <= pos) ? 0 : ANotFound;

@@ -125,10 +125,7 @@ public:
 	
 	virtual void draw() {
 		ALog("%s: draw", describe());
-		//xa->draw();
-		//ya->draw();
-		
-		//clip(AMkRect(_frame.x + mLeft, _frame.y + mBottom, _frame.width - mLeft - mRight, _frame.height - mTop - mBottom));
+
 		clip(_frame);
 		glPointSize(ptSize);
 		color(AMkColor(0.0,0.0,0.0,ptAlpha));

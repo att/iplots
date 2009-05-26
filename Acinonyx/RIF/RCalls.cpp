@@ -47,6 +47,8 @@ extern "C" {
 	SEXP A_PlotScales(SEXP sPlot);
 
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
+	SEXP A_BarPlot(SEXP x, SEXP rect);
+	SEXP A_PCPPlot(SEXP vl, SEXP rect);
 }
 
 static void AObjFinalizer(SEXP ref) {
@@ -271,4 +273,25 @@ SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect)
 	double *rv = REAL(rect);
 	AScatterPlot *sp = new AScatterPlot(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, xv, yv);
 	return A2SEXP(sp);
+}
+
+SEXP A_BarPlot(SEXP x, SEXP rect)
+{
+	ADataVector *xv = (ADataVector*) SEXP2A(x);
+	if (!xv->isFactor()) Rf_error("x must be a factor");
+	double *rv = REAL(rect);
+	ABarChart *sp = new ABarChart(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, (AFactorVector*) xv);
+	return A2SEXP(sp);
+}
+
+SEXP A_PCPPlot(SEXP vl, SEXP rect)
+{
+	vsize_t n = LENGTH(vl);
+	double *rv = REAL(rect);
+	ADataVector **dv = (ADataVector**) malloc(sizeof(ADataVector*) * n);
+	for (vsize_t i = 0; i < n; i++)
+		dv[i] = (ADataVector*) SEXP2A(VECTOR_ELT(vl, i));
+	AParallelCoordPlot *pcp = new AParallelCoordPlot(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, n, dv);
+	free(dv);
+	return A2SEXP(pcp);
 }

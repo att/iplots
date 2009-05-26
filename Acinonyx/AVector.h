@@ -17,6 +17,64 @@
 // FIXME: throw an exception or something more reasonable
 #define RNS { return NULL; }
 
+class APermutation : public AObject {
+protected:
+	vsize_t n;
+	vsize_t *perm;
+	
+	void initializePermutations() {
+		if (!perm)
+			perm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+		for (vsize_t i = 0; i < n; i++) perm[i] = i;
+	}
+	
+public:
+	APermutation(vsize_t len) : n(len), perm(NULL) {
+		OCLASS(APermutation)
+	}
+	
+	virtual ~APermutation() {
+		if (perm) free(perm);
+	}
+	
+	vsize_t permutationOf(vsize_t index) {
+		if (!perm) return index;
+		return (index >= n) ? index : perm[index];
+	}
+	
+	vsize_t permutationAt(vsize_t index) {
+		if (!perm) return index;
+		for(vsize_t i = 0; i < n; i++)
+			if (perm[i] == index)
+				return i;
+		return index;
+	}
+	
+	vsize_t *permutations() { return perm; }
+	
+	void swap(vsize_t a, vsize_t b) {
+		if (!perm) initializePermutations();
+		vsize_t h = perm[a]; perm[a] = perm[b]; perm[b] = h;
+	}
+	
+	void moveToIndex(vsize_t a, vsize_t ix) {
+		if (!perm) initializePermutations();
+		if (ix >= n) ix = n - 1;
+		vsize_t prev = perm[a];
+		if (prev == ix) return;
+		if (ix < prev) {
+			for (vsize_t i = 0; i < n; i++)
+				if (perm[i] >= ix && perm[i] < prev)
+					perm[i]++;
+		} else { /* prev < ix */
+			for (vsize_t i = 0; i < n; i++)
+				if (perm[i] > prev && perm[i] <= ix)
+					perm[i]--;
+		}
+		perm[a] = ix;
+	}
+};
+
 class AVector : public AObject {
 protected:
 	vsize_t _len;
@@ -35,6 +93,7 @@ public:
 	virtual ADataRange range() { return AUndefDataRange; }
 	
 	virtual bool isFactor() { return false; }
+	virtual APermutation* permutation() { return NULL; }
 	
 	AObject *objectAt(vsize_t i) { if (i >= _len) return NULL; AObject **x = asObjects(); return x?x[i]:NULL; }
 	const char *stringAt(vsize_t i) { if (i >= _len) return NULL; const char **x = asStrings(); return x?x[i]:NULL; }
@@ -437,8 +496,9 @@ protected:
 	int _levels;
 	char **s_data;
 	AUnivarTable *_tab;
+	APermutation *perm;
 public:
-	AFactorVector(AMarker *mark, const int *data, int len, const char **names, int n_len, bool copy=true) : AIntVector(mark, data, len, copy), _levels(n_len), _tab(0) {
+	AFactorVector(AMarker *mark, const int *data, int len, const char **names, int n_len, bool copy=true) : AIntVector(mark, data, len, copy), _levels(n_len), _tab(0), perm(NULL) {
 		_names = (char**) (copy ? memdup(names, n_len * sizeof(char*)) : names); OCLASS(AFactorVector)
 	}
 	virtual ~AFactorVector() {
@@ -446,6 +506,7 @@ public:
 			for (int i = 0; i < _levels; i++) if (_names[i]) free(_names[i]);
 			free(_names);
 		}
+		if (perm) perm->release();
 		if (_tab) _tab->release();
 		DCLASS(AFactorVector)
 	}
@@ -459,6 +520,8 @@ public:
 	
 	virtual bool isFactor() { return true; }
 
+	virtual APermutation *permutation() { return perm ? perm : (perm = new APermutation(_levels)); }
+	
 	// FIXME: we'll need to make it virtual in the super class ..
 	virtual const char *stringAt(vsize_t i) {
 		if (i >= _len) return NULL;
