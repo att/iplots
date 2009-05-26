@@ -14,6 +14,7 @@
 #import "ABarChart.h"
 
 #import "REngine.h"
+#import "ARVector.h"
 
 extern "C" { CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
 
@@ -43,23 +44,16 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	REngine *eng = REngine::mainEngine();
 	RObject *o = eng->parseAndEval("{n<-1e4; x<-rnorm(n)}");
 	AMarker *mark = new AMarker(o->length());
-	ADataVector *vx = new ADoubleVector(mark, o->doubles(), o->length(), true);
+	ADataVector *vx = new ARDoubleVector(mark, o);
 	o->release();
 	o = eng->parseAndEval("y<-rnorm(n)");
-	ADataVector *vy = new ADoubleVector(mark, o->doubles(), o->length(), true);
+	ADataVector *vy = new ARDoubleVector(mark, o);
 	o->release();
 	
-	o = eng->parseAndEval("as.integer(y - min(y))+1L");
-	AIntVector *iv = new AIntVector(mark, o->integers(), o->length(), true);
-	vsize_t ls = iv->range().length;
-	ALog("levels=%d", ls);
-	char ** levels = (char**) malloc(sizeof(char*) * ls);
-	char *ln = (char*) malloc(2 * ls + 2);
-	for (vsize_t i = 0; i < ls; i++) { ln[i*2] = (i & 31) + 'A'; ln[i*2+1] = 0; levels[i] = ln + (i*2); }
-	AFactorVector *fv = new AFactorVector(mark, iv->asInts(), iv->length(), (const char**) levels, ls);
-	iv->release();
-	free(levels); // we cannot free ln
-	
+	o = eng->parseAndEval("factor(LETTERS[as.integer(y - min(y))+1L])");
+	ARFactorVector *fv = new ARFactorVector(mark, o->value());
+	o->release();
+
 	ARect aFrame = AMkRect(0, 0, 400, 300);
 	AVisual *visual = new AScatterPlot(NULL, aFrame, 0, vx, vy);
 	
@@ -82,7 +76,6 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	vx->release();
 	vy->release();
 	mark->release();
-	
 }
 
 @end

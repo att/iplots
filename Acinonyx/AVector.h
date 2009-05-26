@@ -20,8 +20,9 @@
 class AVector : public AObject {
 protected:
 	vsize_t _len;
+	bool owned;
 public:
-	AVector(vsize_t length) : _len(length) { OCLASS(AVector) }
+	AVector(vsize_t length) : _len(length), owned(true) { OCLASS(AVector) }
 	virtual ~AVector() { DCLASS(AVector) }
 	
 	vsize_t length() const { return _len; }
@@ -208,7 +209,7 @@ public:
 	}
 	
 	virtual ~AFloatVector() {
-		free(_data);
+		if (owned) free(_data);
 		if (d_data) free(d_data);
 		if (i_data) free(i_data);
 		DCLASS(AFloatVector)
@@ -268,7 +269,7 @@ public:
 		_data = (double*)memdup(data, len * sizeof(double)); OCLASS(ADoubleVector)
 	}	
 	virtual ~ADoubleVector() {
-		free(_data);
+		if (owned) free(_data);
 		if (f_data) free(f_data);
 		if (i_data) free(i_data);
 		DCLASS(ADoubleVector)
@@ -335,7 +336,7 @@ public:
 	}
 	
 	virtual ~AIntVector() {
-		free(_data);
+		if (owned) free(_data);
 		if (d_data) free(d_data);
 		if (f_data) free(f_data);
 		DCLASS(AIntVector)
@@ -441,8 +442,10 @@ public:
 		_names = (char**) (copy ? memdup(names, n_len * sizeof(char*)) : names); OCLASS(AFactorVector)
 	}
 	virtual ~AFactorVector() {
-		for (int i = 0; i < _levels; i++) if (_names[i]) free(_names[i]);
-		free(_names);
+		if (owned) {
+			for (int i = 0; i < _levels; i++) if (_names[i]) free(_names[i]);
+			free(_names);
+		}
 		if (_tab) _tab->release();
 		DCLASS(AFactorVector)
 	}
