@@ -31,6 +31,9 @@ class AContainer;
 /* clipping */
 #define AVF_CLIPPED    0x10000
 
+/* hide/show */
+#define AVF_HIDDEN     0x20000
+
 /* events (not clear how to handle children's request?) */
 #define AVFE_MOUSE_MOVE 0x100000
 #define AVFE_MOUSE_DRAG 0x200000
@@ -51,13 +54,23 @@ public:
 	AContainer *parent() { return _parent; }
 	unsigned int flags() { return _flags; }
 		
-	bool isContainer() { return (_flags&AVF_CONTAINER)?true:false; }
-	
+	bool isContainer() { return (_flags & AVF_CONTAINER) ? true : false; }
+	bool isHidden() { return (_flags & AVF_HIDDEN) ? true : false ; }
+
 	virtual void draw() { }
 
+	void setHidden(bool hf) {
+		// FIXME: we sould do a redraw or something ...
+		if (hf && (_flags & AVF_HIDDEN) == 0)
+			_flags |= AVF_HIDDEN;
+		if (!hf && (_flags & AVF_HIDDEN))
+			_flags ^= AVF_HIDDEN;
+	}
+	
 	virtual bool event(AEvent event) {
 #ifdef EDEBUG
-		ELog("%s: event(%x,%x,%d,(%g,%g))", describe(), event.event, event.flags, event.key, event.location.x, event.location.y);
+		if (event.event != AE_MOUSE_MOVE || (event.event & (AEF_BUTTON1|AEF_BUTTON2|AEF_BUTTON3)))
+			ELog("%s: event(%x,%x,%d,(%g,%g))", describe(), event.event, event.flags, event.key, event.location.x, event.location.y);
 #endif
 		switch (event.event) { // dispatch to virtual event methods
 			case AE_MOUSE_UP: return mouseUp(event);

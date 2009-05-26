@@ -21,8 +21,11 @@ protected:
 	vsize_t bars;
 	bool spines;
 	
+	vsize_t movingBar, movingBarTarget;
+	AFloat movingBarX, movingBarDelta;
+	
 public:
-	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags) {
+	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(0) {
 		mLeft = 30.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 
 		nScales = 2;
@@ -70,7 +73,7 @@ public:
 		vps->removeAll();
 		for(vsize_t i = 0; i < bars; i++) {
 			group_t group = (group_t) i + 1;
-			ABarStatVisual *b = new ABarStatVisual(rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false);
+			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false);
 			vps->addObject(b);
 			b->release(); // we passed the ownership to vps
 		}
@@ -80,12 +83,17 @@ public:
 		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
 
+		ya->setHidden(spines);
+		
 		AFactorVector *data = (AFactorVector*) _scales[0]->data();
 		AUnivarTable *tab = data->table();
 		vsize_t i = 0, bars = vps->length();
 		while (i < bars) {
 			ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(i++);
-			b->setRect(rectForBar(tab, (group_t) i));			
+			ARect br = rectForBar(tab, (group_t) i);
+			if (i == movingBar)
+				br.x = movingBarX;
+			b->setRect(br);
 		}
 	}
 	
@@ -97,6 +105,56 @@ public:
 		}
 		return true;
 	}
+	
+	virtual bool mouseDown(AEvent e) {
+		// handle bar dragging
+		if ((e.flags & AEF_ALT) && (e.flags & AEF_BUTTON1)) {
+			vsize_t i = 0, bars = vps->length();
+			while (i < bars) {
+				ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(i++);
+				if (b->containsPoint(e.location)) {
+					ALog("moving bar %d - start", i);
+					movingBar = i;
+					ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(i - 1);
+					movingBarX = b->rect().x;
+					movingBarDelta = movingBarX - e.location.x;
+					movingBarTarget = scale(0)->discreteValue(e.location.x);
+					if (b) b->setAlpha(0.5);
+					update(); redraw();
+					return true;
+				}
+			}
+		}
+		return APlot::mouseDown(e);
+	}
+
+	virtual bool event(AEvent e) {
+		if (movingBar && e.event == AE_MOUSE_MOVE) {
+			movingBarX = e.location.x + movingBarDelta;
+			movingBarTarget = scale(0)->discreteIndex(e.location.x);
+			vsize_t currentTarget = scale(0)->permutationOf(movingBar - 1);
+			ALog("moving bar target = %d (current = %d)", movingBarTarget, currentTarget);
+			if (movingBarTarget != currentTarget)
+				scale(0)->moveToIndex(movingBar - 1, movingBarTarget);
+			ALog("after move: %d", scale(0)->permutationOf(movingBar - 1));
+			update();
+			redraw();
+			return true;
+		} else return APlot::event(e);
+	}
+	
+	virtual bool mouseUp(AEvent e) {
+		if (movingBar) {
+			ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(movingBar - 1);
+			if (b) b->setAlpha(1.0);
+			movingBar = 0;
+			update();
+			redraw();
+			return true;
+		}
+		return APlot::mouseUp(e);
+	}
+	
 };
 
 #endif

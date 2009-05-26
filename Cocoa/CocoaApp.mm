@@ -39,6 +39,7 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+	ALog("applicationDidFinishLaunching:");
 	REngine *eng = REngine::mainEngine();
 	RObject *o = eng->parseAndEval("{n<-1e4; x<-rnorm(n)}");
 	AMarker *mark = new AMarker(o->length());
@@ -51,9 +52,10 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	o = eng->parseAndEval("as.integer(y - min(y))+1L");
 	AIntVector *iv = new AIntVector(mark, o->integers(), o->length(), true);
 	vsize_t ls = iv->range().length;
+	ALog("levels=%d", ls);
 	char ** levels = (char**) malloc(sizeof(char*) * ls);
-	char *ln = (char*) malloc(2 * ls);
-	for (vsize_t i = 0; i < ls; i++) { ln[i*2] = i + 'A'; ln[i*2+1] = 0; levels[i] = ln + (i*2); }
+	char *ln = (char*) malloc(2 * ls + 2);
+	for (vsize_t i = 0; i < ls; i++) { ln[i*2] = (i & 31) + 'A'; ln[i*2+1] = 0; levels[i] = ln + (i*2); }
 	AFactorVector *fv = new AFactorVector(mark, iv->asInts(), iv->length(), (const char**) levels, ls);
 	iv->release();
 	free(levels); // we cannot free ln

@@ -94,9 +94,10 @@ public:
 	virtual void draw() {
 		chList_t *c = chRoot;
 		while (c) {
-			c->o->draw();
+			if (!c->o->isHidden())
+				c->o->draw();
 			c = c->next;
-		}		
+		}
 	}
 
 	virtual void notification(AObject *source, notifid_t nid) {

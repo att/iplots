@@ -66,6 +66,13 @@ public:
 	
 	AScale *scale(vsize_t index) { return (index < nScales) ? _scales[index] : NULL; }
 	
+	// by default 0 is X scale and 1 is Y scale - other plots can override this
+	virtual AScale *designatedScale(scale_t type) {
+		if (type == XScale && nScales > 0) return _scales[0];
+		if (type == YScale && nScales > 1) return _scales[1];
+		return NULL;
+	}
+	
 	virtual void update() { }; // this is called when gemotry update is requested (e.g. on resize)
 	
 	virtual void draw() {
@@ -133,10 +140,12 @@ public:
 	}
 
 	void addPrimitive(AVisualPrimitive *vp) {
+		vp->setPlot(this);
 		vps->addObject(vp);
 	}
 	
 	void removePrimitive(AVisualPrimitive *vp) {
+		if (vp->plot() == this) vp->setPlot(NULL);
 		vps->removeObject(vp);
 	}
 	

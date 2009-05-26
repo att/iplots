@@ -17,7 +17,7 @@ extern "C" {
 	
 	/* basic types */
 
-	typedef float AFloat;
+	typedef double AFloat;
 	
 	typedef unsigned int vsize_t;
 	

@@ -12,6 +12,8 @@
 
 #include "AVector.h"
 
+typedef enum { XScale = 1, YScale } scale_t; // designated scale types
+
 class AScale : public AObject {
 protected:
 	AVector *_data;
@@ -20,7 +22,7 @@ protected:
 	AFloat *_locations;
 	int nLoc;
 	bool cacheDirty;
-	int n;
+	vsize_t n;
 	vsize_t *perm;
 	AScale *_prev, *_next; // shared axes linked list
 	bool shareDataRange, shareRange;
@@ -42,12 +44,12 @@ protected:
 
 public:
 	AScale(AVector *data, ARange graphicsRange, ADataRange dataRange) : _data(data), gr(graphicsRange),
-	dr(dataRange), n(dataRange.length), _locations(NULL), nLoc(0), perm(0), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
+	dr(dataRange), n(dataRange.length), _locations(NULL), nLoc(0), perm(NULL), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
 		if (data) data->retain();
 		OCLASS(AScale)
 	}
 	
-	AScale(AVector *data, ARange graphicsRange, vsize_t entries) : _data(data), gr(graphicsRange), dr(AMkDataRange(0.0, entries - 1)), n(entries), _locations(NULL), nLoc(0), perm(0), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
+	AScale(AVector *data, ARange graphicsRange, vsize_t entries) : _data(data), gr(graphicsRange), dr(AMkDataRange(0.0, entries - 1)), n(entries), _locations(NULL), nLoc(0), perm(NULL), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
 		if (data) data->retain();
 		OCLASS(AScale)
 	}
@@ -137,6 +139,33 @@ public:
 		return _locations;
 	}
 		
+	void initializePermutations() {
+		if (!perm)
+			perm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+		for (vsize_t i = 0; i < n; i++) perm[i] = i;
+	}
+	
+	void swap(vsize_t a, vsize_t b) {
+		if (!perm) initializePermutations();
+		vsize_t h = perm[a]; perm[a] = perm[b]; perm[b] = h;
+	}
+	
+	void moveToIndex(vsize_t a, vsize_t ix) {
+		if (!perm) initializePermutations();
+		if (ix >= n) ix = n - 1;
+		vsize_t prev = perm[a];
+		if (prev == ix) return;
+		if (ix < prev) {
+			for (vsize_t i = 0; i < n; i++)
+				if (perm[i] >= ix && perm[i] < prev)
+					perm[i]++;
+		} else { /* prev < ix */
+			for (vsize_t i = 0; i < n; i++)
+				if (perm[i] > prev && perm[i] <= ix)
+					perm[i]--;
+		}
+		perm[a] = ix;
+	}
 	
 	vsize_t discreteValue(AFloat pos) {
 		if (gr.length == 0.0) return ANotFound;
@@ -145,6 +174,15 @@ public:
 		int i = (int) ((pos - gr.begin) / width);
 		if (i < 0 || i >= n) return ANotFound;
 		return (vsize_t) permutationAt(i);
+	}
+
+	vsize_t discreteIndex(AFloat pos) {
+		if (gr.length == 0.0) return ANotFound;
+		if (n == 1) return (gr.begin >= pos && gr.begin + gr.length <= pos) ? 0 : ANotFound;
+		AFloat width = gr.length / ((AFloat) (n));
+		int i = (int) ((pos - gr.begin) / width);
+		if (i < 0 || i >= n) return ANotFound;
+		return (vsize_t) i;
 	}
 	
 	AFloat discreteCenter(vsize_t value) {

@@ -11,6 +11,7 @@
 
 #include "REngine.h"
 
+#include "ABasicPrimitives.h"
 #include "AScatterPlot.h"
 #include "AParallelCoordPlot.h"
 #include "ABarChart.h"
@@ -166,7 +167,7 @@ SEXP A_PlotPrimitives(SEXP sPlot)
 		SEXP res = Rf_protect(Rf_allocVector(VECSXP, n));
 		for (vsize_t i = 0; i < n; i++)
 			SET_VECTOR_ELT(res, i, A2SEXP(p->objectAt(i)));
-		UNPROTECT(1);
+		Rf_unprotect(1);
 		return res;
 	}
 	return R_NilValue;
@@ -204,13 +205,13 @@ SEXP A_ScaleValue(SEXP sScale, SEXP sPos) {
 
 SEXP A_LineCreate(SEXP pos) {
 	double *pp = REAL(pos);
-	ALinePrimitive* p = new ALinePrimitive(AMkPoint(pp[0], pp[1]), AMkPoint(pp[2], pp[3]));
+	ALinePrimitive* p = new ALinePrimitive(NULL, AMkPoint(pp[0], pp[1]), AMkPoint(pp[2], pp[3]));
 	return A2SEXP(p);
 }
 
 SEXP A_BarCreate(SEXP pos) {
 	double *pp = REAL(pos);
-	ABarPrimitive* p = new ABarPrimitive(AMkRect(pp[0], pp[1], pp[2], pp[3]));
+	ABarPrimitive* p = new ABarPrimitive(NULL, AMkRect(pp[0], pp[1], pp[2], pp[3]));
 	return A2SEXP(p);
 }
 
@@ -220,7 +221,7 @@ SEXP A_PolygonCreate(SEXP sx, SEXP sy) {
 	vsize_t n = LENGTH(x);
 	for(vsize_t i = 0; i < n; i++)
 		pt[i] = AMkPoint(x[i], y[i]);
-	APolygonPrimitive *p = new APolygonPrimitive(pt, n, false);
+	APolygonPrimitive *p = new APolygonPrimitive(NULL, pt, n, false);
 	return A2SEXP(p);
 }
 

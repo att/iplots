@@ -88,9 +88,10 @@ public:
 		glColor4f(r, g, b, a);
 	}
 
-	void color(const AFloat col[4]) {
-		glColor4fv(col);
-	}
+/*	void color(const AFloat col[4]) {
+		float f[4] = { col[0], col[1], col[2], col[3] };
+		glColor4fv(f);
+	}*/
 	
 	void color(GLfloat r, GLfloat g, GLfloat b) {
 		glColor3f(r, g, b);

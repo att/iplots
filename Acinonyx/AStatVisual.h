@@ -19,6 +19,8 @@ typedef int group_t;
 
 static char query_buffer[512];
 
+#define ASVF_HIDDEN 0x0001
+
 class AStatVisual : public AVisualPrimitive {
 protected:
 	// currently we support two types of indexing:
@@ -30,9 +32,10 @@ protected:
 	// cached values - those are updated by update()
 	vsize_t selected, hidden, visible; 
 	mark_t minMark, maxMark;
+	int flags;
 
 public:
-	AStatVisual(AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true) : mark(m), n(len), _group(group) {
+	AStatVisual(APlot *plot, AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true) : AVisualPrimitive(plot), mark(m), n(len), _group(group), flags(0) {
 		if (mark) {
 			mark->retain();
 			mark->add(this);
@@ -50,6 +53,9 @@ public:
 		}
 		DCLASS(AStatVisual)
 	}
+	
+	bool isHidden() { return (flags & ASVF_HIDDEN) ? true : false; }
+	void setHidden(bool h) { flags &= ~ASVF_HIDDEN; if (h) flags |= ASVF_HIDDEN; }
 	
 	// this method is called upon highlighting change
 	// and it calculates selected, hidden and min/max marks
@@ -147,7 +153,7 @@ protected:
 	ARect _r;
 	direction_t fillingDirection;
 public:
-	ABarStatVisual(ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true) : AStatVisual(m, ids, len, group, copy), _r(r), fillingDirection(fillDir) {
+	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true) : AStatVisual(plot, m, ids, len, group, copy), _r(r), fillingDirection(fillDir) {
 		f = barColor;
 		c = pointColor;
 		OCLASS(ABarStatVisual);
@@ -162,6 +168,7 @@ public:
 	}
 	
 	virtual void draw(ARenderer &renderer) {
+		if (isHidden()) return;
 		ALog("%s: draw (visible=%d, selected=%d, hidden=%d) [%g,%g %g,%g]", describe(), visible, selected, hidden,
 			   _r.x, _r.y, _r.width, _r.height);
 		if (f.a) {
