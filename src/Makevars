@@ -1,0 +1,2 @@
+all:
+	(MAKE) -C .. Acinonyx.so && cp ../Acinonyx.so .
