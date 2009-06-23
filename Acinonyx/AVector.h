@@ -140,8 +140,8 @@ protected:
 	bool retainContents;
 public:
 	AObjectVector(AObject **data, vsize_t len, bool copy = true, bool retain = true) : AVector(len), retainContents(retain) {
-		data = (AObject**) (copy?memdup(data, len * sizeof(AObject*)):data);
-		if (retainContents) for (vsize_t i = 0; i < len; i++) if (_data[i]) _data[i]->retain();		
+		_data = (AObject**) (copy?memdup(data, len * sizeof(AObject*)):data);
+		if (retainContents && _data) for (vsize_t i = 0; i < len; i++) if (_data[i]) _data[i]->retain();		
 		OCLASS(AObjectVector);
 	}
 	
@@ -184,15 +184,30 @@ public:
 	virtual AObject **asObjects() { return _data; };
 };
 
+class ASettableObjectVector : public AObjectVector {
+public:
+	ASettableObjectVector(vsize_t size, bool retain=true) : AObjectVector(0, size, false, retain) {
+		_data = (AObject**) calloc(sizeof(AObject*), size);
+		AMEM(_data);
+		OCLASS(ASettableObjectVector)
+	}
+	
+	virtual void replaceObjectAt(vsize_t ix, AObject *o) {
+		if (ix >= _len || o == _data[ix]) return;
+		if (_data[ix] && retainContents) _data[ix]->release();
+		if (o && retainContents) o->retain();
+		_data[ix] = o;
+	}
+};
+
 // NOTE: mutable vectors are not thread-safe!
-class AMutableObjectVector : public AObjectVector {
+class AMutableObjectVector : public ASettableObjectVector {
 protected:
 	vsize_t _alloc;
 public:
-	AMutableObjectVector(vsize_t initSize = 16, bool retain=true) : AObjectVector(0, 0, false, retain), _alloc(initSize) {
-		if (_alloc < 16) _alloc = 16; // 16 is the minimal size - we never use anything smaller
-		_data = (AObject**) malloc(sizeof(AObject*) * _alloc);
-		AMEM(_data);
+	AMutableObjectVector(vsize_t initSize = 16, bool retain=true) : ASettableObjectVector((initSize < 16) ? 16 : initSize), _alloc(initSize) {
+		_alloc = _len;
+		_len = 0;
 		OCLASS(AMutableObjectVector);
 	}
 	

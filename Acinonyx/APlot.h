@@ -35,16 +35,17 @@ protected:
 	AScale **_scales;
 	int nScales;
 	
-	AMutableObjectVector *vps;
+	AMutableObjectVector *vps; /* visual plot primitives (managed externally) */
+	AObjectVector *pps;        /* plot primitives (used by the plot internally - usually statistical visuals) */
 	AStack *zoomStack;
 	AMarker *marker; // subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives)
 	
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false) {
+	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false) {
 		OCLASS(APlot)
 	}
 
-	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), vps(new AMutableObjectVector()), inSelection(false), inZoom(false) {
+	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false) {
 		_scales = (AScale**) malloc(sizeof(AScale*)*2);
 		_scales[0] = xScale;
 		_scales[1] = yScale;
@@ -58,6 +59,7 @@ public:
 		}
 		if (zoomStack) zoomStack->release();
 		if (vps) vps->release();
+		if (pps) pps->release();
 		DCLASS(APlot)
 	}
 	//virtual void drawLayer(int l) = 0;
@@ -76,7 +78,17 @@ public:
 	virtual void update() { }; // this is called when gemotry update is requested (e.g. on resize)
 	
 	virtual void draw() {
-		// draw all primitives
+		// draw plot primitives
+		if (pps) {
+			vsize_t i = 0, n = pps->length();
+			while (i < n) {
+				AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i++);
+				// ALog("%s: draw", o->describe());
+				o->draw(*this);
+			}
+		}
+
+		// draw visual primitives
 		if (vps) {
 			vsize_t i = 0, n = vps->length();
 			while (i < n) {
@@ -111,15 +123,25 @@ public:
 	// this implementation uses stat primitives
 	virtual bool performSelection(ARect where, int type, bool batch = false) {
 		if (!marker) return false;
-		if (!vps->length()) return false;
+		if (!vps->length() && !pps && !pps->length()) return false;
 		_prof(profReport("^performSelection %s", describe()))
 		if (!batch) marker->begin();
 		if (type == SEL_REPLACE)
 			marker->deselectAll();
-		vsize_t i = 0, n = vps->length();
 		bool pointSelection = (!where.width && !where.height);
 		APoint point = AMkPoint(where.x, where.y);
 		ALog("%s performSelection[%g,%g %g,%g] (point selection: %s)", describe(), ARect4(where), pointSelection?"YES":"NO");
+		vsize_t i = 0, n;
+		if (pps) { // plot primitives
+			n = pps->length();
+			while (i < n) {
+				AVisualPrimitive *vp = (AVisualPrimitive*) pps->objectAt(i++);
+				if ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point)))
+					vp->select(marker, type);
+			}
+		}
+		// visual primitives
+		i = 0; n = vps->length();
 		while (i < n) {
 			AVisualPrimitive *vp = (AVisualPrimitive*) vps->objectAt(i++);
 			if ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point)))

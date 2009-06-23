@@ -25,7 +25,7 @@ protected:
 	AFloat movingBarX, movingBarDelta;
 	
 public:
-	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(0) {
+	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(0), spines(false) {
 		mLeft = 30.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 
 		nScales = 2;
@@ -70,12 +70,17 @@ public:
 	void createPrimitives() {
 		AFactorVector *data = (AFactorVector*) _scales[0]->data();
 		AUnivarTable *tab = data->table();
-		vps->removeAll();
+		if (pps && pps->length() != bars) {
+			pps->release();
+			pps = NULL;
+		}
+		if (!pps)
+			pps = new ASettableObjectVector(bars);
 		for(vsize_t i = 0; i < bars; i++) {
 			group_t group = (group_t) i + 1;
 			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false);
-			vps->addObject(b);
-			b->release(); // we passed the ownership to vps
+			((ASettableObjectVector*)pps)->replaceObjectAt(i, b);
+			b->release(); // we passed the ownership to pps
 		}
 	}
 	
@@ -85,15 +90,19 @@ public:
 
 		ya->setHidden(spines);
 		
-		AFactorVector *data = (AFactorVector*) _scales[0]->data();
-		AUnivarTable *tab = data->table();
-		vsize_t i = 0, bars = vps->length();
-		while (i < bars) {
-			ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(i++);
-			ARect br = rectForBar(tab, (group_t) i);
-			if (i == movingBar)
-				br.x = movingBarX;
-			b->setRect(br);
+		if (!pps)
+			createPrimitives();
+		else {
+			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			AUnivarTable *tab = data->table();
+			vsize_t i = 0, bars = pps->length();
+			while (i < bars) {
+				ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i++);
+				ARect br = rectForBar(tab, (group_t) i);
+				if (i == movingBar)
+					br.x = movingBarX;
+				b->setRect(br);
+			}
 		}
 	}
 	
@@ -108,14 +117,14 @@ public:
 	
 	virtual bool mouseDown(AEvent e) {
 		// handle bar dragging
-		if ((e.flags & AEF_ALT) && (e.flags & AEF_BUTTON1)) {
-			vsize_t i = 0, bars = vps->length();
+		if ((e.flags & AEF_ALT) && (e.flags & AEF_BUTTON1) && pps) {
+			vsize_t i = 0, bars = pps->length();
 			while (i < bars) {
-				ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(i++);
+				ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i++);
 				if (b->containsPoint(e.location)) {
 					ALog("moving bar %d - start", i);
 					movingBar = i;
-					ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(i - 1);
+					ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i - 1);
 					movingBarX = b->rect().x;
 					movingBarDelta = movingBarX - e.location.x;
 					movingBarTarget = scale(0)->discreteValue(e.location.x);
@@ -145,7 +154,7 @@ public:
 	
 	virtual bool mouseUp(AEvent e) {
 		if (movingBar) {
-			ABarStatVisual *b = (ABarStatVisual*) vps->objectAt(movingBar - 1);
+			ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(movingBar - 1);
 			if (b) b->setAlpha(1.0);
 			movingBar = 0;
 			update();
