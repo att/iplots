@@ -15,6 +15,7 @@
 #include "AScatterPlot.h"
 #include "AParallelCoordPlot.h"
 #include "ABarChart.h"
+#include "AHistogram.h"
 
 // R API to Acinonyx
 extern "C" {
@@ -43,11 +44,13 @@ extern "C" {
 	SEXP A_PlotPrimitives(SEXP sPlot);
 	SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim);
 	SEXP A_PlotRemovePrimitive(SEXP sPlot, SEXP sPrim);
+	SEXP A_PlotRemoveAllPrimitives(SEXP sPlot);
 	SEXP A_PlotScale(SEXP sPlot, SEXP sSNR);
 	SEXP A_PlotScales(SEXP sPlot);
 
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
 	SEXP A_BarPlot(SEXP x, SEXP rect);
+	SEXP A_HistPlot(SEXP x, SEXP rect);
 	SEXP A_PCPPlot(SEXP vl, SEXP rect);
 }
 
@@ -143,6 +146,13 @@ SEXP A_PlotRemovePrimitive(SEXP sPlot, SEXP sPrim)
 	if (pl && vp) pl->removePrimitive(vp);
 	return sPlot;
 }
+
+SEXP A_PlotRemoveAllPrimitives(SEXP sPlot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (pl) pl->removeAllPrimitives();
+	return sPlot;
+}	
 
 SEXP A_PlotScale(SEXP sPlot, SEXP sSNR)
 {
@@ -281,6 +291,14 @@ SEXP A_BarPlot(SEXP x, SEXP rect)
 	if (!xv->isFactor()) Rf_error("x must be a factor");
 	double *rv = REAL(rect);
 	ABarChart *sp = new ABarChart(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, (AFactorVector*) xv);
+	return A2SEXP(sp);
+}
+
+SEXP A_HistPlot(SEXP x, SEXP rect)
+{
+	ADataVector *xv = (ADataVector*) SEXP2A(x);
+	double *rv = REAL(rect);
+	AHistogram *sp = new AHistogram(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, xv);
 	return A2SEXP(sp);
 }
 

@@ -16,6 +16,7 @@
 iplot <- function(x, ...) UseMethod("iplot")
 ibar <- function(x, ...) UseMethod("ibar")
 ipcp <- function(x, ...) UseMethod("ipcp")
+ihist <- function(x, ...) UseMethod("ihist")
 
 iplot.default <- function(x, y, ...) {
  vx = .var(x)
@@ -31,6 +32,12 @@ ibar.factor <- function(x, ...) {
 }
 
 ibar.default <- function(x, ...) stop("Sorry, bar charts for this data type are not yet defined.")
+
+ihist.default <- function(x, ...) {
+ vx = .var(x)
+ bc = .Call("A_HistPlot", vx, c(100,100,400,300))
+ w  = .Call("A_WindowCreate", bc, c(100,100))
+}
 
 ipcp.list <- function(x, ...) {
   if (length(x) < 2) stop("need at least 2 dimensions")

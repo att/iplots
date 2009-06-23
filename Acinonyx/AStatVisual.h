@@ -155,7 +155,7 @@ protected:
 	ARect _r;
 	direction_t fillingDirection;
 public:
-	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true, bool releaseIDs) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _r(r), fillingDirection(fillDir) {
+	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true, bool releaseIDs=true) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _r(r), fillingDirection(fillDir) {
 		f = barColor;
 		c = pointColor;
 		OCLASS(ABarStatVisual);

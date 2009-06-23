@@ -174,6 +174,15 @@ public:
 		vps->removeObject(vp);
 	}
 	
+	void removeAllPrimitives() {
+		vsize_t n = vps->length();
+		for (vsize_t i = 0; i < n; i++) {
+			AVisualPrimitive *vp = (AVisualPrimitive*) vps->objectAt(i);
+			if (vp) vp->setPlot(NULL);
+		}
+		vps->removeAll();
+	}
+	
 	AObjectVector *primitives() {
 		return vps;
 	}
