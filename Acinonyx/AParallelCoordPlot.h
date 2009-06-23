@@ -11,7 +11,6 @@ class AParallelCoordPlot : public APlot {
 protected:
 	ADiscreteXAxis *xa; // x-axis (virtual, coords)
 	AYAxis *ca, **ya;
-	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 	vsize_t coords;
 	ADataVector **_data;
 

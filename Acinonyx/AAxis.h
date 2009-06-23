@@ -26,8 +26,8 @@ public:
 	
 	virtual void draw() {
 		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
-		rect(_frame);
-		color(0.0, 0.0, 1.0, 0.3);
+		//rect(_frame);
+		//color(0.0, 0.0, 1.0, 0.3);
 		rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
 		line(_frame.x, _frame.y + _frame.height, _frame.x + _frame.width, _frame.y + _frame.height);
@@ -51,8 +51,8 @@ public:
 	virtual void draw() {
 		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
 		rect(_frame);
-		color(0.0, 0.0, 1.0, 0.3);
-		rectO(_frame);
+		//color(0.0, 0.0, 1.0, 0.3);
+		//rectO(_frame);
 
 		ADataRange r = _scale->dataRange();
 		vsize_t n = (vsize_t) r.length;
@@ -99,8 +99,8 @@ public:
 	virtual void draw() {
 		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
 		rect(_frame);
-		color(1.0, 0.0, 0.0, 0.3);
-		rectO(_frame);
+		//color(1.0, 0.0, 0.0, 0.3);
+		//rectO(_frame);
 		color(0.0, 0.0, 0.0, 1.0);
 		line(_frame.x + _frame.width, _frame.y, _frame.x + _frame.width, _frame.y + _frame.height);
 		line(_frame.x + _frame.width / 2, _frame.y + _frame.height, _frame.x + _frame.width, _frame.y + _frame.height);

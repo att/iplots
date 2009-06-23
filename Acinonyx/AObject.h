@@ -27,11 +27,13 @@ extern object_serial_t _globalObjectSerial;
 
 class AObject {
 protected:
+	int refcount;
+#ifdef AUTORELEASE_SUPPORT
 	int arpp;
 	static int arpe;
 	static AObject *arp[1024];
+#endif
 	static char desc_buf[512];
-	int refcount;
 #ifdef ODEBUG
 public:
 	const char *_className;
@@ -40,7 +42,11 @@ public:
 #endif
 
 public:
-	AObject() : arpp(0), refcount(1) {
+	AObject() : refcount(1) 
+#ifdef AUTORELEASE_SUPPORT
+	, arpp(0)
+#endif
+	{
 #ifdef ODEBUG
 		_objectSerial = _globalObjectSerial++; // the only class handling serials is AObject to make sure that it is called only once
 #endif
@@ -62,10 +68,16 @@ public:
 #ifdef ODEBUG
 		printf("< %08x %06x %s [%d] %d--\n", this, _objectSerial, _className, _classSize, refcount);
 #endif
+#ifdef AUTORELEASE_SUPPORT
 		if (--refcount < 1 && arpp == 0)
 			delete this;
+#else
+		if (--refcount < 1)
+			delete this;
+#endif
 	}
 	
+#ifdef AUTORELEASE_SUPPORT
 	AObject *autorelease() {
 		arpp = arp_add(this);
 		refcount--;
@@ -97,6 +109,7 @@ public:
 		}
 		while (arpe > 0 && !arp[arpe]) arpe--;
 	}
+#endif
 	
 	virtual void notification(AObject *source, notifid_t nid) { };
 
@@ -131,6 +144,11 @@ public:
 // Use LOCAL as follows:
 // AObject *foo = new AObject( ... ); 
 // LOCAL(foo);
+
+extern "C" {
+	void AObject_retain(void *o);
+	void AObject_release(void *o);
+}
 
 #define LOCAL(X) AObjectSentinel local_os_ ## X = AObjectSentinel(X)
 

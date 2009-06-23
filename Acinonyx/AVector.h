@@ -107,29 +107,39 @@ public:
 
 class AMarker;
 
+/* this doesn't work well ... (maybe?)
 class AObjectWithMarker {
 protected:
 	AMarker *_marker;
 	
 public:
-	AObjectWithMarker(AMarker *m) : _marker(m ? ((AMarker*)((AObject*)m)->retain()) : m) {}
+	AObjectWithMarker(AMarker *m) : _marker(NULL) { if (m) { _marker = m; ((AObject*)_marker)->retain(); } }
 	virtual ~AObjectWithMarker() { if (_marker) ((AObject*)_marker)->release(); }
 	
 	AMarker *marker() { return _marker; }
 };
 
-class ADataVector : public AVector, public AObjectWithMarker {
+ class ADataVector : public AVector, public AObjectWithMarker {
+*/
+
+class ADataVector : public AVector {
+protected:
+	AMarker *_marker;
 	char *_name;
 public:
-	ADataVector(AMarker *mark, vsize_t len, const char *name = NULL) : AVector(len), AObjectWithMarker(mark) {
+	ADataVector(AMarker *mark, vsize_t len, const char *name = NULL) : AVector(len), _marker(mark) {
 		_name = name ? strdup(name) : NULL;
+		// FIXME: we have a problem here with retianing the marker - for now we require that markers must be retained separately from their users ..
+		//if (_marker) AObject_retain(_marker);
 		OCLASS(ADataVector);
 	};
 	virtual ~ADataVector() {
 		if (_name) free(_name);
+		//if (_marker) AObject_release(_marker);
 		DCLASS(ADataVector);
 	}
 	
+	AMarker *marker() { return _marker; }
 	const char *name() { return _name; }
 	void setName(const char *newName) { if (_name) free(_name); _name = strdup(newName); }
 };
@@ -140,7 +150,7 @@ protected:
 	bool retainContents;
 public:
 	AObjectVector(AObject **data, vsize_t len, bool copy = true, bool retain = true) : AVector(len), retainContents(retain) {
-		_data = (AObject**) (copy?memdup(data, len * sizeof(AObject*)):data);
+		_data = (AObject**) (copy ? memdup(data, len * sizeof(AObject*)) : data);
 		if (retainContents && _data) for (vsize_t i = 0; i < len; i++) if (_data[i]) _data[i]->retain();		
 		OCLASS(AObjectVector);
 	}
@@ -166,8 +176,10 @@ public:
 	}
 
 	virtual ~AObjectVector() {
-		if (retainContents) for (vsize_t i = 0; i < _len; i++) if (_data[i]) _data[i]->release();
-		free(_data);
+		if (_data) {
+			if (retainContents) for (vsize_t i = 0; i < _len; i++) if (_data[i]) _data[i]->release();
+			free(_data);
+		}
 		DCLASS(AObjectVector);
 	}
 	
@@ -201,13 +213,22 @@ public:
 };
 
 // NOTE: mutable vectors are not thread-safe!
-class AMutableObjectVector : public ASettableObjectVector {
+// class AMutableObjectVector : public ASettableObjectVector {
+class AMutableObjectVector : public AObjectVector {
 protected:
 	vsize_t _alloc;
 public:
-	AMutableObjectVector(vsize_t initSize = 16, bool retain=true) : ASettableObjectVector((initSize < 16) ? 16 : initSize), _alloc(initSize) {
+/*	AMutableObjectVector(vsize_t initSize = 16, bool retain=true) : ASettableObjectVector((initSize < 16) ? 16 : initSize, retain) {
 		_alloc = _len;
 		_len = 0;
+		OCLASS(AMutableObjectVector);
+	} */
+
+	AMutableObjectVector(vsize_t initSize = 16, bool retain=true) : AObjectVector(0, 0, false, retain) {
+		_alloc = (initSize < 16) ? 16 : initSize;
+		_data =  (AObject**) malloc(sizeof(AObject*) * _alloc);
+		ALog("%s: init(_alloc=%d, _data=%p)", describe(), _alloc, _data);
+		AMEM(_data);
 		OCLASS(AMutableObjectVector);
 	}
 	
@@ -219,16 +240,21 @@ public:
 	
 	// if newSize is smaller than the current length, the vector is truncated
 	virtual void resize(vsize_t newSize) {
+		ALog("%s: resize(%d), _alloc= %d, _len = %d, _data=%p", describe(), newSize, _alloc, _len, _data);
 		if (newSize < _len) {
 			if (retainContents) for(vsize_t i = newSize; i < _len; i++) if (_data[i]) _data[i]->release();
 			_len = newSize;
 		}
 		_alloc = newSize;
 		if (_alloc < 16) _alloc = 16; // 16 is the minimal size - we never use anything smaller
-		AMEM(_data = realloc(_data, _alloc * sizeof(AObject*)));
+		AObject **new_mem = (AObject**) realloc(_data, _alloc * sizeof(AObject*));
+		AMEM(new_mem);
+		_data = new_mem;
+		ALog("%s: realloc into %p (_alloc = %d, _len = %d)", describe(), _data, _alloc, _len);
 	}
 	
 	virtual vsize_t addObject(AObject *obj) {
+		ALog("%s: addObject(), _alloc= %d, _len = %d, _data=%p", describe(), _alloc, _len, _data);
 		if (_alloc <= _len)
 			resize(_alloc + (_alloc >> 1));
 		_data[_len++] = (retainContents && obj) ? obj->retain() : obj;
@@ -349,7 +375,7 @@ public:
 		DCLASS(ADoubleVector)
 	}
 	
-	virtual const double *asDouble() { return _data; }		
+	virtual const double *asDoubles() { return _data; }		
 
 	virtual ADataRange range() {
 		ADataRange r = AUndefDataRange;

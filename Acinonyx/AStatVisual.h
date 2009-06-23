@@ -33,20 +33,22 @@ protected:
 	vsize_t selected, hidden, visible; 
 	mark_t minMark, maxMark;
 	int flags;
+	bool release_ids;
 
 public:
-	AStatVisual(APlot *plot, AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true) : AVisualPrimitive(plot), mark(m), n(len), _group(group), flags(0) {
+	AStatVisual(APlot *plot, AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true, bool releaseIDs=true) : AVisualPrimitive(plot), mark(m), n(len), _group(group), flags(0) {
 		if (mark) {
 			mark->retain();
 			mark->add(this);
 		}
 		ids = copy ? ((vsize_t *) memdup(i, len)) : i;
+		release_ids = releaseIDs;
 		this->update();
 		OCLASS(AStatVisual)
 	}
 
 	virtual ~AStatVisual() {
-		if (ids) free(ids);
+		if (release_ids && ids) free(ids);
 		if (mark) {
 			mark->remove(this);
 			mark->release();
@@ -153,7 +155,7 @@ protected:
 	ARect _r;
 	direction_t fillingDirection;
 public:
-	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true) : AStatVisual(plot, m, ids, len, group, copy), _r(r), fillingDirection(fillDir) {
+	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true, bool releaseIDs) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _r(r), fillingDirection(fillDir) {
 		f = barColor;
 		c = pointColor;
 		OCLASS(ABarStatVisual);

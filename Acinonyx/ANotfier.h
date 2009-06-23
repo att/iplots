@@ -17,10 +17,9 @@ protected:
 	AMutableObjectVector *_dependents;
 
 public:
-	ANotifierInterface(bool retain = false) { // do not retain dependents by default - we assume that they are registering themselves and thus retaning would prevent them from re-registering on dealloc
-		_dependents = new AMutableObjectVector(16, retain);
-	}
-	
+	ANotifierInterface(bool retain = false) : // do not retain dependents by default - we assume that they are registering themselves and thus retaning would prevent them from re-registering on dealloc
+	_dependents(new AMutableObjectVector(16, retain)) {	}
+
 	virtual ~ANotifierInterface() {
 		_dependents->release();
 	}

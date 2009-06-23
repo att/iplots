@@ -12,6 +12,7 @@
 #import "AScatterPlot.h"
 #import "AParallelCoordPlot.h"
 #import "ABarChart.h"
+#import "AHistogram.h"
 
 #import "REngine.h"
 #import "ARVector.h"
@@ -42,7 +43,7 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 {
 	ALog("applicationDidFinishLaunching:");
 	REngine *eng = REngine::mainEngine();
-	RObject *o = eng->parseAndEval("{n<-1e4; x<-rnorm(n)}");
+	RObject *o = eng->parseAndEval("{n<-1e5; x<-rnorm(n)}");
 	AMarker *mark = new AMarker(o->length());
 	ADataVector *vx = new ARDoubleVector(mark, o);
 	o->release();
@@ -70,6 +71,10 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	
 	visual = new ABarChart(NULL, aFrame, 0, fv);
 	ACocoa_CreateWindow(visual, AMkPoint(950, 100));
+	visual->release();
+
+	visual = new AHistogram(NULL, aFrame, 0, vx);
+	ACocoa_CreateWindow(visual, AMkPoint(50, 600));
 	visual->release();
 	
 	fv->release();

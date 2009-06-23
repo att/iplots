@@ -34,6 +34,7 @@
 		32CA4F630368D1EE00C91783 /* Acinonyx_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Acinonyx_Prefix.pch; sourceTree = "<group>"; };
 		68249C630FC1C2FD009EAA6B /* AGLUTWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AGLUTWindow.cpp; sourceTree = "<group>"; };
 		68249C640FC1C2FD009EAA6B /* AGLUTWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AGLUTWindow.h; sourceTree = "<group>"; };
+		682DC6030FF1403F00E8F17C /* AHistogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHistogram.h; sourceTree = "<group>"; };
 		682F02510FCACEFE00A2227E /* ABasicPrimitives.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ABasicPrimitives.h; sourceTree = "<group>"; };
 		682F031C0FCC2D2300A2227E /* ARVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARVector.h; sourceTree = "<group>"; };
 		687A31E30FAA6DF600EAF459 /* RObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RObject.h; sourceTree = "<group>"; };
@@ -189,6 +190,7 @@
 				68A2519A0D7DF62600007CBD /* AScatterPlot.h */,
 				687CA3B80FB1D11000D249DB /* AParallelCoordPlot.h */,
 				687CA56B0FBA12FB00D249DB /* ABarChart.h */,
+				682DC6030FF1403F00E8F17C /* AHistogram.h */,
 			);
 			name = Plots;
 			sourceTree = "<group>";

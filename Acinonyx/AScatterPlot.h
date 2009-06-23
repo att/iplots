@@ -18,7 +18,6 @@ class AScatterPlot : public APlot {
 protected:
 	AXAxis *xa;
 	AYAxis *ya;
-	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 
 public:
 	AScatterPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags) {

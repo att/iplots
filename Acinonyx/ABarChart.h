@@ -17,7 +17,6 @@ class ABarChart : public APlot {
 protected:
 	ADiscreteXAxis *xa;
 	AYAxis *ya;
-	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 	vsize_t bars;
 	bool spines;
 	
@@ -26,7 +25,7 @@ protected:
 	
 public:
 	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(0), spines(false) {
-		mLeft = 30.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
+		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 
 		nScales = 2;
 		marker = x->marker();
@@ -78,7 +77,7 @@ public:
 			pps = new ASettableObjectVector(bars);
 		for(vsize_t i = 0; i < bars; i++) {
 			group_t group = (group_t) i + 1;
-			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false);
+			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false, false);
 			((ASettableObjectVector*)pps)->replaceObjectAt(i, b);
 			b->release(); // we passed the ownership to pps
 		}

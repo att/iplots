@@ -39,13 +39,16 @@ protected:
 	AObjectVector *pps;        /* plot primitives (used by the plot internally - usually statistical visuals) */
 	AStack *zoomStack;
 	AMarker *marker; // subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives)
-	
+
+	// those may not be needed, but since most plots use them it makes sense to keep them here
+	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
+
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false) {
+	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6) {
 		OCLASS(APlot)
 	}
 
-	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false) {
+	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0) {
 		_scales = (AScale**) malloc(sizeof(AScale*)*2);
 		_scales[0] = xScale;
 		_scales[1] = yScale;
