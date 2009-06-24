@@ -23,8 +23,10 @@ public:
 	AVisualPrimitive(APlot *plot) : _plot(plot) { c = AMkColor(0.0, 0.0, 0.0, 1.0); f = AMkColor(0.0, 0.0, 0.0, 0.0); OCLASS(AVisualPrimitive) }
 	void drawColor(AFloat r, AFloat g, AFloat b, AFloat a) { c = AMkColor(r,g,b,a); }
 	void drawColor(AColor aColor) { c = aColor; }
+	AColor drawColor() { return c; }
 	void fillColor(AFloat r, AFloat g, AFloat b, AFloat a) { f = AMkColor(r,g,b,a); }
 	void fillColor(AColor aColor) { f = aColor; }
+	AColor fillColor() { return f; }
 	void setAlpha(AFloat a) {
 		if (a < 0.01) a = 0.01;
 		if (c.a) c.a = a;

@@ -35,6 +35,7 @@
 		68249C630FC1C2FD009EAA6B /* AGLUTWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AGLUTWindow.cpp; sourceTree = "<group>"; };
 		68249C640FC1C2FD009EAA6B /* AGLUTWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AGLUTWindow.h; sourceTree = "<group>"; };
 		682DC6030FF1403F00E8F17C /* AHistogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHistogram.h; sourceTree = "<group>"; };
+		682DC9220FF26BAA00E8F17C /* ALinearProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALinearProjection.h; sourceTree = "<group>"; };
 		682F02510FCACEFE00A2227E /* ABasicPrimitives.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ABasicPrimitives.h; sourceTree = "<group>"; };
 		682F031C0FCC2D2300A2227E /* ARVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARVector.h; sourceTree = "<group>"; };
 		687A31E30FAA6DF600EAF459 /* RObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RObject.h; sourceTree = "<group>"; };
@@ -241,6 +242,7 @@
 				687CA2DD0FB0762900D249DB /* AStack.h */,
 				68A251980D7DEE9700007CBD /* AVisualPrimitive.h */,
 				682F02510FCACEFE00A2227E /* ABasicPrimitives.h */,
+				682DC9220FF26BAA00E8F17C /* ALinearProjection.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";

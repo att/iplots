@@ -25,7 +25,7 @@ public:
 		AScale *ys = _plot->designatedScale(YScale);
 		p.x = xs ? xs->position(pt.x) : pt.x;
 		p.y = ys ? ys->position(pt.y) : pt.y;
-		return pt;
+		return p;
 	}
 	
 	void transformPoints(APoint *dst, APoint *src, vsize_t n) {
@@ -47,26 +47,28 @@ protected:
 	APoint _p1, _p2;
 public:
 	ALinePrimitive(APlot *plot, APoint p1, APoint p2) : AScaledPrimitive(plot), _p1(p1), _p2(p2) { OCLASS(ALinePrimitive) }
-	
+
 	virtual void draw(ARenderer &renderer) {
 		if (c.a > 0.0f) {
 			renderer.color(c);
 			APoint _s1 = transformPoint(_p1), _s2 = transformPoint(_p2);
-			renderer.line(_p1.x, _p1.y, _p2.x, _p2.y);
+			ALog("%s: render %g,%g %g,%g ---> %g,%g %g,%g", describe(), _p1.x, _p1.y, _p2.x, _p2.y, _s1.x, _s1.y, _s2.x, _s2.y);
+			renderer.line(_s1.x, _s1.y, _s2.x, _s2.y);
 		}
 	}
 	
 	virtual bool intersects(ARect rect) {
+		APoint _s1 = transformPoint(_p1), _s2 = transformPoint(_p2);
 		// if the bounding box of the line doesn't intersect the rectangle then it cannot intersect the line
-		if (rect.x > AMAX(_p1.x, _p2.x) || rect.y > AMAX(_p1.y, _p2.y) ||
-			rect.x + rect.width < AMIN(_p1.x, _p2.x) || rect.y + rect.height < AMIN(_p1.y, _p2.y)) return false;
+		if (rect.x > AMAX(_s1.x, _s2.x) || rect.y > AMAX(_s1.y, _s2.y) ||
+			rect.x + rect.width < AMIN(_s1.x, _s2.x) || rect.y + rect.height < AMIN(_s1.y, _s2.y)) return false;
 		// since the bounding box intersects, for straight line this implies intersection with the line
-		if (_p1.x == _p2.x || _p1.y == _p2.y) return true;
+		if (_s1.x == _s2.x || _s1.y == _s2.y) return true;
 		// ok, not a straight line, so we can calculate the distance of the rectangle points from the line along y
-		AFloat m = (_p2.x - _p1.x) / (_p2.y - _p1.y);
-		AFloat d1 = m * (rect.x - _p1.x) + _p1.y;
+		AFloat m = (_s2.x - _s1.x) / (_s2.y - _s1.y);
+		AFloat d1 = m * (rect.x - _s1.x) + _s1.y;
 		if (rect.y <= d1 && rect.y + rect.height >= d1) return true;
-		AFloat d2 = m * (rect.x + rect.width - _p1.x) + _p1.y;
+		AFloat d2 = m * (rect.x + rect.width - _s1.x) + _s1.y;
 		if (rect.y <= d2 && rect.y + rect.height >= d2) return true;
 		// if neither side was hit then the only way it can be an intersection is if each virtual intersection point is on the other side
 		return ((d1 < rect.y && d2 > rect.y + rect.height) || (d1 > rect.y && d2 < rect.y + rect.height));
@@ -187,12 +189,13 @@ public:
 	
 };
 
-class ATextPrimitive : public AVisualPrimitive {
+class ATextPrimitive : public AScaledPrimitive {
 protected:
 	APoint _pt, _adj;
+	AFloat _rot;
 	char *_text;
 public:
-	ATextPrimitive(APlot *plot, APoint pt, const char *text, bool copy=true) : AVisualPrimitive(plot), _pt(pt) {
+	ATextPrimitive(APlot *plot, APoint pt, const char *text, bool copy=true) : AScaledPrimitive(plot), _pt(pt), _rot(0.0) {
 		_text = copy ? strdup(text) : (char*) text;
 		_adj = AMkPoint(0.5, 0.5);
 		OCLASS(ATextPrimitive)
@@ -205,9 +208,18 @@ public:
 	
 	virtual void draw(ARenderer &renderer) {
 		if (c.a) {
+			APoint _st = transformPoint(_pt);
 			renderer.color(c);
-			renderer.text(_pt, _text, _adj);
+			renderer.text(_st, _text, _adj, _rot);
 		}
+	}
+	
+	void setRotation(AFloat rot) {
+		_rot = rot;
+	}
+	
+	void setAdjustment(APoint adj) {
+		_adj = adj;
 	}
 	
 	/*

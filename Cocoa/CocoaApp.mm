@@ -17,6 +17,8 @@
 #import "REngine.h"
 #import "ARVector.h"
 
+#import "ALinearProjection.h"
+
 extern "C" { CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
 
 CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)

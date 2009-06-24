@@ -18,25 +18,37 @@ ibar <- function(x, ...) UseMethod("ibar")
 ipcp <- function(x, ...) UseMethod("ipcp")
 ihist <- function(x, ...) UseMethod("ihist")
 
+redraw <- function(x, ...) UseMethod("redraw")
+
+.mp <- function(w, p, clazz) {
+  class(w) <- "iWindow"
+  attr(p, "window") <- w
+  class(p) <- c(clazz, "iPlot")
+  p
+}
+
 iplot.default <- function(x, y, ...) {
  vx = .var(x)
  vy = .var(y)
  sp = .Call("A_ScatterPlot", vx, vy, c(100,100,400,300))
  w  = .Call("A_WindowCreate", sp, c(100,100))
+ .mp(w, sp, "iScatterplot")
 }
 
 ibar.factor <- function(x, ...) {
  vx = .var(x)
  bc = .Call("A_BarPlot", vx, c(100,100,400,300))
  w  = .Call("A_WindowCreate", bc, c(100,100))
+ .mp(w, bc, "iBarchart")
 }
 
 ibar.default <- function(x, ...) stop("Sorry, bar charts for this data type are not yet defined.")
 
 ihist.default <- function(x, ...) {
  vx = .var(x)
- bc = .Call("A_HistPlot", vx, c(100,100,400,300))
- w  = .Call("A_WindowCreate", bc, c(100,100))
+ h  = .Call("A_HistPlot", vx, c(100,100,400,300))
+ w  = .Call("A_WindowCreate", h, c(100,100))
+ .mp(w, h, "iHist")
 }
 
 ipcp.list <- function(x, ...) {
@@ -44,6 +56,7 @@ ipcp.list <- function(x, ...) {
   v = lapply(x, .var)
   p = .Call("A_PCPPlot", v, c(100,100,400,300))
   w  = .Call("A_WindowCreate", p, c(100,100))
+  .mp(w, p, "iPCP")
 }
 
 ipcp.data.frame <- ipcp.list
@@ -54,3 +67,6 @@ ipcp.default <- function(x, ...) {
   l = c(list(x),list(...)[l])
   ipcp.list(l)
 }
+
+redraw.iPlot <- function(x, ...)
+  invisible(.Call("A_PlotRedraw", x))

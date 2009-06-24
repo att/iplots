@@ -13,7 +13,7 @@ FOBJ=AContainer.o AObject.o ATools.o CocoaApp.o CocoaView.o CocoaWindow.o RCalls
 
 
 Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
-	PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -ICocoa' R CMD SHLIB -o $@ $^
+	PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -ICocoa' R CMD SHLIB -o $@ $^
 
 glut.so: $(ASRC) $(CSRC) $(GLUTSRC)
 	PKG_LIBS='-framework GLUT -framework OpenGL' PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -IGLUT -DGLUT' R CMD SHLIB -o $@ $^

@@ -37,9 +37,13 @@ extern "C" {
 	SEXP A_LineCreate(SEXP pos);
 	SEXP A_BarCreate(SEXP pos);
 	SEXP A_PolygonCreate(SEXP sx, SEXP sy);
+	SEXP A_TextCreate(SEXP pos, SEXP text);
 
 	SEXP A_VPSetFill(SEXP vp, SEXP col);
 	SEXP A_VPSetColor(SEXP vp, SEXP col);
+	SEXP A_VPGetFill(SEXP vp);
+	SEXP A_VPGetColor(SEXP vp);
+	SEXP A_VPRedraw(SEXP vp);
 
 	SEXP A_PlotPrimitives(SEXP sPlot);
 	SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim);
@@ -47,6 +51,7 @@ extern "C" {
 	SEXP A_PlotRemoveAllPrimitives(SEXP sPlot);
 	SEXP A_PlotScale(SEXP sPlot, SEXP sSNR);
 	SEXP A_PlotScales(SEXP sPlot);
+	SEXP A_PlotRedraw(SEXP sPlot);
 
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
 	SEXP A_BarPlot(SEXP x, SEXP rect);
@@ -170,6 +175,13 @@ SEXP A_PlotScales(SEXP sPlot)
 	return Rf_ScalarInteger(pl ? pl->scales() : 0);
 }
 
+SEXP A_PlotRedraw(SEXP sPlot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (pl) pl->redraw();
+	return R_NilValue;
+}
+
 SEXP A_PlotPrimitives(SEXP sPlot)
 {
 	APlot *pl = (APlot*) SEXP2A(sPlot);
@@ -230,11 +242,23 @@ SEXP A_BarCreate(SEXP pos) {
 SEXP A_PolygonCreate(SEXP sx, SEXP sy) {
 	double *x = REAL(sx),  *y = REAL(sy);
 	APoint *pt = (APoint*) malloc(sizeof(APoint) * LENGTH(sx));
-	vsize_t n = LENGTH(x);
+	vsize_t n = LENGTH(sx);
 	for(vsize_t i = 0; i < n; i++)
 		pt[i] = AMkPoint(x[i], y[i]);
 	APolygonPrimitive *p = new APolygonPrimitive(NULL, pt, n, false);
 	return A2SEXP(p);
+}
+
+SEXP A_TextCreate(SEXP pos, SEXP text) {
+	double *pp = REAL(pos);
+	ATextPrimitive* p = new ATextPrimitive(NULL, AMkPoint(pp[0], pp[1]), CHAR(STRING_ELT(text,0)), true);
+	return A2SEXP(p);
+}
+
+SEXP A_TextSetRotation(SEXP tp, SEXP rot) {
+	ATextPrimitive *p = (ATextPrimitive*) SEXP2A(tp);
+	if (p) p->setRotation(REAL(rot)[0]);
+	return tp;
 }
 
 SEXP A_VPSetColor(SEXP vp, SEXP col) {
@@ -251,6 +275,32 @@ SEXP A_VPSetFill(SEXP vp, SEXP col) {
 	if (p) 
 		p->fillColor(c[0], c[1], c[2], c[3]);
 	return R_NilValue;
+}
+
+SEXP A_VPGetFill(SEXP vp) {
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	AColor c = p->fillColor();
+	SEXP rc = Rf_allocVector(REALSXP, 4);
+	double *rcp = REAL(rc);
+	rcp[0] = c.r; rcp[1] = c.g; rcp[2] = c.b; rcp[3] = c.a;
+	return rc;
+}
+
+SEXP A_VPGetColor(SEXP vp) {
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	AColor c = p->drawColor();
+	SEXP rc = Rf_allocVector(REALSXP, 4);
+	double *rcp = REAL(rc);
+	rcp[0] = c.r; rcp[1] = c.g; rcp[2] = c.b; rcp[3] = c.a;
+	return rc;
+}
+
+SEXP A_VPRedraw(SEXP vp) {
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (p && p->plot()) p->plot()->redraw();
+	return vp;
 }
 
 #ifndef GLUT
