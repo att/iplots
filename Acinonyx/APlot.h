@@ -80,7 +80,49 @@ public:
 		return NULL;
 	}
 	
-	virtual void update() { }; // this is called when gemotry update is requested (e.g. on resize)
+	AMarker *primaryMarker() { return marker; }
+
+	virtual void home() { // scale back to the "home" scale
+	}
+	
+	virtual void update() { // this is called when plot properties change (including plot is resize)
+		// update plot primitives
+		if (pps) {
+			vsize_t i = 0, n = pps->length();
+			while (i < n) {
+				AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i++);
+				if (o) o->update();
+			}
+		}
+		
+		// update visual primitives
+		if (vps) {
+			vsize_t i = 0, n = vps->length();
+			while (i < n) {
+				AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
+				if (o) o->update();
+			}
+		}		
+	}
+
+	virtual double doubleProperty(const char *name) {
+		AScale *s;
+		if (!strcmp(name, "xlim.low") && (s = designatedScale(XScale))) return s->dataRange().begin;
+		if (!strcmp(name, "ylim.low") && (s = designatedScale(YScale))) return s->dataRange().begin;
+		if (!strcmp(name, "xlim.hi") && (s = designatedScale(XScale))) return s->dataRange().begin + s->dataRange().length;
+		if (!strcmp(name, "ylim.hi") && (s = designatedScale(YScale))) return s->dataRange().begin + s->dataRange().length;
+		if (!strcmp(name, "num.scales")) return nScales;
+		return NA_REAL;
+	}
+	
+	virtual bool setDoubleProperty(const char *name, double value) {
+		AScale *s;
+		if (!strcmp(name, "xlim.low") && (s = designatedScale(XScale))) { ADataRange r = s->dataRange(); r.begin = value; s->setDataRange(r); update(); redraw(); return true; }
+		if (!strcmp(name, "ylim.low") && (s = designatedScale(YScale))) { ADataRange r = s->dataRange(); r.begin = value; s->setDataRange(r); update(); redraw(); return true; }
+		if (!strcmp(name, "xlim.hi") && (s = designatedScale(XScale))) { ADataRange r = s->dataRange(); r.length = value - r.begin; s->setDataRange(r); update(); redraw(); return true; }
+		if (!strcmp(name, "ylim.hi") && (s = designatedScale(YScale))) { ADataRange r = s->dataRange(); r.length = value - r.begin; s->setDataRange(r); update(); redraw(); return true; }
+		return false;
+	}
 	
 	virtual void draw() {
 		// draw plot primitives

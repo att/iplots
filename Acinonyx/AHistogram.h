@@ -164,12 +164,7 @@ public:
 		}		
 	}
 
-	void update() {
-		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
-		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
-		
-		// ya->setHidden(spines);
-		
+	virtual void home() {
 		if (spines) {
 			_scales[0]->setDataRange(AMkDataRange(0, data->length()));
 			_scales[1]->setDataRange(AMkDataRange(0, 1));
@@ -177,14 +172,36 @@ public:
 			_scales[0]->setDataRange(data->range());
 			_scales[1]->setDataRange(AMkDataRange(0, bin->maxCount()));
 		}
+	}
+	
+	virtual void update() {
+		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
+		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+		
 		updatePrimitives();
+		APlot::update();
+	}
+	
+	virtual double doubleProperty(const char *name) {
+		if (!strcmp(name, "bin.width")) return bin->binWidth();
+		if (!strcmp(name, "bins")) return bin->bins();
+		if (!strcmp(name, "anchor")) return bin->anchor();
+		return APlot::doubleProperty(name);
+	}
+	
+	virtual bool setDoubleProperty(const char *name, double value) {
+		if (!strcmp(name, "bin.width")) { bin->setBinWidth(value); ADataRange r = data->range(); bin->setBins(r.length / value + 1); updatePrimitives(); APlot::update(); redraw(); return true; }
+		if (!strcmp(name, "bins")) { bin->setBins(value); updatePrimitives(); APlot::update(); redraw(); return true; }
+		if (!strcmp(name, "anchor")) { bin->setAnchor(value); bin->updateCounts(); updatePrimitives(); APlot::update(); redraw(); return true; }
+		return APlot::setDoubleProperty(name, value);
 	}
 	
 	virtual bool keyDown(AEvent e) {
 		switch (e.key) {
-			case 1: spines = !spines; update(); redraw(); break;
-			case KEY_UP: if (bin->bins() > 1) { bin->setBinWidth(bin->binWidth() * (double)bin->bins() / ((double)bin->bins() - 1.0)); bin->setBins(bin->bins() - 1); updatePrimitives();  redraw(); }; break;
-			case KEY_DOWN: bin->setBinWidth(bin->binWidth() * (double)bin->bins() / ((double)bin->bins() + 1.0)); bin->setBins(bin->bins() + 1); updatePrimitives(); redraw(); break;
+			case 1: spines = !spines; home(); update(); redraw(); break;
+			case 29: home(); update(); redraw(); break;
+			case KEY_UP: if (bin->bins() > 1) { bin->setBinWidth(bin->binWidth() * (double)bin->bins() / ((double)bin->bins() - 1.0)); bin->setBins(bin->bins() - 1); updatePrimitives(); APlot::update(); redraw(); }; break;
+			case KEY_DOWN: bin->setBinWidth(bin->binWidth() * (double)bin->bins() / ((double)bin->bins() + 1.0)); bin->setBins(bin->bins() + 1); updatePrimitives(); APlot::update(); redraw(); break;
 			default:
 				return false;
 		}

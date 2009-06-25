@@ -7,3 +7,12 @@
  *
  */
 
+#ifndef A_RCALLS_H__
+#define A_RCALLS_H__
+
+#include "AObject.h"
+#include "RObject.h"
+
+extern "C" void call_with_object(SEXP fun, AObject *o, const char *clazz);
+
+#endif

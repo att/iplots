@@ -103,6 +103,7 @@ public:
 				b->setRect(br);
 			}
 		}
+		APlot::update();
 	}
 	
 	virtual bool keyDown(AEvent e) {

@@ -25,6 +25,8 @@ extern "C" {
 
 	SEXP A_MarkerCreate(SEXP len);
 	SEXP A_MarkerAdd(SEXP m, SEXP o);
+	SEXP A_MarkerSelected(SEXP m);
+	SEXP A_MarkerSelect(SEXP m, SEXP sel);
 
 	SEXP A_WindowCreate(SEXP w, SEXP pos);
 
@@ -45,6 +47,10 @@ extern "C" {
 	SEXP A_VPGetColor(SEXP vp);
 	SEXP A_VPRedraw(SEXP vp);
 	SEXP A_VPPlot(SEXP vp);
+	SEXP A_VPSetCallback(SEXP vp, SEXP cb);
+	SEXP A_VPGetCallback(SEXP vp);
+
+	SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp);
 
 	SEXP A_PlotPrimitives(SEXP sPlot);
 	SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim);
@@ -55,12 +61,18 @@ extern "C" {
 	SEXP A_PlotRedraw(SEXP sPlot);
 	SEXP A_PlotValue(SEXP sPlot);
 	SEXP A_PlotSetValue(SEXP sPlot, SEXP sValue);
+	SEXP A_PlotDoubleProperty(SEXP sPlot, SEXP pName);
+	SEXP A_PlotSetDoubleProperty(SEXP sPlot, SEXP pName, SEXP sValue);
+	SEXP A_PlotPrimaryMarker(SEXP sPlot);
 
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
 	SEXP A_BarPlot(SEXP x, SEXP rect);
 	SEXP A_HistPlot(SEXP x, SEXP rect);
 	SEXP A_PCPPlot(SEXP vl, SEXP rect);
 }
+
+
+/*------------- internal functions --------------*/
 
 static void AObjFinalizer(SEXP ref) {
 	if (TYPEOF(ref) == EXTPTRSXP) {
@@ -85,10 +97,33 @@ static AObject *SEXP2A(SEXP o) {
 	return (AObject*) R_ExternalPtrAddr(o);
 }
 
+
+/*------------- initialization --------------*/
+
 SEXP A_Init() {
 	return R_NilValue;
 }
 
+#ifndef cons
+#define cons Rf_cons
+#define lcons Rf_lcons
+#endif
+
+void call_with_object(SEXP fun, AObject *o, const char *clazz) {
+	SEXP sSelf = A2SEXP(o);
+	o->retain();
+	PROTECT(sSelf);
+	Rf_setAttrib(sSelf, R_ClassSymbol, Rf_mkString(clazz));
+	SEXP sCall = LCONS(fun, CONS(sSelf, R_NilValue));
+	PROTECT(sCall);
+	Rf_applyClosure(sCall, fun, CDR(sCall), R_GlobalEnv, R_BaseEnv);
+	UNPROTECT(2);
+}
+
+#undef cons
+#undef lcons
+
+/*------------- variables (ADataVector) --------------*/
 
 SEXP A_VarRegister(SEXP v, SEXP mark) {
 	AObject *vo = NULL;
@@ -116,6 +151,8 @@ SEXP A_VarMark(SEXP v) {
 	return mark ? A2SEXP(mark) : R_NilValue;
 }
 
+/*------------- AObject --------------*/
+
 SEXP A_Describe(SEXP o) {
 	AObject *oo = SEXP2A(o);
 	if (oo) return Rf_mkString(oo->describe());
@@ -128,6 +165,9 @@ SEXP A_ReleaseObject(SEXP v) {
 	return R_NilValue;
 }
 
+
+/*------------- AMarker --------------*/
+
 SEXP A_MarkerCreate(SEXP len) {
 	AMarker *m = new AMarker(Rf_asInteger(len));
 	return A2SEXP(m);
@@ -139,6 +179,51 @@ SEXP A_MarkerAdd(SEXP sM, SEXP sO) {
 	m->add(o);
 	return sM;
 }
+
+SEXP A_MarkerSelected(SEXP sM)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	vsize_t n = m->length();
+	SEXP res = Rf_allocVector(LGLSXP, n);
+	int *l = LOGICAL(res);
+	for (vsize_t i = 0; i < n; i++)
+		l[i] = m->isSelected(i) ? 1 : 0;
+	return res;
+}
+
+SEXP A_MarkerSelect(SEXP sM, SEXP sel)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	vsize_t n = m->length();
+	if (TYPEOF(sel) == LGLSXP) { /* logical */
+		if (LENGTH(sel) != n)
+			Rf_error("length mismatch");
+		m->begin();
+		int *l = LOGICAL(sel);
+		for (vsize_t i = 0; i < n; i++)
+			if (l[i] == 1)
+				m->select(i);
+			else if (l[i] == 0)
+				m->deselect(i);
+		m->end();
+	} else if (TYPEOF(sel) == INTSXP) {
+		m->begin();
+		int *l = INTEGER(sel);
+		vsize_t ll = LENGTH(sel);
+		for (vsize_t i = 0; i < ll; i++)
+			if (l[i] > 0)
+				m->select(l[i] - 1);
+			else if (l[i] < 0)
+				m->deselect(-l[i]);
+		m->end();
+	} else Rf_error("invalid selection specification (must be integer or logical vector)");
+	return sM;
+}
+
+
+/*------------- APlot --------------*/
 
 SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim) {
 	APlot *pl = (APlot*) SEXP2A(sPlot);
@@ -213,6 +298,28 @@ SEXP A_PlotSetValue(SEXP sPlot, SEXP sValue)
 	return sPlot;
 }
 
+SEXP A_PlotDoubleProperty(SEXP sPlot, SEXP pName)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	return pl ? Rf_ScalarReal(pl->doubleProperty(CHAR(STRING_ELT(pName, 0)))) : R_NilValue;
+}
+
+SEXP A_PlotSetDoubleProperty(SEXP sPlot, SEXP pName, SEXP sValue)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	return Rf_ScalarLogical(pl ? pl->setDoubleProperty(CHAR(STRING_ELT(pName, 0)), REAL(sValue)[0]) : FALSE);
+}
+
+SEXP A_PlotPrimaryMarker(SEXP sPlot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	AMarker *m = pl ? pl->primaryMarker() : 0;
+	return m ? A2SEXP(m) : R_NilValue;
+}
+
+
+/*------------- AScale --------------*/
+
 SEXP A_ScalePosition(SEXP sScale, SEXP sPos) {
 	AScale *s = (AScale*) SEXP2A(sScale);
 	vsize_t n = LENGTH(sPos);
@@ -242,6 +349,9 @@ SEXP A_ScaleValue(SEXP sScale, SEXP sPos) {
 		d[i] = s->value(p[i]);
 	return res;
 }
+
+
+/*------------- AVisualPrimitive --------------*/
 
 SEXP A_LineCreate(SEXP pos) {
 	double *pp = REAL(pos);
@@ -325,6 +435,30 @@ SEXP A_VPRedraw(SEXP vp) {
 	return vp;
 }
 
+SEXP A_VPSetCallback(SEXP vp, SEXP cb)
+{
+	ARCallbackPrimitive *p = (ARCallbackPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	p->setValue(cb);
+	return vp;
+}
+
+SEXP A_VPGetCallback(SEXP vp)
+{
+	ARCallbackPrimitive *p = (ARCallbackPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	return p->value();
+}
+
+SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp)
+{
+	APolygonPrimitive *p = (APolygonPrimitive*) SEXP2A(vp);
+	if (p) p->setPoints(REAL(xp), REAL(yp), LENGTH(xp));
+	return vp;
+}
+
+/*------------- AWindow --------------*/
+
 #ifndef GLUT
 extern "C" { void *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
 
@@ -347,6 +481,9 @@ SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 	return PTR2SEXP(win);
 }
 #endif
+
+
+/*------------- plot implementations --------------*/
 
 SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect)
 {

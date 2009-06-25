@@ -45,7 +45,7 @@ class REngine : public AObject {
 public:
 	REngine(bool init_new=true) {
 		if (init_new) {
-			char *argv[] = { "R", "--no-save", "--vanilla", 0 };
+			const char *argv[] = { "R", "--no-save", "--vanilla", 0 };
 			if (!getenv("R_HOME")) {
 			// FIXME: we use crude guesses for now
 #if __APPLE__
@@ -55,7 +55,7 @@ public:
 				setenv("R_HOME","/usr/local/lib/R");
 #endif
 			}
-			int stat = Rf_initialize_R(3, argv);
+			int stat = Rf_initialize_R(3, (char**) argv);
 			if (stat < 0)
 				fprintf(stderr, "ERROR: cannot start R: %d\n", stat);
 			setup_Rmainloop();

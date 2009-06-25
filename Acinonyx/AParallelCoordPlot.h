@@ -105,6 +105,8 @@ public:
 				ptGrid[i] = _scales[si + 2]->locations();
 			i++;
 		}
+
+		APlot::update();
 	}
 	
 	virtual void draw() {

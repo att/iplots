@@ -77,13 +77,17 @@ public:
 
 - (void) redraw
 {
+#ifdef DEBUG
 	NSLog(@"%@: request redraw", self);
+#endif
 	if (view) [view setNeedsDisplay:YES];
 }
 
 - (void) dealloc
 {
+#ifdef DEBUG
 	NSLog(@"%@: dealloc", self);
+#endif
 	if (view) [view release];
 	if (aWindow) aWindow->release();
 	[super dealloc];

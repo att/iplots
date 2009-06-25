@@ -12,11 +12,24 @@
 
 #include "AVisualPrimitive.h"
 #include "APlot.h"
+#include "REngine.h"
+#include "RValueHolder.h"
+
+class ARCallbackPrimitive : public AVisualPrimitive, public RValueHolder {
+public:
+	ARCallbackPrimitive(APlot *plot) : AVisualPrimitive(plot), RValueHolder(R_NilValue) { OCLASS(ARCallbackPrimitive) }
+	
+	virtual void update() {
+		if (_value != R_NilValue) 
+			call_with_object(_value, this, "primitive");// call _value(self) in R
+		AVisualPrimitive::update();
+	}
+};
 
 // scaled primitives allows the primitive to scale itself according to the scale used in the plod
-class AScaledPrimitive : public AVisualPrimitive {
+class AScaledPrimitive : public ARCallbackPrimitive {
 public:
-	AScaledPrimitive(APlot *plot) : AVisualPrimitive(plot) { OCLASS(AScaledPrimitive) }
+	AScaledPrimitive(APlot *plot) : ARCallbackPrimitive(plot) { OCLASS(AScaledPrimitive) }
 	
 	APoint transformPoint(APoint pt) {
 		if (!_plot || _plot->scales() == 0) return pt;
@@ -142,6 +155,19 @@ public:
 			renderer.color(c);
 			renderer.polyline(_pt, _pts);
 		}
+	}
+	
+	void setPoints(double *x, double *y, vsize_t n) {
+		if (n > _pts) {
+			free(_pt); free(_op);
+			_op = (APoint*) malloc(sizeof (APoint) * n);
+			AMEM(_op);
+			_pt = (APoint*) malloc(sizeof (APoint) * n);
+			AMEM(_pt);
+		}
+		_pts = n;
+		for (vsize_t i = 0; i < n; i++)
+			{ _op[i].x = x[i]; _op[i].y = y[i]; }
 	}
 	
 	//	virtual bool intersects(ARect rect) {

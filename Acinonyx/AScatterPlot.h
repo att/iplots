@@ -55,6 +55,8 @@ public:
 	void update() {
 		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
+
+		APlot::update();
 	}
 	
 	virtual bool performZoom(ARect where) {

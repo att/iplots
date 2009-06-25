@@ -3,9 +3,11 @@
  *  Acinonyx
  *
  *  Created by Simon Urbanek on 5/4/09.
- *  Copyright 2009 __MyCompanyName__. All rights reserved.
+ *  Copyright 2009 Simon Urbanek. All rights reserved.
  *
  */
+
+/******** THIS IS CURRENTLY UNUSED - ADataVector is defined in AVector.h *********/
 
 #ifndef A_DATAVECTOR_H
 #define A_DATAVECTOR_H

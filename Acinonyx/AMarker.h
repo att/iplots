@@ -3,7 +3,7 @@
  *  Acinonyx
  *
  *  Created by Simon Urbanek on 5/4/09.
- *  Copyright 2009 __MyCompanyName__. All rights reserved.
+ *  Copyright 2009 Simon Urbanek. All rights reserved.
  *
  */
 

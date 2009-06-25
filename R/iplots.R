@@ -19,11 +19,20 @@ ipcp <- function(x, ...) UseMethod("ipcp")
 ihist <- function(x, ...) UseMethod("ihist")
 
 redraw <- function(x, ...) UseMethod("redraw")
+selected <- function(x, ...) UseMethod("selected")
+select <- function(x, ...) UseMethod("select")
 
 .mp <- function(w, p, clazz) {
   class(w) <- "iWindow"
-  .Call("A_PlotSetValue", p, list(window = w))
+  .Call("A_PlotSetValue", p, list(window = w, subclass = clazz))
   class(p) <- c(clazz, "iPlot")
+  p
+}
+
+.po <- function(p) {
+  sc <- .Call("A_PlotValue", p)$subclass
+  if (is.null(sc)) sc <- character(0)
+  class(p) <- c(sc, "iPlot")
   p
 }
 
@@ -74,11 +83,16 @@ redraw.iPlot <- function(x, ...)
 ## access to virutal fields in plot objects that have pass-by-reference semantics of the whole plot object
 
 `$.iPlot` <- function(x, name) {
+  if (name == "marker") return(.Call("A_PlotPrimaryMarker", x))
+  d <- .Call("A_PlotDoubleProperty", x, name)
+  if (!is.null(d) && !all(is.na(d))) return(d)
   o <- .Call("A_PlotValue", x)
   o[[name]]
 }
 
 `$<-.iPlot` <- function(x, name, value) {
+  if (name %in% c("marker")) stop("read-only property")
+  if (.Call("A_PlotSetDoubleProperty", x, name, value)) return(x)
   o <- .Call("A_PlotValue", x)
   o[[name]] <- value
   .Call("A_PlotSetValue", x, o)
@@ -88,3 +102,15 @@ redraw.iPlot <- function(x, ...)
 names.iPlot <- function(x)
   names(.Call("A_PlotValue", x))
 
+selected.iPlot <- function(x) {
+  m <- x$marker
+  if (is.null(m)) stop("plot has no primary marker")
+  .Call("A_MarkerSelected", m)
+}
+
+select.iPlot <- function(x, which) {
+  m <- x$marker
+  if (is.null(m)) stop("plot has no primary marker")
+  if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
+  invisible(.Call("A_MarkerSelect", m, which))
+}

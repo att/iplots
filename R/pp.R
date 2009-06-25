@@ -75,12 +75,17 @@ fill.primitive <- function(x, ...) {
   if (name == "plot") return(.po(.Call("A_VPPlot", x)))
   if (name == "color") return(color(x))
   if (name == "fill") return(fill(x))
+  if (name == "callback") return (.Call("A_VPGetCallback", x))
   NULL
 }
 
 `$<-.primitive` <- function(x, name, value) {
   if (name == "color") color(x) <- value else
   if (name == "fill") fill(x) <- value else
+  if (name == "callback") .Call("A_VPSetCallback", x, value) else
   stop("no writable property", name)
   x
 }
+
+replacePoints <- function(p, x, y)
+  .Call("A_PolygonSetPoints", p, as.double(x), as.double(y))
