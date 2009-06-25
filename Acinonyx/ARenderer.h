@@ -31,16 +31,43 @@
 
 #include "AObject.h"
 #include <OpenGL/gl.h>
+#include <OpenGL/glu.h> /* for polygon tessellation */
 #include "AWindow.h"
+
+static void tcbCombine(GLdouble coords[3], 
+					   GLdouble *vertex_data[4],
+					   GLfloat weight[4], GLdouble **dataOut )
+{
+	GLdouble *vertex;
+	
+	vertex = (GLdouble *) malloc(3 * sizeof(GLdouble));
+	vertex[0] = coords[0];
+	vertex[1] = coords[1];
+	vertex[2] = coords[2];
+	/*
+	for (int i = 3; i < 7; i++)
+		vertex[i] = weight[0] * vertex_data[0][i] 
+		+ weight[1] * vertex_data[1][i]
+		+ weight[2] * vertex_data[2][i] 
+		+ weight[3] * vertex_data[3][i];  */
+	*dataOut = vertex;
+}
 
 class ARenderer : public AObject {
 protected:
 	ARect _frame; // in window coords
 	AWindow *_window;
+	GLUtesselator *tess;
 public:
 
-	ARenderer(AWindow *aWindow, ARect frame) : _window(aWindow), _frame(frame) { OCLASS(ARenderer) }
+	ARenderer(AWindow *aWindow, ARect frame) : _window(aWindow), _frame(frame), tess(0) { OCLASS(ARenderer) }
 
+	virtual ~ARenderer() {
+		if (tess)
+			gluDeleteTess(tess);
+		DCLASS(ARenderer);
+	}
+	
 	void setFrame(ARect frame) { _frame = frame; }
 	ARect frame() { return _frame; }
 
@@ -211,10 +238,40 @@ public:
 		}
 	}
 
-	void polygon(const APoint *pt, int n) {
-		glBegin(GL_POLYGON);
-		polyP(pt, n);
-		glEnd();
+	void polygon(const APoint *pt, int n, bool convex=false) {
+		if (convex || n < 4) { /* up to 3 points it's guaranteed convex */
+			glBegin(GL_POLYGON);
+			polyP(pt, n);
+			glEnd();
+			return;
+		}
+		/* otherwise we have to tessellate */
+		if (!tess)
+			tess = gluNewTess();
+		/* not sure how portable this is - it won't work if glXX are macros ... */
+		gluTessCallback(tess, GLU_TESS_BEGIN, (GLvoid (*) ( )) &glBegin);
+		gluTessCallback(tess, GLU_TESS_END, (GLvoid (*) ( )) &glEnd);
+		gluTessCallback(tess, GLU_TESS_VERTEX, (GLvoid (*) ()) &glVertex3dv);
+		/* the only one we really implement ourself */
+		gluTessCallback(tess, GLU_TESS_COMBINE, (GLvoid (*) ()) &tcbCombine);
+		/* set the winding rule to non-zero (the one I like the best) */
+		gluTessProperty(tess, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_NONZERO);
+		/* ok, do it */
+		gluTessNormal(tess, 0.0, 0.0, 1.0); /* tell tessellator that we have 2D data */
+		gluTessBeginPolygon(tess, NULL);
+		gluTessBeginContour(tess);
+		GLdouble *v3 = (GLdouble*) calloc(sizeof(GLdouble) * 3, n);
+		for(vsize_t i = 0; i < n; i++) {
+			//GLdouble vc[3];
+			//vc[0] = pt[i].x; vc[1] = pt[i].y; vc[2] = 0.0;
+			v3[i * 3] = pt[i].x;
+			v3[i * 3 + 1] = pt[i].y;
+			gluTessVertex(tess, v3 + (i * 3), v3 + (i * 3));
+		}
+		gluTessEndContour(tess);
+		gluTessEndPolygon(tess);
+		// we don't delete the tessellator since it's likely to be used on next redraw ... gluDeleteTess(tess);
+		free(v3);
 	}
 	
 	void polygon(const AFloat *x, const AFloat *y, int n) {
