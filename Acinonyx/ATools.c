@@ -30,7 +30,7 @@ float NA_float;
 #include <stdio.h>
 
 #ifdef DEBUG
-void ALog(char *fmt, ...) {
+void ALog(const char *fmt, ...) {
 #ifdef PROFILE
 	long npt = time_ms();
 	if (startupTime == 0L) startupTime = npt;
@@ -60,7 +60,7 @@ long time_ms() {
 
 long profilerTime, startupTime;
 
-void profReport(char *fmt, ...) {
+void profReport(const char *fmt, ...) {
 	long npt = time_ms();
 	if (startupTime == 0L) startupTime = profilerTime;
 	fprintf(stderr, "[%4ld.%03ld] ", (npt - startupTime) / 1000, (npt - startupTime) % 1000);

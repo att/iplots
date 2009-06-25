@@ -19,7 +19,7 @@
 typedef unsigned int object_serial_t;
 extern object_serial_t _globalObjectSerial;
 #define OCLASS(X) { _className = # X ; _classSize = sizeof(X); printf("+ %08x %06x %s [%d]\n", (int) this, _objectSerial, _className, _classSize); }
-#define DCLASS(X) { printf("- %08x %06x %s/%s [%d]\n", this, _objectSerial, _className, # X, _classSize); }
+#define DCLASS(X) { printf("- %08x %06x %s/%s [%d]\n", (int) this, _objectSerial, _className, # X, _classSize); }
 #else
 #define OCLASS(X)
 #define DCLASS(X)
@@ -59,14 +59,14 @@ public:
 	
 	AObject* retain() {
 #ifdef ODEBUG
-		printf("> %08x %06x %s [%d] %d++\n", this, _objectSerial, _className, _classSize, refcount);
+		printf("> %08x %06x %s [%d] %d++\n", (int) this, _objectSerial, _className, _classSize, refcount);
 #endif
 		refcount++; return this;
 	}
 
 	void release() {
 #ifdef ODEBUG
-		printf("< %08x %06x %s [%d] %d--\n", this, _objectSerial, _className, _classSize, refcount);
+		printf("< %08x %06x %s [%d] %d--\n", (int) this, _objectSerial, _className, _classSize, refcount);
 #endif
 #ifdef AUTORELEASE_SUPPORT
 		if (--refcount < 1 && arpp == 0)

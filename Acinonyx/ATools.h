@@ -31,14 +31,14 @@ void *memdup(const void *buf, unsigned int len);
 #define profStart() profilerTime=time_ms();
 #define _prof(X) X;
 	long time_ms();
-	void profReport(char *fmt, ...);
+	void profReport(const char *fmt, ...);
 #else
 #define profStart()
 #define _prof(X)
 #endif
 
 #ifdef DEBUG
-	void ALog(char *fmt, ...);
+	void ALog(const char *fmt, ...);
 #else
 #define ALog(X, ...)
 #endif
