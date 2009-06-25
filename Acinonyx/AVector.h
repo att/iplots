@@ -274,7 +274,7 @@ public:
 		if (retainContents && _data[index]) _data[index]->release();
 		_len--;
 		if (index == _len) return;
-		memmove(_data + index, _data + index + 1, _len - index);
+		memmove(_data + index, _data + index + 1, (_len - index) * sizeof(AObject*));
 	}
 
 	// FIXME: currently it only removes the *first* instance of the object!
