@@ -22,7 +22,7 @@ redraw <- function(x, ...) UseMethod("redraw")
 
 .mp <- function(w, p, clazz) {
   class(w) <- "iWindow"
-  attr(p, "window") <- w
+  .Call("A_PlotSetValue", p, list(window = w))
   class(p) <- c(clazz, "iPlot")
   p
 }
@@ -70,3 +70,21 @@ ipcp.default <- function(x, ...) {
 
 redraw.iPlot <- function(x, ...)
   invisible(.Call("A_PlotRedraw", x))
+
+## access to virutal fields in plot objects that have pass-by-reference semantics of the whole plot object
+
+`$.iPlot` <- function(x, name) {
+  o <- .Call("A_PlotValue", x)
+  o[[name]]
+}
+
+`$<-.iPlot` <- function(x, name, value) {
+  o <- .Call("A_PlotValue", x)
+  o[[name]] <- value
+  .Call("A_PlotSetValue", x, o)
+  x
+}
+
+names.iPlot <- function(x)
+  names(.Call("A_PlotValue", x))
+

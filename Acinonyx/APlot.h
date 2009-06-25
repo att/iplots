@@ -19,6 +19,8 @@
 #include "AStack.h"
 #include "ADataVector.h"
 
+#include "RValueHolder.h" // for variables stored in the plot object
+
 #define SEL_REPLACE 0
 #define SEL_OR      1
 #define SEL_XOR     2
@@ -30,7 +32,7 @@ public:
 	virtual ADataRange range(vsize_t coord) { return AUndefDataRange; };
 };
 
-class APlot : public AContainer {
+class APlot : public AContainer, public RValueHolder {
 protected:
 	AScale **_scales;
 	int nScales;
@@ -44,11 +46,11 @@ protected:
 	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 
 public:
-	APlot(AContainer *parent, ARect frame, int flags) :  AContainer(parent, frame, flags), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6) {
+	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6) {
 		OCLASS(APlot)
 	}
 
-	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0) {
+	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0) {
 		_scales = (AScale**) malloc(sizeof(AScale*)*2);
 		_scales[0] = xScale;
 		_scales[1] = yScale;

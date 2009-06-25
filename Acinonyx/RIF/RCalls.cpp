@@ -44,6 +44,7 @@ extern "C" {
 	SEXP A_VPGetFill(SEXP vp);
 	SEXP A_VPGetColor(SEXP vp);
 	SEXP A_VPRedraw(SEXP vp);
+	SEXP A_VPPlot(SEXP vp);
 
 	SEXP A_PlotPrimitives(SEXP sPlot);
 	SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim);
@@ -52,6 +53,8 @@ extern "C" {
 	SEXP A_PlotScale(SEXP sPlot, SEXP sSNR);
 	SEXP A_PlotScales(SEXP sPlot);
 	SEXP A_PlotRedraw(SEXP sPlot);
+	SEXP A_PlotValue(SEXP sPlot);
+	SEXP A_PlotSetValue(SEXP sPlot, SEXP sValue);
 
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
 	SEXP A_BarPlot(SEXP x, SEXP rect);
@@ -197,6 +200,19 @@ SEXP A_PlotPrimitives(SEXP sPlot)
 	return R_NilValue;
 }
 
+SEXP A_PlotValue(SEXP sPlot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	return pl ? pl->value() : R_NilValue;
+}
+	
+SEXP A_PlotSetValue(SEXP sPlot, SEXP sValue)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (pl) pl->setValue(sValue);
+	return sPlot;
+}
+
 SEXP A_ScalePosition(SEXP sScale, SEXP sPos) {
 	AScale *s = (AScale*) SEXP2A(sScale);
 	vsize_t n = LENGTH(sPos);
@@ -295,6 +311,12 @@ SEXP A_VPGetColor(SEXP vp) {
 	double *rcp = REAL(rc);
 	rcp[0] = c.r; rcp[1] = c.g; rcp[2] = c.b; rcp[3] = c.a;
 	return rc;
+}
+
+SEXP A_VPPlot(SEXP vp)
+{
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	return (p && p->plot()) ? A2SEXP(p->plot()) : R_NilValue;
 }
 
 SEXP A_VPRedraw(SEXP vp) {

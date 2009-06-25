@@ -48,14 +48,14 @@ delete.iPlot <- function(x, what, ...) {
 ##--- primitive properties
 
 `color<-.primitive` <- function(x, value, redraw=TRUE, ...) {
-  value <- col2rgb(value[1], TRUE)[,1] / 256
+  value <- col2rgb(value[1], TRUE)[,1] / 255
   .Call("A_VPSetColor", x, as.double(value))
   if (redraw) .Call("A_VPRedraw", x)
   invisible(x)
 }
 
 `fill<-.primitive` <- function(x, value, redraw=TRUE, ...) {
-  value <- col2rgb(value[1], TRUE)[,1] / 256
+  value <- col2rgb(value[1], TRUE)[,1] / 255
   .Call("A_VPSetFill", x, as.double(value))
   if (redraw) .Call("A_VPRedraw", x)
   invisible(x)
@@ -69,4 +69,18 @@ color.primitive <- function(x, ...) {
 fill.primitive <- function(x, ...) {
   v <- .Call("A_VPGetFill", x)
   rgb(v[1], v[2], v[3], v[4])
+}
+
+`$.primitive` <- function(x, name) {
+  if (name == "plot") return(.po(.Call("A_VPPlot", x)))
+  if (name == "color") return(color(x))
+  if (name == "fill") return(fill(x))
+  NULL
+}
+
+`$<-.primitive` <- function(x, name, value) {
+  if (name == "color") color(x) <- value else
+  if (name == "fill") fill(x) <- value else
+  stop("no writable property", name)
+  x
 }
