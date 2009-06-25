@@ -27,6 +27,7 @@ extern "C" {
 	SEXP A_MarkerAdd(SEXP m, SEXP o);
 	SEXP A_MarkerSelected(SEXP m);
 	SEXP A_MarkerSelect(SEXP m, SEXP sel);
+	SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun);
 
 	SEXP A_WindowCreate(SEXP w, SEXP pos);
 
@@ -64,7 +65,7 @@ extern "C" {
 	SEXP A_PlotDoubleProperty(SEXP sPlot, SEXP pName);
 	SEXP A_PlotSetDoubleProperty(SEXP sPlot, SEXP pName, SEXP sValue);
 	SEXP A_PlotPrimaryMarker(SEXP sPlot);
-
+	
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
 	SEXP A_BarPlot(SEXP x, SEXP rect);
 	SEXP A_HistPlot(SEXP x, SEXP rect);
@@ -219,6 +220,16 @@ SEXP A_MarkerSelect(SEXP sM, SEXP sel)
 				m->deselect(-l[i]);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
+	return sM;
+}
+
+SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	ARCallbackDependent *dep = new ARCallbackDependent(fun);
+	m->add(dep);
+	// dep->release(); // markers don't retain ...
 	return sM;
 }
 

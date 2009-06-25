@@ -26,6 +26,17 @@ public:
 	}
 };
 
+
+class ARCallbackDependent : public AObject, public RValueHolder {
+public:
+	ARCallbackDependent(SEXP value) : RValueHolder(value) { OCLASS(ARCallbackDependent) }
+	
+	virtual void notification(AObject *source, notifid_t nid) {
+		if (_value != R_NilValue)
+			call_with_object(_value, this, "dependent");// call _value(self) in R			
+	}
+};
+
 // scaled primitives allows the primitive to scale itself according to the scale used in the plod
 class AScaledPrimitive : public ARCallbackPrimitive {
 public:

@@ -8,6 +8,9 @@
  TRUE
 }
 
+## hack!
+addCallback <- function(FUN) .Call("A_MarkerDependentCreate", .$m, FUN)
+
 .var <- function(x) {
  if (is.null(.$m)) .init.set(length(x))
  .Call("A_VarRegister", x, .$m)
