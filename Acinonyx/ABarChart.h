@@ -24,7 +24,7 @@ protected:
 	AFloat movingBarX, movingBarDelta;
 	
 public:
-	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(0), spines(false) {
+	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(ANotFound), spines(false) {
 		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 
 		nScales = 2;
@@ -53,7 +53,7 @@ public:
 	}
 
 	ARect rectForBar(AUnivarTable *tab, group_t group) {
-		ARange xr = _scales[0]->discreteRange((int)group - 1);
+		ARange xr = _scales[0]->discreteRange((int)group);
 		if (!spines && xr.length > 40.0) { xr.begin = xr.begin + xr.length / 2 - 20.0; xr.length = 40.0; }
 		if (xr.length > 5.0) { xr.begin += xr.length * 0.1; xr.length *= 0.8; }
 		if (spines) {
@@ -76,7 +76,7 @@ public:
 		if (!pps)
 			pps = new ASettableObjectVector(bars);
 		for(vsize_t i = 0; i < bars; i++) {
-			group_t group = (group_t) i + 1;
+			group_t group = (group_t) i;
 			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false, false);
 			((ASettableObjectVector*)pps)->replaceObjectAt(i, b);
 			b->release(); // we passed the ownership to pps
@@ -96,11 +96,12 @@ public:
 			AUnivarTable *tab = data->table();
 			vsize_t i = 0, bars = pps->length();
 			while (i < bars) {
-				ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i++);
+				ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i);
 				ARect br = rectForBar(tab, (group_t) i);
 				if (i == movingBar)
 					br.x = movingBarX;
 				b->setRect(br);
+				i++;
 			}
 		}
 		APlot::update();
@@ -120,11 +121,11 @@ public:
 		if ((e.flags & AEF_ALT) && (e.flags & AEF_BUTTON1) && pps) {
 			vsize_t i = 0, bars = pps->length();
 			while (i < bars) {
-				ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i++);
+				ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i);
 				if (b->containsPoint(e.location)) {
 					ALog("moving bar %d - start", i);
 					movingBar = i;
-					ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i - 1);
+					ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i);
 					movingBarX = b->rect().x;
 					movingBarDelta = movingBarX - e.location.x;
 					movingBarTarget = scale(0)->discreteValue(e.location.x);
@@ -132,20 +133,21 @@ public:
 					update(); redraw();
 					return true;
 				}
+				i++;
 			}
 		}
 		return APlot::mouseDown(e);
 	}
 
 	virtual bool event(AEvent e) {
-		if (movingBar && e.event == AE_MOUSE_MOVE) {
+		if (movingBar != ANotFound && e.event == AE_MOUSE_MOVE) {
 			movingBarX = e.location.x + movingBarDelta;
 			movingBarTarget = scale(0)->discreteIndex(e.location.x);
-			vsize_t currentTarget = scale(0)->permutationOf(movingBar - 1);
+			vsize_t currentTarget = scale(0)->permutationOf(movingBar);
 			ALog("moving bar target = %d (current = %d)", movingBarTarget, currentTarget);
 			if (movingBarTarget != currentTarget)
-				scale(0)->moveToIndex(movingBar - 1, movingBarTarget);
-			ALog("after move: %d", scale(0)->permutationOf(movingBar - 1));
+				scale(0)->moveToIndex(movingBar, movingBarTarget);
+			ALog("after move: %d", scale(0)->permutationOf(movingBar));
 			update();
 			redraw();
 			return true;
@@ -153,10 +155,10 @@ public:
 	}
 	
 	virtual bool mouseUp(AEvent e) {
-		if (movingBar) {
-			ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(movingBar - 1);
+		if (movingBar != ANotFound) {
+			ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(movingBar);
 			if (b) b->setAlpha(1.0);
-			movingBar = 0;
+			movingBar = ANotFound;
 			update();
 			redraw();
 			return true;

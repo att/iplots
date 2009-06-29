@@ -16,6 +16,7 @@
 #include "AParallelCoordPlot.h"
 #include "ABarChart.h"
 #include "AHistogram.h"
+#include "ARVector.h"
 
 // R API to Acinonyx
 extern "C" {
@@ -32,7 +33,8 @@ extern "C" {
 	SEXP A_WindowCreate(SEXP w, SEXP pos);
 
 	SEXP A_VarMark(SEXP v);
-	SEXP A_VarRegister(SEXP v, SEXP mark);
+	SEXP A_VarRegister(SEXP v, SEXP mark, SEXP sName);
+	SEXP A_VarName(SEXP v);
 	
 	SEXP A_ScaleValue(SEXP sScale, SEXP sPos);
 	SEXP A_ScalePosition(SEXP sScale, SEXP sPos);
@@ -126,30 +128,34 @@ void call_with_object(SEXP fun, AObject *o, const char *clazz) {
 
 /*------------- variables (ADataVector) --------------*/
 
-SEXP A_VarRegister(SEXP v, SEXP mark) {
+SEXP A_VarRegister(SEXP v, SEXP mark, SEXP sName)
+{
 	AObject *vo = NULL;
 	AMarker *m = (mark == R_NilValue) ? NULL : (AMarker*) SEXP2A(mark);
 	if (TYPEOF(v) == REALSXP) {
-		// FIXME: we should createa a subclass of A...Vector that contains the R object so we don't have to worry about mm
-		vo = new ADoubleVector(m, REAL(v), LENGTH(v), true);
+		vo = new ARDoubleVector(m, v);
 	} else if (TYPEOF(v) == INTSXP) {
-		if (Rf_inherits(v, "factor")) {
-			SEXP sls = Rf_getAttrib(v, R_LevelsSymbol);
-			int ls = LENGTH(sls);
-			char **lstr = (char**) malloc(ls * sizeof(char*));
-			for (vsize_t i = 0; i < ls; i++) lstr[i] = strdup(CHAR(STRING_ELT(sls, i)));
-			vo = new AFactorVector(m, INTEGER(v), LENGTH(v), (const char**) lstr, ls, true);
-			free(lstr);
-		} else 
-			vo = new AIntVector(m, INTEGER(v), LENGTH(v), true);
+		if (Rf_inherits(v, "factor"))
+			vo = new ARFactorVector(m, v);
+		else 
+			vo = new ARIntVector(m, v);
 	} else Rf_error("unsupported data type");
+	if (vo && TYPEOF(sName) == STRSXP && LENGTH(sName) > 0)
+		((ADataVector*)vo)->setName(CHAR(STRING_ELT(sName, 0)));
 	return A2SEXP(vo);	
 }
 
 SEXP A_VarMark(SEXP v) {
 	ADataVector *dv = (ADataVector*) SEXP2A(v);
+	if (!dv) Rf_error("invalid variable (NULL)");
 	AMarker *mark = dv->marker();
 	return mark ? A2SEXP(mark) : R_NilValue;
+}
+
+SEXP A_VarName(SEXP v) {
+	ADataVector *dv = (ADataVector*) SEXP2A(v);
+	if (!dv) Rf_error("invalid variable (NULL)");
+	return dv->name() ? Rf_mkString(dv->name()) : R_NilValue;
 }
 
 /*------------- AObject --------------*/

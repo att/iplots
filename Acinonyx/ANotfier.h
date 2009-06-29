@@ -25,18 +25,23 @@ public:
 	}
 	
 	virtual void add(AObject *obj) {
+		ALog("%p: add %s", this, obj ? obj->describe() : "<NULL>");
 		if (!_dependents->contains(obj))
 			_dependents->addObject(obj);
 	}
 	
 	virtual void remove(AObject *obj) {
+		ALog("%p: remove %s", this, obj ? obj->describe() : "<NULL>");
 		_dependents->removeObject(obj);
 	}
 	
 	virtual void sendNotification(AObject *source, notifid_t nid) {
 		vsize_t i = 0, n = _dependents->length();
-		while (i < n)
-			_dependents->objectAt(i++)->notification(source, nid);
+		while (i < n) {
+			AObject *o = _dependents->objectAt(i++);
+			ALog(" - notify: %s", o ? o->describe() : "<NULL>");
+			if (o) o->notification(source, nid);
+		}
 	}
 };
 	

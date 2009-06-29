@@ -11,9 +11,9 @@
 ## hack!
 addCallback <- function(FUN) .Call("A_MarkerDependentCreate", .$m, FUN)
 
-.var <- function(x) {
+.var <- function(x, name=deparse(substitute(x))) {
  if (is.null(.$m)) .init.set(length(x))
- .Call("A_VarRegister", x, .$m)
+ .Call("A_VarRegister", x, .$m, name)
 }
 
 iplot <- function(x, ...) UseMethod("iplot")
@@ -39,16 +39,16 @@ select <- function(x, ...) UseMethod("select")
   p
 }
 
-iplot.default <- function(x, y, ...) {
- vx = .var(x)
- vy = .var(y)
+iplot.default <- function(x, y, xname=deparse(substitute(x)), yname=deparse(substitute(y)), ...) {
+ vx = .var(x, xname)
+ vy = .var(y, yname)
  sp = .Call("A_ScatterPlot", vx, vy, c(100,100,400,300))
  w  = .Call("A_WindowCreate", sp, c(100,100))
  .mp(w, sp, "iScatterplot")
 }
 
-ibar.factor <- function(x, ...) {
- vx = .var(x)
+ibar.factor <- function(x, xname=deparse(substitute(x)), ...) {
+ vx = .var(x, xname)
  bc = .Call("A_BarPlot", vx, c(100,100,400,300))
  w  = .Call("A_WindowCreate", bc, c(100,100))
  .mp(w, bc, "iBarchart")
@@ -56,8 +56,8 @@ ibar.factor <- function(x, ...) {
 
 ibar.default <- function(x, ...) stop("Sorry, bar charts for this data type are not yet defined.")
 
-ihist.default <- function(x, ...) {
- vx = .var(x)
+ihist.default <- function(x, xname=deparse(substitute(x)), ...) {
+ vx = .var(x, xname)
  h  = .Call("A_HistPlot", vx, c(100,100,400,300))
  w  = .Call("A_WindowCreate", h, c(100,100))
  .mp(w, h, "iHist")
@@ -65,7 +65,7 @@ ihist.default <- function(x, ...) {
 
 ipcp.list <- function(x, ...) {
   if (length(x) < 2) stop("need at least 2 dimensions")
-  v = lapply(x, .var)
+  v = lapply(seq.int(x), function(i) .var(x[[i]], names(x)[i]))
   p = .Call("A_PCPPlot", v, c(100,100,400,300))
   w  = .Call("A_WindowCreate", p, c(100,100))
   .mp(w, p, "iPCP")

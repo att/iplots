@@ -202,6 +202,24 @@ public:
 	virtual void notification(AObject *source, notifid_t nid)
 	{
 		if (source != this) {
+			// notify plot primitives
+			if (pps) {
+				vsize_t i = 0, n = pps->length();
+				while (i < n) {
+					AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i++);
+					if (o) o->notification(source, nid);
+				}
+			}
+			
+			// notify visual primitives
+			if (vps) {
+				vsize_t i = 0, n = vps->length();
+				while (i < n) {
+					AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
+					if (o) o->notification(source, nid);
+				}
+			}		
+
 			if (nid == N_MarkerChanged)
 				redraw();
 			AContainer::notification(source, nid);

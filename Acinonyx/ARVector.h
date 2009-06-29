@@ -12,6 +12,7 @@
 
 #include "AVector.h"
 #include "RObject.h"
+#include "ANotfier.h"
 
 class AContainsRObject {
 protected:
@@ -34,7 +35,7 @@ public:
 	SEXP value() { return ro ? ro->value() : R_NilValue; }
 };
 
-class ARDoubleVector : public ADoubleVector, AContainsRObject {
+class ARDoubleVector : public ADoubleVector, public AContainsRObject {
 public:
 	ARDoubleVector(AMarker *m, SEXP data) : ADoubleVector(m, REAL(data), LENGTH(data), false), AContainsRObject(data) {
 		owned = false; // do not free the pointer since it's owned by R
@@ -47,7 +48,7 @@ public:
 	}
 };
 
-class ARIntVector : public AIntVector, AContainsRObject {
+class ARIntVector : public AIntVector, public AContainsRObject {
 public:
 	ARIntVector(AMarker *m, SEXP data) : AIntVector(m, INTEGER(data), LENGTH(data), false), AContainsRObject(data) {
 		owned = false; // do not free the pointer since it's owned by R
@@ -60,10 +61,12 @@ public:
 	}
 };
 
-class ARFactorVector : public AFactorVector, AContainsRObject {
+class ARFactorVector : public AFactorVector, public AContainsRObject {
 public:
-	ARFactorVector(AMarker *m, SEXP data) : AFactorVector(m, INTEGER(data), LENGTH(data), NULL, 0, false), AContainsRObject(data) {
-		owned = false; // do not free the pointer since it's owned by R
+	// we need to copy the data, because R factors are 1-based, but we are 0-based *sigh* - may need to rethink this ...
+	ARFactorVector(AMarker *m, SEXP data) : AFactorVector(m, INTEGER(data), LENGTH(data), NULL, 0, true), AContainsRObject(data) {
+		// owned = false; // do not free the pointer since it's owned by R
+		for (vsize_t i = 0; i < _len; i++) _data[i]--; // decrement all ...
 		SEXP sl = Rf_getAttrib(data, R_LevelsSymbol);
 		if (TYPEOF(sl) == STRSXP) {
 			_levels = LENGTH(sl);

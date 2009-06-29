@@ -66,6 +66,9 @@ public:
 		AMEM(ptGrid);
 		
 		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
+		xa->setNames(NULL, coords);
+		for (vsize_t i = 0; i < coords; i++)
+			xa->setName(i, _data[i]->name());
 		add(*xa);
 		/* ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, scales[1]);
 		add(*ya); 

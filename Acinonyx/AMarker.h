@@ -11,6 +11,7 @@
 #define A_MARKER_H
 
 #include "ANotfier.h"
+#include "AVector.h"
 
 // NOTE: if this is changed, then also the supercalss may have to be changed!
 #ifdef __cplusplus
@@ -32,7 +33,7 @@ typedef unsigned int mark_t;
 
 #define N_MarkerChanged 0x10
 
-class AMarker : public ANotifierInterface, public AIntVector {
+class AMarker : public ANotifierInterface, public APlainIntVector {
 protected:
 	bool _batch;
 	bool _changed;
@@ -45,7 +46,7 @@ protected:
 	}
 
 public:
-	AMarker(vsize_t len) : AIntVector(0, len, false), ANotifierInterface(false) {
+	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false) {
 		_len = len;
 		_changed = false;
 		_data = (int*) calloc(sizeof(len), len);

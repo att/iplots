@@ -48,13 +48,16 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	RObject *o = eng->parseAndEval("{n<-1e5; x<-rnorm(n)}");
 	AMarker *mark = new AMarker(o->length());
 	ADataVector *vx = new ARDoubleVector(mark, o);
+	vx->setName("x");
 	o->release();
 	o = eng->parseAndEval("y<-rnorm(n)");
 	ADataVector *vy = new ARDoubleVector(mark, o);
+	vy->setName("y");
 	o->release();
 	
 	o = eng->parseAndEval("factor(LETTERS[as.integer(y - min(y))+1L])");
 	ARFactorVector *fv = new ARFactorVector(mark, o->value());
+	fv->setName("letters");
 	o->release();
 
 	ARect aFrame = AMkRect(0, 0, 400, 300);
