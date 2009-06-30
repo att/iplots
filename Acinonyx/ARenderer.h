@@ -33,6 +33,9 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h> /* for polygon tessellation */
 #include "AWindow.h"
+#include <math.h>
+
+#define CIRCLE_STEPS 10
 
 static void tcbCombine(GLdouble coords[3], 
 					   GLdouble *vertex_data[4],
@@ -165,6 +168,26 @@ public:
 		glEnd();
 	}
 	
+	void circle(AFloat x, AFloat y, AFloat r) {
+		double rho = 0.0;
+		glBegin(GL_POLYGON);
+		for (vsize_t i = 0; i < CIRCLE_STEPS; i++) {
+			glVertex2f(x + sin(rho) * r, y + cos(rho) * r);
+			rho += 2.0 * 3.1415926535897 / 10.0;
+		}
+		glEnd();
+	}
+
+	void circleO(AFloat x, AFloat y, AFloat r) {
+		double rho = 0.0;
+		glBegin(GL_LINE_LOOP);
+		for (vsize_t i = 0; i < CIRCLE_STEPS; i++) {
+			glVertex2f(x + sin(rho) * r, y + cos(rho) * r);
+			rho += 2.0 * 3.1415926535897 / 10.0;
+		}
+		glEnd();
+	}
+	
 	void text(const APoint pt, const char *txt) {
 		if (_window) _window->glstring(pt, AMkPoint(0,0), 0.0, txt);
 	}
@@ -240,7 +263,6 @@ public:
 
 	void polygon(const APoint *pt, int n, bool convex=false) {
 		if (convex || n < 4) { /* up to 3 points it's guaranteed convex */
-			glBegin(GL_POLYGON);
 			polyP(pt, n);
 			glEnd();
 			return;

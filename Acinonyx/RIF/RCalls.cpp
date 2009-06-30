@@ -84,7 +84,7 @@ static void AObjFinalizer(SEXP ref) {
 	}
 }
 
-static SEXP A2SEXP(AObject *o) {
+SEXP A2SEXP(AObject *o) {
 	SEXP xp = R_MakeExternalPtr(o, R_NilValue, R_NilValue);
 	R_RegisterCFinalizerEx(xp, AObjFinalizer, TRUE);
 	return xp;
@@ -94,7 +94,7 @@ static SEXP PTR2SEXP(void *ptr) {
 	return R_MakeExternalPtr(ptr, R_NilValue, R_NilValue);
 }
 
-static AObject *SEXP2A(SEXP o) {
+AObject *SEXP2A(SEXP o) {
 	if (TYPEOF(o) != EXTPTRSXP)
 		Rf_error("invalid object");
 	return (AObject*) R_ExternalPtrAddr(o);

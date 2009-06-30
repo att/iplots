@@ -13,6 +13,11 @@
 #include "AObject.h"
 #include "RObject.h"
 
-extern "C" void call_with_object(SEXP fun, AObject *o, const char *clazz);
+extern "C" {
+	void call_with_object(SEXP fun, AObject *o, const char *clazz);
+
+	SEXP A2SEXP(AObject *o);
+	AObject *SEXP2A(SEXP o);
+}
 
 #endif
