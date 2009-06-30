@@ -117,3 +117,11 @@ select.iPlot <- function(x, which) {
   if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
   invisible(.Call("A_MarkerSelect", m, which))
 }
+
+idev <- function(width=640, height=480, ps=10, bg=0, canvas=0, dpi=90) {
+  dev <- .External("RAcinonyxDevice", width, height, ps, bg, canvas, dpi, 0L)
+  w <- .Call("A_WindowCreate", dev, c(100,100))
+  class(dev) <- "iVisual"
+  attr(dev, "window") <- w
+  dev
+}
