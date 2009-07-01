@@ -166,6 +166,16 @@ public:
 		return APlot::mouseUp(e);
 	}
 	
+	virtual double doubleProperty(const char *name) {
+		if (!strcmp(name, "spines")) return spines ? 1.0 : 0.0;
+		return APlot::doubleProperty(name);
+	}
+	
+	virtual bool setDoubleProperty(const char *name, double value) {
+		if (!strcmp(name, "spines")) { bool desired = (value > 0.5); if (spines != desired) { spines=desired; update(); redraw(); return true; } };
+		return APlot::setDoubleProperty(name, value);
+	}
+	
 };
 
 #endif

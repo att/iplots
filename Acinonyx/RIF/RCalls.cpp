@@ -362,7 +362,17 @@ SEXP A_PlotDoubleProperty(SEXP sPlot, SEXP pName)
 SEXP A_PlotSetDoubleProperty(SEXP sPlot, SEXP pName, SEXP sValue)
 {
 	APlot *pl = (APlot*) SEXP2A(sPlot);
-	return Rf_ScalarLogical(pl ? pl->setDoubleProperty(CHAR(STRING_ELT(pName, 0)), REAL(sValue)[0]) : FALSE);
+	if ((TYPEOF(sValue) == LGLSXP || TYPEOF(sValue) == REALSXP || TYPEOF(sValue) == INTSXP) && LENGTH(sValue) > 0) {
+		double value = 0.0;
+		if (TYPEOF(sValue) == LGLSXP)
+			value = (double) (LOGICAL(sValue)[0]);
+		else if (TYPEOF(sValue) == INTSXP)
+			value = (double) (INTEGER(sValue)[0]);
+		else
+			value = REAL(sValue)[0];
+		return Rf_ScalarLogical(pl ? pl->setDoubleProperty(CHAR(STRING_ELT(pName, 0)), value) : FALSE);
+	} else
+		return Rf_ScalarLogical(FALSE);
 }
 
 SEXP A_PlotPrimaryMarker(SEXP sPlot)

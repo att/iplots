@@ -91,7 +91,7 @@ redraw.iVisual <- function(x, ...)
 `$.iPlot` <- function(x, name) {
   if (name == "marker") return(.Call("A_PlotPrimaryMarker", x))
   d <- .Call("A_PlotDoubleProperty", x, name)
-  if (!is.null(d) && !all(is.na(d))) return(d)
+  if (!is.null(d) && !all(is.na(d))) return(if (name %in% c("spines")) (d > 0.5) else d)
   o <- .Call("A_PlotValue", x)
   o[[name]]
 }

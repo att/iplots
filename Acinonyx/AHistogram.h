@@ -186,6 +186,7 @@ public:
 		if (!strcmp(name, "bin.width")) return bin->binWidth();
 		if (!strcmp(name, "bins")) return bin->bins();
 		if (!strcmp(name, "anchor")) return bin->anchor();
+		if (!strcmp(name, "spines")) return spines ? 1.0 : 0.0;
 		return APlot::doubleProperty(name);
 	}
 	
@@ -193,6 +194,7 @@ public:
 		if (!strcmp(name, "bin.width")) { bin->setBinWidth(value); ADataRange r = data->range(); bin->setBins(r.length / value + 1); updatePrimitives(); APlot::update(); redraw(); return true; }
 		if (!strcmp(name, "bins")) { bin->setBins(value); updatePrimitives(); APlot::update(); redraw(); return true; }
 		if (!strcmp(name, "anchor")) { bin->setAnchor(value); bin->updateCounts(); updatePrimitives(); APlot::update(); redraw(); return true; }
+		if (!strcmp(name, "spines")) { bool desired = (value > 0.5); if (spines != desired) { spines=desired; home(); update(); redraw(); return true; } };
 		return APlot::setDoubleProperty(name, value);
 	}
 	

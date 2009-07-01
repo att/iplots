@@ -398,10 +398,10 @@ static void RAcinonyxDevice_MetricInfo(int c, const pGEcontext gc, double *ascen
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	double size = gc->cex * gc->ps * xd->dpix / 72.0;
 	/* the follolwing values are essentially based on Quartz using sans-serif font at 12 pointsize */
-	*ascent  = 0.7166;
+	*ascent  = 0.7166 * size;
 	*descent = 0.0;
-	*width   = 0.833;
-	
+	*width   = 0.833 * size;
+
 	/* if (c >= 0 && c <= ((mbcslocale && gc->fontface != 5) ? 127 : 255)) {
 	} else {
 	    single = (UniChar) ((c < 0) ? -c : c);
@@ -412,7 +412,8 @@ static void RAcinonyxDevice_MetricInfo(int c, const pGEcontext gc, double *ascen
 
 static Rboolean RAcinonyxDevice_Locator(double *x, double *y, pDevDesc dd)
 {
-    DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
+    // DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
+	// FIXME: implement locator
 
     return FALSE;
 }
