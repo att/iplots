@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		682DCBB90FFAAA9E00E8F17C /* RGrDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 682DCBB80FFAAA9E00E8F17C /* RGrDevice.cpp */; };
 		687A31EE0FAA71D500EAF459 /* R.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 687A31ED0FAA71D500EAF459 /* R.framework */; };
 		687CA2580FB06D7E00D249DB /* REngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 687CA2570FB06D7E00D249DB /* REngine.cpp */; };
 		687EE55D0D79D281003E56F9 /* AContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 687EE55C0D79D281003E56F9 /* AContainer.cpp */; };
@@ -37,6 +38,7 @@
 		682DC6030FF1403F00E8F17C /* AHistogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHistogram.h; sourceTree = "<group>"; };
 		682DC9220FF26BAA00E8F17C /* ALinearProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALinearProjection.h; sourceTree = "<group>"; };
 		682DC9F30FF3A73400E8F17C /* RValueHolder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RValueHolder.h; sourceTree = "<group>"; };
+		682DCBB80FFAAA9E00E8F17C /* RGrDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RGrDevice.cpp; sourceTree = "<group>"; };
 		682F02510FCACEFE00A2227E /* ABasicPrimitives.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ABasicPrimitives.h; sourceTree = "<group>"; };
 		682F031C0FCC2D2300A2227E /* ARVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARVector.h; sourceTree = "<group>"; };
 		687A31E30FAA6DF600EAF459 /* RObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RObject.h; sourceTree = "<group>"; };
@@ -177,6 +179,7 @@
 		687A31E00FAA6DC800EAF459 /* RIF */ = {
 			isa = PBXGroup;
 			children = (
+				682DCBB80FFAAA9E00E8F17C /* RGrDevice.cpp */,
 				687A31E30FAA6DF600EAF459 /* RObject.h */,
 				687CA2300FB0264700D249DB /* REngine.h */,
 				687CA2570FB06D7E00D249DB /* REngine.cpp */,
@@ -314,6 +317,7 @@
 				689250C50F2A25CB00842A4B /* GLString.m in Sources */,
 				687CA2580FB06D7E00D249DB /* REngine.cpp in Sources */,
 				688A31990FC16E7B00532F79 /* RCalls.cpp in Sources */,
+				682DCBB90FFAAA9E00E8F17C /* RGrDevice.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

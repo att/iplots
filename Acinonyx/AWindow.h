@@ -20,7 +20,9 @@ class AWindow : public AObject
 	AObject *modalOwner;
 	AObject *_rootVisual;
 public:
-	AWindow(ARect frame) : modalOwner(0), _rootVisual(0) { OCLASS(AWindow) };
+	int *dirtyFlag;
+
+	AWindow(ARect frame) : modalOwner(0), _rootVisual(0), dirtyFlag(0) { OCLASS(AWindow) };
 	virtual ~AWindow() {
 		if (_rootVisual) _rootVisual->release();
 		DCLASS(AWindow)
@@ -53,9 +55,14 @@ public:
 	}
 	
 	virtual void redraw() {};
-	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {}; //  we need some implementation help here since gl cannot draw text
-
 	
+	/* the following are rendering methods that are off-loaded to the window implementation since they are not part of OpenGL */
+	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {}; //  we need some implementation help here since gl cannot draw text
+	virtual void glfont(const char *name, AFloat size) {}
+	
+	void setDirtyFlag(int *newDF) { dirtyFlag = newDF; };
+	bool isDirty() { return (dirtyFlag && dirtyFlag[0] != 0); }
+
 	virtual bool canClose() { return true; }
 	virtual void close() {};
 

@@ -149,8 +149,8 @@ public:
 		char buf[64];
 		ADataRange dr = _scale->dataRange();
 		snprintf(buf, 64, "%g", dr.begin);
-		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y), buf, AMkPoint(0.5, 1.0), -90.0);
+		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y), buf, AMkPoint(1.0, 0.5), -90.0);
 		snprintf(buf, 64, "%g", dr.begin + dr.length);
-		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y + _frame.height), buf, AMkPoint(0.5, 0.0), -90.0);
+		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y + _frame.height), buf, AMkPoint(0.0, 0.5), -90.0);
 	}
 };

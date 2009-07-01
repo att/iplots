@@ -60,10 +60,11 @@ class ARenderer : public AObject {
 protected:
 	ARect _frame; // in window coords
 	AWindow *_window;
+	int *dirtyFlag;
 	GLUtesselator *tess;
 public:
 
-	ARenderer(AWindow *aWindow, ARect frame) : _window(aWindow), _frame(frame), tess(0) { OCLASS(ARenderer) }
+	ARenderer(AWindow *aWindow, ARect frame) : _window(aWindow), _frame(frame), tess(0), dirtyFlag(0) { OCLASS(ARenderer) }
 
 	virtual ~ARenderer() {
 		if (tess)
@@ -75,12 +76,13 @@ public:
 	ARect frame() { return _frame; }
 
 	AWindow *window() { return _window; }
-	virtual void setWindow(AWindow *win) { _window = win;  }
+	virtual void setWindow(AWindow *win) { _window = win; if (dirtyFlag && win) win->setDirtyFlag(dirtyFlag); }
 	
 	bool containsPoint(APoint pt) { return (!((pt.x < _frame.x) || (pt.y < _frame.y) || (pt.x > _frame.x + _frame.width) || (pt.y > _frame.y + _frame.height))); }
 	bool intersectsRect(ARect r) { return (!((r.x > _frame.x + _frame.width) || (r.x + r.width < _frame.x) || (r.y > _frame.y + _frame.height) || (r.y + r.height < _frame.y))); }
 	
 	void redraw() { if (_window) _window->redraw(); }
+	void setDirtyFlag(int *df) { dirtyFlag=df; if (_window) _window->setDirtyFlag(df); }
 	
 	// drawing methods
 	
@@ -100,6 +102,9 @@ public:
 		glScalef( 2.0 / _frame.width, 2.0 / _frame.height, 1);
 		// anti-aliasing trick
 		glTranslatef(0.5, 0.5, 0.0); // subpixel shift to make sure that lines don't wash over two integration regions. However, filled areas are probably still in trouble
+		// default font ("" stands for user/default font)
+		// FIXME: 10.0 font size works well on OS X - check other platforms...
+		font("", 10.0);
 		_prof(profReport("$renderer.begin"))
 	}
 	
@@ -118,6 +123,10 @@ public:
 		glColor4f(r, g, b, a);
 	}
 
+	void color255(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+		glColor4b(r, g, b, a);
+	}
+	
 /*	void color(const AFloat col[4]) {
 		float f[4] = { col[0], col[1], col[2], col[3] };
 		glColor4fv(f);
@@ -170,22 +179,30 @@ public:
 	
 	void circle(AFloat x, AFloat y, AFloat r) {
 		double rho = 0.0;
+		vsize_t step = (r < 1.0) ? 4 : ((r < 5.0) ? 8 : (r * 2));
+		double step_a =  2.0 * 3.1415926535897 / ((double) step);
 		glBegin(GL_POLYGON);
-		for (vsize_t i = 0; i < CIRCLE_STEPS; i++) {
+		for (vsize_t i = 0; i < step; i++) {
 			glVertex2f(x + sin(rho) * r, y + cos(rho) * r);
-			rho += 2.0 * 3.1415926535897 / 10.0;
+			rho += step_a;
 		}
 		glEnd();
 	}
 
 	void circleO(AFloat x, AFloat y, AFloat r) {
 		double rho = 0.0;
+		vsize_t step = (r < 1.0) ? 4 : ((r < 5.0) ? 8 : (r * 2));
+		double step_a =  2.0 * 3.1415926535897 / ((double) step);
 		glBegin(GL_LINE_LOOP);
-		for (vsize_t i = 0; i < CIRCLE_STEPS; i++) {
+		for (vsize_t i = 0; i < step; i++) {
 			glVertex2f(x + sin(rho) * r, y + cos(rho) * r);
-			rho += 2.0 * 3.1415926535897 / 10.0;
+			rho += step_a;
 		}
 		glEnd();
+	}
+	
+	void font(const char *name, AFloat size) {
+		if (_window) _window->glfont(name, size);
 	}
 	
 	void text(const APoint pt, const char *txt) {

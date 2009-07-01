@@ -19,7 +19,10 @@
 
 #import "ALinearProjection.h"
 
-extern "C" { CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
+extern "C" {
+	CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position);
+	void ACocoa_Init();
+}
 
 CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 {
@@ -37,6 +40,13 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	//[window setReleasedWhenClosed:YES];
 
 	return window;
+}
+
+static NSAutoreleasePool *staticPool;
+
+void ACocoa_Init() {
+	NSApplicationLoad();
+	staticPool = [[NSAutoreleasePool alloc] init];
 }
 
 @implementation CocoaApp

@@ -57,6 +57,7 @@ typedef struct DeviceSpecific_s {
     int           flags;           /* additional flags */
     int           redraw;          /* redraw flag is set when replaying
 		                              and inhibits syncs on Mode */
+	int           dirty;
 
 } DeviceSpecific_t;
 
@@ -69,15 +70,14 @@ public:
 	}
 	
 	virtual void draw() {
-		/* int _dirty = qd->dirty; */
 		if (dss && dss->dev) {
 			pGEDevDesc gdd = desc2GEDesc(dss->dev);
 			dss->redraw = 1;
+			dss->dirty = 0;
 			if (gdd->displayList != R_NilValue)
 				GEplayDisplayList(gdd);
 			dss->redraw = 0;
 		}
-		// qd->dirty = _dirty; /* we do NOT change the dirty flag */
 	}
 	
 	virtual void moveAndResize(ARect frame) {
@@ -106,11 +106,14 @@ public:
 		clipOff();
 		glClearColor(R_RED(dss->canvas), R_GREEN(dss->canvas), R_BLUE(dss->canvas), 0);
 		glClear(GL_COLOR_BUFFER_BIT);
+		if (!dss->redraw) dss->dirty = 1;
 	}
 	
 	bool prepare_color(int col) {
+		// printf("prepare color %08x (%d)\n", col, R_TRANSPARENT(col));
 		if (R_TRANSPARENT(col)) return false;
-		color(AMkColor(R_RED(col), R_GREEN(col), R_BLUE(col), R_ALPHA(col)));
+		color((double) R_RED(col) / 255.0, (double) R_GREEN(col) / 255.0, (double) R_BLUE(col) / 255.0, (double) R_ALPHA(col) / 255.0);
+		if (!dss->redraw) dss->dirty = 1;
 		return true;
 	}							
 };
@@ -243,6 +246,7 @@ static DeviceSpecific_t* RAcinonyxDevice_Create(pDevDesc dev, double width, doub
 	qd->dpix       = dpix;
 	qd->dpiy       = dpiy;
 	qd->flags      = flags;
+	qd->dirty      = 0;
 
     dev->deviceSpecific = qd;
     qd->dev             = dev;
@@ -251,7 +255,7 @@ static DeviceSpecific_t* RAcinonyxDevice_Create(pDevDesc dev, double width, doub
 	dev->bottom= height;
 
 	qd->agd = new ARGraphicsDevice(NULL, qd, AMkRect(100.0, 100.0, width, height), AVF_XSPRING | AVF_YSPRING);
-
+	if (qd->agd) qd->agd->setDirtyFlag(&(qd->dirty));
     return qd;
 }
 
@@ -287,33 +291,46 @@ static void RAcinonyxDevice_NewPage(const pGEcontext gc, pDevDesc dd)
 	if (xd->agd) xd->agd->new_page();
 }
 
-static void RAcinonyxDevice_Clip(double x0, double x1, double y0, double y1, pDevDesc dd)
+static void RAcinonyxDevice_Clip(double x0, double x1, double y1, double y0, pDevDesc dd)
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
-	//if (xd->agd) xd->agd->clip(AMkRect(x0, y0, x1 - x0, y1 - y0));
+	if (xd->agd) {
+		xd->agd->clip(AMkRect(x0, xd->height - y1, x1 - x0 + 1, y1 - y0 + 1));
+		// printf("clip (%g,%g %g,%g)\n", x0, y0, x1, y1);
+	}
 }
 
 static double RAcinonyxDevice_StrWidth(const char *text, const pGEcontext gc, pDevDesc dd)
 {
 	DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
-	return strlen(text) * 8.0 * xd->ps;
+	double size = gc->cex * gc->ps * xd->dpix / 72.0;
+	return strlen(text) * size * 5.6 / 12.0; /* 5.6 is an average width at 12pt */
 }
 
 static void RAcinonyxDevice_Text(double x, double y, const char *text, double rot, double hadj, const pGEcontext gc, pDevDesc dd)
 {
 	DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
-	if (xd->agd && xd->agd->prepare_color(gc->col))
-		xd->agd->text(AMkPoint(x,y), text, AMkPoint(0, hadj), rot);
+	double height = xd->height;
+	if (xd->agd && xd->agd->prepare_color(gc->col)) {
+		xd->agd->font(gc->fontfamily, gc->cex * gc->ps);
+		xd->agd->text(AMkPoint(x, height - y), text, /* AMkPoint(hadj * cos(rot * PI / 180.0), hadj * sin(rot * PI / 180.0)) */ AMkPoint(hadj, 0), rot);
+#ifdef DEBUG
+		xd->agd->prepare_color(0xff0000ff);
+		xd->agd->line(x - 5, height - y, x + 5, height - y);
+		xd->agd->line(x, height - y - 5, x, height - y + 5);
+#endif
+	}
 }
 
 static void RAcinonyxDevice_Rect(double x0, double y0, double x1, double y1, const pGEcontext gc, pDevDesc dd)
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	if (xd->agd) {
+		double height = xd->height;
 		if (xd->agd->prepare_color(gc->fill))
-			xd->agd->rectO(x0, y0, x1, y1);
+			xd->agd->rect(x0, height - y0, x1, height - y1);
 		if (xd->agd->prepare_color(gc->col))
-			xd->agd->rect(x0, y0, x1, y1);
+			xd->agd->rectO(x0, height - y0, x1, height - y1);
 	}
 }
 
@@ -321,24 +338,30 @@ static void RAcinonyxDevice_Circle(double x, double y, double r, const pGEcontex
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	if (xd->agd) {
+		double height = xd->height;
 		if (xd->agd->prepare_color(gc->fill))
-			xd->agd->circle(x, y, r);
+			xd->agd->circle(x, height - y, r);
 		if (xd->agd->prepare_color(gc->col))
-			xd->agd->circleO(x, y, r);
+			xd->agd->circleO(x, height - y, r);
 	}		
 }
 
 static void RAcinonyxDevice_Line(double x1, double y1, double x2, double y2, const pGEcontext gc, pDevDesc dd)
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
-	if (xd->agd && xd->agd->prepare_color(gc->col)) xd->agd->line(x1, y1, x2, y2);
+	double height = xd->height;
+	if (xd->agd && xd->agd->prepare_color(gc->col)) xd->agd->line(x1, height - y1, x2, height - y2);
 }
 
 static void RAcinonyxDevice_Polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd)
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
-	if (xd->agd && xd->agd->prepare_color(gc->col))
+	if (xd->agd && xd->agd->prepare_color(gc->col)) {
+		double height = xd->height;
+		for (vsize_t i = 0; i < n; i++) y[i] = height - y[i];
 		xd->agd->polyline(x, y, n); // FIXME: this will only work as long as AFloat is double
+		for (vsize_t i = 0; i < n; i++) y[i] = height - y[i];
+	}
 }
 
 static void RAcinonyxDevice_Polygon(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd)
@@ -347,10 +370,13 @@ static void RAcinonyxDevice_Polygon(int n, double *x, double *y, const pGEcontex
 
     if (n < 2) return;
 	if (xd->agd) {
+		double height = xd->height;
+		for (vsize_t i = 0; i < n; i++) y[i] = height - y[i];
 		if (xd->agd->prepare_color(gc->fill))
 			xd->agd->polygon(x, y, n);
 		if (xd->agd->prepare_color(gc->col))
 			xd->agd->polygonO(x, y, n);
+		for (vsize_t i = 0; i < n; i++) y[i] = height - y[i];
 	}
 }
 
@@ -370,9 +396,11 @@ static void RAcinonyxDevice_Mode(int mode, pDevDesc dd)
 static void RAcinonyxDevice_MetricInfo(int c, const pGEcontext gc, double *ascent, double *descent, double *width, pDevDesc dd)
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
-	*ascent = 10.0;
-	*descent = 2.0;
-	*width = 8.0;
+	double size = gc->cex * gc->ps * xd->dpix / 72.0;
+	/* the follolwing values are essentially based on Quartz using sans-serif font at 12 pointsize */
+	*ascent  = 0.7166;
+	*descent = 0.0;
+	*width   = 0.833;
 	
 	/* if (c >= 0 && c <= ((mbcslocale && gc->fontface != 5) ? 127 : 255)) {
 	} else {

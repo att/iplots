@@ -1,7 +1,7 @@
 ## a simple Makefile to build Acinonyx as an R dynamic library
 ## currently it uses Mac back-end only
 
-ASRC = Acinonyx/AContainer.cpp Acinonyx/AObject.cpp Acinonyx/RIF/RCalls.cpp Acinonyx/RIF/REngine.cpp
+ASRC = Acinonyx/AContainer.cpp Acinonyx/AObject.cpp Acinonyx/RIF/RCalls.cpp Acinonyx/RIF/REngine.cpp Acinonyx/RIF/RGrDevice.cpp
 CSRC = Acinonyx/ATools.c
 MMSRC = Cocoa/CocoaApp.mm Cocoa/CocoaView.mm Cocoa/CocoaWindow.mm
 MSRC = Cocoa/GLString.m

@@ -103,7 +103,45 @@ AObject *SEXP2A(SEXP o) {
 
 /*------------- initialization --------------*/
 
+#ifdef HAVE_AQUA
+/* we use Quartz to make sure the event loop is running */
+#undef DEBUG
+#include <R_ext/QuartzDevice.h>
+
+#define QCF_SET_PEPTR  1  /* set ProcessEvents function pointer */
+#define QCF_SET_FRONT  2  /* set application mode to front */
+
+extern "C" {
+	void QuartzCocoa_SetupEventLoop(int flags, unsigned long latency); /* from qdCocoa */
+	void ACocoa_Init(); /* from CocoaApp */
+}
+
+#endif
+
+static bool inside_Rapp = false;
+
 SEXP A_Init() {
+#ifdef HAVE_AQUA
+	const char* rapp=getenv("R_GUI_APP_VERSION");
+	if (!rapp || !rapp[0]) { /* if we're not inside R.app, use Quartz to start the event loop */
+		QuartzFunctions_t *qf = getQuartzFunctions();
+		if (qf) {
+			/* check embedding parameters to see if Rapp (or other Cocoa app) didn't do the work for us */
+			int eflags = 0;
+			int *p_eflags = (int*) qf->GetParameter(NULL, QuartzParam_EmbeddingFlags);
+			if (p_eflags) eflags = p_eflags[0];
+			if ((eflags & QP_Flags_CFLoop) && (eflags & QP_Flags_Cocoa) && (eflags & QP_Flags_Front)) {
+				return R_NilValue; /* ok, all is set already */
+			}
+			ACocoa_Init();
+#if 0 // it's inside grDevices.so - so we cannot reach it ...
+			if ((eflags & QP_Flags_CFLoop) == 0) /* no event loop? start one ... */
+				QuartzCocoa_SetupEventLoop(QCF_SET_PEPTR|QCF_SET_FRONT, 100);
+#endif
+		}
+	} else /* we're in R.app, all should be set */
+		inside_Rapp = true;
+#endif
 	return R_NilValue;
 }
 

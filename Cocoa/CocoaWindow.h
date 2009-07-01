@@ -17,6 +17,7 @@ class AVisual;
 {
 	struct ACocoaWindow *aWindow;
 	CocoaView *view;
+	NSTimer *heartbeatTimer;
 }
 
 - (id) initWithContentRect: (NSRect) rect visual: (AVisual*) aVisual;

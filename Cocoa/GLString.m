@@ -92,8 +92,8 @@
 	borderColor = border;
 	staticFrame = NO;
 	antialias = YES;
-	marginSize.width = 4.0f; // standard margins
-	marginSize.height = 2.0f;
+	marginSize.width = 0.0f; // 4.0f; // standard margins
+	marginSize.height = 0.0f; // 2.0f;
 	cRadius = 4.0f;
 	requiresUpdate = YES;
 	// all other variables 0 or NULL
@@ -387,11 +387,22 @@
 		ur.x = lr.x + ul.x;
 		ur.y = lr.y + ul.y;
 		// multiply adj by the diagonal
-		adj.x *= - ur.x;
-		adj.y *= - ur.y;
+		//adj.x *= - ur.x;
+		//adj.y *= - ur.y;
 		// adjust the origin
-		ll.x += adj.x;
-		ll.y += adj.y;
+
+#ifdef DEBUG
+		glBegin(GL_LINE_STRIP);
+		glColor4f(0.0, 0.0, 1.0, 0.5);
+		glVertex2f(ul.x + ll.x, ul.y + ll.y);
+		glVertex2f(ll.x, ll.y);
+		glColor4f(0.0, 1.0, 0.0, 0.5);
+		glVertex2f(lr.x + ll.x, lr.y + ll.y);
+		glEnd();
+#endif
+		
+		ll.x += - adj.x * lr.x - adj.y * ul.x;
+		ll.y += - adj.y * ul.y - adj.x * lr.y;
 		// make sure the texture is pixel-aligned
 		ll.x = round(ll.x) - 0.5;
 		ll.y = round(ll.y) - 0.5;
@@ -403,7 +414,17 @@
 		ur.x += ll.x;
 		ur.y += ll.y;
 
-		// ALog("points: A(%g,%g) B(%g,%g), C(%g,%g), D(%g,%g) (th=%g, cth=%g, sth=%g)", ll.x, ll.y, lr.x, lr.y, ur.x, ur.y, ul.x, ul.y, th, cth, sth);
+#ifdef DEBUG
+		glBegin(GL_LINE_STRIP);
+		glColor4f(1.0, 0.0, 0.0, 0.5);
+		glVertex2f(ul.x, ul.y);
+		glVertex2f(ll.x, ll.y);
+		glColor4f(0.0, 1.0, 0.0, 0.5);
+		glVertex2f(lr.x, lr.y);
+		glEnd();
+#endif
+		
+		// ALog("points: A(%g,%g) B(%g,%g), C(%g,%g), D(%g,%g) (th=%g, cth=%g, sth=%g)\n", ll.x, ll.y, lr.x, lr.y, ur.x, ur.y, ul.x, ul.y, th, cth, sth);
 		
 		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT); // GL_COLOR_BUFFER_BIT for glBlendFunc, GL_ENABLE_BIT for glEnable / glDisable
 		

@@ -83,6 +83,9 @@ ipcp.default <- function(x, ...) {
 redraw.iPlot <- function(x, ...)
   invisible(.Call("A_PlotRedraw", x))
 
+redraw.iVisual <- function(x, ...)
+  invisible(.Call("A_PlotRedraw", x))
+
 ## access to virutal fields in plot objects that have pass-by-reference semantics of the whole plot object
 
 `$.iPlot` <- function(x, name) {
@@ -118,7 +121,7 @@ select.iPlot <- function(x, which) {
   invisible(.Call("A_MarkerSelect", m, which))
 }
 
-idev <- function(width=640, height=480, ps=10, bg=0, canvas=0, dpi=90) {
+idev <- function(width=640, height=480, ps=12, bg=0, canvas=0, dpi=90) {
   dev <- .External("RAcinonyxDevice", width, height, ps, bg, canvas, dpi, 0L)
   w <- .Call("A_WindowCreate", dev, c(100,100))
   class(dev) <- "iVisual"

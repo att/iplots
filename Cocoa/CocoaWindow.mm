@@ -12,15 +12,28 @@
 
 class ACocoaWindow : public AWindow {
 	CocoaWindow *window;
+	NSFont *font;
+	char *font_name;
+	double font_size;
 public:
 	ACocoaWindow(CocoaWindow *window, ARect frame) : AWindow(frame) {
 		this->window = window;
+		font_name = strdup("Arial");
+		font_size = 10.0;
+		font = [NSFont fontWithName:[NSString stringWithUTF8String:font_name] size:font_size];
+		if (!font) font = [NSFont userFontOfSize:font_size];
+		if (font) [font retain];
+	}
+
+	virtual ~ACocoaWindow() {
+		if (font) [font release];
+		if (font_name) free(font_name);
 	}
 	
 	virtual void redraw() {
 		[window redraw];
 	}
-	
+
 	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {
 #if 0 // double-the-size-code but that doesn't support rotation
 		NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont userFontOfSize:20] forKey:NSFontAttributeName];
@@ -38,7 +51,7 @@ public:
 		[gs release];
 		[str release];
 #else
-		NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont userFontOfSize:10] forKey:NSFontAttributeName];
+		NSDictionary *attr = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
 		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt] attributes:attr];
 		//NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
 		GLString *gs = [[GLString alloc] initWithAttributedString:str];
@@ -49,6 +62,32 @@ public:
 		[gs release];
 		[str release];
 #endif
+	}
+	
+	virtual void glfont(const char *name, AFloat size) {
+		bool changed = false;
+		if (size > 0.0 && size != font_size) {
+			changed = true;
+			font_size = size;
+		}
+		if (name && strcmp(name, font_name)) {
+			free(font_name);
+			font_name = strdup(name);
+			changed = true;
+		}
+		if (changed) {
+			NSFont *candidate = nil;
+			if (*font_name)
+				candidate = [NSFont fontWithName:[NSString stringWithUTF8String:font_name] size: font_size];
+			if (!candidate) candidate = [NSFont userFontOfSize: font_size];
+			if (candidate) {
+#ifdef DEBUG
+				NSLog(@"new font: %@ replacing %@", candidate, font);
+#endif
+				[font release];
+				font = [candidate retain];
+			}
+		}
 	}
 };
 
@@ -71,8 +110,20 @@ public:
 		[self makeFirstResponder:view];
 		[self setAcceptsMouseMovedEvents:YES];
 		[self setContentMinSize:NSMakeSize(150.0, 100.0)];
+		heartbeatTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(heartbeat:) userInfo:nil repeats:YES] retain];
 	}
 	return self;
+}
+
+- (void) heartbeat: (id) sender
+{
+	//NSLog(@"%@ heartbeat: aWindow=%p, view=%p, isDirty=")
+	int *df;
+	if (aWindow && view && (df = aWindow->dirtyFlag) && df[0]) {
+		df[0]++;
+		if (df[0] > 2)
+			[view setNeedsDisplay:YES];
+	}
 }
 
 - (void) redraw
@@ -88,6 +139,8 @@ public:
 #ifdef DEBUG
 	NSLog(@"%@: dealloc", self);
 #endif
+	[heartbeatTimer invalidate];
+	[heartbeatTimer release];
 	if (view) [view release];
 	if (aWindow) aWindow->release();
 	[super dealloc];
