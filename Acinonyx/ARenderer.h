@@ -30,8 +30,13 @@
 #define A_RENDERER_H_
 
 #include "AObject.h"
+#if __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h> /* for polygon tessellation */
+#else
+#include <gl/gl.h>
+#include <gl/glu.h>
+#endif
 #include "AWindow.h"
 #include <math.h>
 
@@ -92,7 +97,9 @@ public:
 		//glClearColor(0.0, 0.0, 0.0, 0);
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
+#ifndef WIN32
 		glEnable(GL_MULTISAMPLE);
+#endif
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -288,9 +295,15 @@ public:
 		if (!tess)
 			tess = gluNewTess();
 		/* not sure how portable this is - it won't work if glXX are macros ... */
+#ifdef WIN32
+		gluTessCallback(tess, GLU_TESS_BEGIN, glBegin);
+		gluTessCallback(tess, GLU_TESS_END, (GLvoid (*) ( )) &glEnd);
+		gluTessCallback(tess, GLU_TESS_VERTEX, (GLvoid (*) ()) &glVertex3dv);
+#else
 		gluTessCallback(tess, GLU_TESS_BEGIN, (GLvoid (*) ( )) &glBegin);
 		gluTessCallback(tess, GLU_TESS_END, (GLvoid (*) ( )) &glEnd);
 		gluTessCallback(tess, GLU_TESS_VERTEX, (GLvoid (*) ()) &glVertex3dv);
+#endif
 		/* the only one we really implement ourself */
 		gluTessCallback(tess, GLU_TESS_COMBINE, (GLvoid (*) ()) &tcbCombine);
 		/* set the winding rule to non-zero (the one I like the best) */

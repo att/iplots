@@ -52,7 +52,9 @@ public:
 				setenv("R_HOME", "/Library/Frameworks/R.framework/Resources", 1);
 				if (rarch && !getenv("R_ARCH")) setenv("R_ARCH", rarch, 1);
 #else
+#ifndef WIN32
 				setenv("R_HOME","/usr/local/lib/R");
+#endif
 #endif
 			}
 			int stat = Rf_initialize_R(3, (char**) argv);

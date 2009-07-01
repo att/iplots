@@ -525,6 +525,7 @@ SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp)
 /*------------- AWindow --------------*/
 
 #ifndef GLUT
+#if __APPLE__
 extern "C" { void *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
 
 SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
@@ -534,6 +535,19 @@ SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 	void *win = ACocoa_CreateWindow(vis, AMkPoint(pos[0], pos[1]));
 	return PTR2SEXP(win);
 }
+#else
+#ifdef WIN32
+extern "C" { void *AWin32_CreateWindow(AVisual *visual, APoint position);  }
+
+SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
+{
+	AVisual *vis = (AVisual*) SEXP2A(sVis);
+	double *pos = REAL(sPos);
+	void *win = AWin32_CreateWindow(vis, AMkPoint(pos[0], pos[1]));
+	return PTR2SEXP(win);
+}
+#endif
+#endif
 #else
 #include "AGLUTWindow.h"
 

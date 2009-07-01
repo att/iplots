@@ -17,18 +17,22 @@
 // IDEA: use window-global query object
 class AWindow : public AObject
 {
+protected:
 	AObject *modalOwner;
 	AObject *_rootVisual;
+	ARect _frame;
 public:
 	int *dirtyFlag;
 
-	AWindow(ARect frame) : modalOwner(0), _rootVisual(0), dirtyFlag(0) { OCLASS(AWindow) };
+	AWindow(ARect frame) : modalOwner(0), _frame(frame), _rootVisual(0), dirtyFlag(0) { OCLASS(AWindow) };
 	virtual ~AWindow() {
 		if (_rootVisual) _rootVisual->release();
 		DCLASS(AWindow)
 	}
 
 	AObject *rootVisual() { return _rootVisual; }
+	
+	ARect frame() { return _frame; }
 	
 	void setRootVisual(AObject *rv) {
 		if (_rootVisual) _rootVisual->release();

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		682296640FFC158100223DB8 /* AWin32Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 682296630FFC158100223DB8 /* AWin32Window.cpp */; };
 		682DCBB90FFAAA9E00E8F17C /* RGrDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 682DCBB80FFAAA9E00E8F17C /* RGrDevice.cpp */; };
 		687A31EE0FAA71D500EAF459 /* R.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 687A31ED0FAA71D500EAF459 /* R.framework */; };
 		687CA2580FB06D7E00D249DB /* REngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 687CA2570FB06D7E00D249DB /* REngine.cpp */; };
@@ -33,6 +34,8 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* Acinonyx_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Acinonyx_Prefix.pch; sourceTree = "<group>"; };
+		6822964B0FFC0EFC00223DB8 /* AWin32Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWin32Window.h; sourceTree = "<group>"; };
+		682296630FFC158100223DB8 /* AWin32Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AWin32Window.cpp; sourceTree = "<group>"; };
 		68249C630FC1C2FD009EAA6B /* AGLUTWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AGLUTWindow.cpp; sourceTree = "<group>"; };
 		68249C640FC1C2FD009EAA6B /* AGLUTWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AGLUTWindow.h; sourceTree = "<group>"; };
 		682DC6030FF1403F00E8F17C /* AHistogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHistogram.h; sourceTree = "<group>"; };
@@ -132,6 +135,7 @@
 			children = (
 				68BF1C220D79CD440095B772 /* Acinonyx */,
 				29B97315FDCFA39411CA2CEA /* Cocoa */,
+				682296480FFC0EE000223DB8 /* Win32 */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
@@ -174,6 +178,15 @@
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		682296480FFC0EE000223DB8 /* Win32 */ = {
+			isa = PBXGroup;
+			children = (
+				6822964B0FFC0EFC00223DB8 /* AWin32Window.h */,
+				682296630FFC158100223DB8 /* AWin32Window.cpp */,
+			);
+			path = Win32;
 			sourceTree = "<group>";
 		};
 		687A31E00FAA6DC800EAF459 /* RIF */ = {
@@ -318,6 +331,7 @@
 				687CA2580FB06D7E00D249DB /* REngine.cpp in Sources */,
 				688A31990FC16E7B00532F79 /* RCalls.cpp in Sources */,
 				682DCBB90FFAAA9E00E8F17C /* RGrDevice.cpp in Sources */,
+				682296640FFC158100223DB8 /* AWin32Window.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
