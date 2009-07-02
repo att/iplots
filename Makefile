@@ -1,5 +1,4 @@
 ## a simple Makefile to build Acinonyx as an R dynamic library
-## currently it uses Mac back-end only
 
 ASRC = Acinonyx/AContainer.cpp Acinonyx/AObject.cpp Acinonyx/RIF/RCalls.cpp Acinonyx/RIF/REngine.cpp Acinonyx/RIF/RGrDevice.cpp
 CSRC = Acinonyx/ATools.c
@@ -8,9 +7,9 @@ MSRC = Cocoa/GLString.m
 GLUTSRC = GLUT/AGLUTWindow.cpp
 WINSRC = Win32/AWin32Window.cpp
 
-OBJ = $(ASRC:%.cpp=%.o) $(CSRC:%.c=%.o) $(MMSRC:%.mm=%.o) $(MSRC:%.m=%.o)
+OBJ = $(ASRC:%.cpp=%.o) $(CSRC:%.c=%.o) $(MMSRC:%.mm=%.o) $(MSRC:%.m=%.o) $(WINSRC:%.cpp=%.o)
 
-FOBJ=AContainer.o AObject.o ATools.o CocoaApp.o CocoaView.o CocoaWindow.o RCalls.o REngine.o GLString.o
+FOBJ=AContainer.o AObject.o ATools.o CocoaApp.o CocoaView.o CocoaWindow.o RCalls.o REngine.o GLString.o AWin32Window.o
 
 
 Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
@@ -27,4 +26,4 @@ Acinonyx.dll: $(ASRC) $(CSRC) $(WINSRC)
 #	g++ -dynamiclib -Wl,-headerpad_max_install_names -mmacosx-version-min=10.4 -undefined dynamic_lookup -single_module -multiply_defined suppress -o $@ $(FOBJ)
 
 clean:
-	rm -rf $(OBJ) $(FOBJ) Acinonyx.so glut.so
+	rm -rf $(OBJ) $(FOBJ) Acinonyx.so Acinonyx.dll glut.so

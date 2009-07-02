@@ -34,27 +34,6 @@ static void HelpExpose(window w, rect r)
 {
 	AWin32Window *win = (AWin32Window*) getdata(w);
 	if (win) win->expose();
-#if 0
-	Rcairo_backend *be = (Rcairo_backend *) getdata(w);
-	Rcairo_w32_data *xd = (Rcairo_w32_data *) be->backendSpecific;
-	HWND hwnd = (HWND) ((ga_object*)(xd->gawin))->handle;
-	RECT cr;
-	
-	HDC wdc=GetDC(hwnd);
-	GetClientRect( hwnd, &cr );
-	
-	/*
-	 if (cr.right != xd->width || cr.bottom != xd->height) {
-	 ReleaseDC(hwnd, wdc);
-	 Rprintf("HelpExpose: size mismatch, calling resize\n");
-	 Rcairo_backend_resize(be, cr.right, cr.bottom);
-	 return;
-	 }*/
-	
-	BitBlt(wdc, 0, 0, cr.right, cr.bottom, xd->cdc, 0, 0, SRCCOPY);
-	ValidateRect(hwnd, NULL);
-	ReleaseDC(hwnd, wdc);
-#endif
 }
 
 static void HelpResize(window w, rect r)
@@ -70,7 +49,11 @@ static void SetupPixelFormat(HDC hDC)
 	static PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
 		1,
-		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL
+#ifndef USE_GDI
+		| PFD_DOUBLEBUFFER
+#endif
+		,
 		PFD_TYPE_RGBA,
 		32,                                     //32 bit color mode
 		0, 0, 0, 0, 0, 0,                       //ignore color bits
@@ -87,6 +70,9 @@ static void SetupPixelFormat(HDC hDC)
 	};                              //layer masks ignored
 	
 	nPixelFormat = ChoosePixelFormat(hDC, &pfd);
+#ifdef DEBUG
+	Rprintf("ChoosePixelFormat(%x): %x\n", (int) hDC, (int) nPixelFormat);
+#endif
 	SetPixelFormat(hDC, nPixelFormat, &pfd);
 }
 

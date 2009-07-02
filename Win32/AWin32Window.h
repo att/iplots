@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <gl/gl.h>
 #include <gl/glu.h>
+#include "RObject.h" /* for debugging with Rprintf */
 
 /* --- GraphApp support --- we use GA from R headers --- */
 #ifndef NATIVE_UI
@@ -42,12 +43,39 @@ static void HelpExpose(window w, rect r);
 static void HelpResize(window w, rect r);
 static void SetupPixelFormat(HDC hDC);
 
+static void PrintLastError(const char *fname, BOOL result) 
+{ 
+	if (result) return; // return on success
+    // Retrieve the system error message for the last-error code
+	
+    LPVOID lpMsgBuf;
+    DWORD dw = GetLastError(); 
+	
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+				  FORMAT_MESSAGE_FROM_SYSTEM |
+				  FORMAT_MESSAGE_IGNORE_INSERTS,
+				  NULL,
+				  dw,
+				  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				  (LPTSTR) &lpMsgBuf,
+				  0, NULL );
+    Rprintf("%s failed with error %d: %s\n", fname, dw, (const char*) lpMsgBuf);
+    LocalFree(lpMsgBuf);
+}
+
+// FIXME: implement check for anti-aliasing and review how to enable it on Win32
+
 class AWin32Window : public AWindow {
+protected:
 	window gawin;
 	HWND wh;
 	HDC hDC;
 	HGLRC hRC;
+	HFONT hFont;
+	char *font_name;
+	double font_size;
 public:
+	// FIXME: window coordinates in Windows are flipped so placement of windows has to be re-calculated
 	AWin32Window(ARect frame) : AWindow(frame) {
 #if 0
 		if (be->dpix<=0) { /* try to find out the DPI setting */
@@ -65,9 +93,13 @@ public:
 		}
 #endif
 
+		font_size = 10.0;
+		font_name = strdup("Arial");
+		
 		hDC = 0;
 		hRC = 0;
 		wh = 0;
+		hFont = 0;
 
 #ifdef NATIVE_UI
 		if (!inited_w32) {
@@ -110,6 +142,9 @@ public:
 			hDC = GetDC(wh);
 			SetupPixelFormat(hDC);
 			hRC = wglCreateContext(hDC);
+#ifdef DEBUG
+			Rprintf("wglCreateContext(%x): %x\n", (int) hDC, (int) hRC);
+#endif
 			wglMakeCurrent(hDC, hRC);
 
 			setdata(gawin, (void *) this);
@@ -180,32 +215,200 @@ public:
 #endif		
 	}
 	
+	virtual ~AWin32Window() {
+		if (font_name) free(font_name);
+	}
+	
+	/* FIXME: destroy ...
+	{
+		if (xd->cdc) {
+			DeleteDC(xd->cdc); xd->cdc=0;
+			DeleteObject(xd->cb); xd->cb=0;
+		}
+		if (xd->gawin) {
+			del(xd->gawin);
+			doevent();
+			xd->gawin=0;
+		} else if (xd->wh) {
+			DestroyWindow(xd->wh);
+		}
+	} */
+	
 	void resize(ARect newSize) {
 		AVisual * v = (AVisual*) rootVisual();
 		if (v) {
-			ARect vf = v->frame();
-			vf.width = _frame.width = newSize.width;
-			vf.height = _frame.height = newSize.height;
+			_frame.width = newSize.width;
+			_frame.height = newSize.height;
+			ARect vf = AMkRect(0.0, 0.0, _frame.width, _frame.height); // force 0.0/0.0 - root visual is defined to fill the whole window in all cases
+#ifdef DEBUG
+			Rprintf("%s: resizing visual to %g x %g\n", describe(), vf.width, vf.height);
+#endif
 			v->moveAndResize(vf);
 		}
 	}
 	
 	void expose() {
 		AVisual * v = (AVisual*) rootVisual();
+#ifdef DEBUG
+		Rprintf("%s: expose, visual=%p\n", describe(), v);
+#endif
 		if (v) {
+			wglMakeCurrent(hDC, hRC);
 			v->begin();
 			v->draw();
 			v->end();
 		}
+#ifndef USE_GDI
+		SwapBuffers(hDC);
+#endif
 	}
 	
 	virtual void close() {
+#ifdef DEBUG
+		Rprintf("%s: close\n", describe());
+#endif
 		if (hDC) wglMakeCurrent(hDC, NULL);
 		wglDeleteContext(hRC);
 		
 		/*      Send quit message to queue*/
-		PostQuitMessage(0);
+		/* PostQuitMessage(0); */
 	}
+	
+	// FIXME: this implementation lacks some hearbeat with dirtly flag observation
+	// FIXME: we are not passing any key/mouse events
+	
+#define FONT_LIST_ID 100
+#define FONT_LIST_START 0
+#define FONT_LIST_CHARS 255
+	
+	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {
+#ifdef USE_GDI
+		LOGFONT lf = { 0 };
+		strncpy(lf.lfFaceName, font_name, LF_FACESIZE);
+		lf.lfWeight = FW_NORMAL;
+		
+		int nOldBkMode = SetBkMode(hDC, TRANSPARENT);
+
+		lf.lfOrientation = lf.lfEscapement = rot * 10.0;
+		
+		//int nOldGMode = SetGraphicsMode( hDC, GM_COMPATIBLE );
+		
+		lf.lfHeight = (font_size * (double) GetDeviceCaps(hDC, LOGPIXELSY)) / 72.0;
+		
+		HFONT hFont = (HFONT) CreateFontIndirect(&lf);
+		HGDIOBJ hPrevFont = SelectObject(hDC, hFont);
+		
+		SIZE bbox;
+		if (GetTextExtentPoint32(hDC, txt, strlen(txt), &bbox)) {
+			ASize ts = AMkSize((double) bbox.cx, (double) bbox.cy);
+			APoint ll, lr, ul;			
+			ll = pt;
+			double th = rot * PI / 180.0; // theta
+			double cth = cos(th), sth = sin(th); // cos(theta), sin(theta)
+			
+			// base point in x (width) and y (height) direction (delta from point of text origin)
+			lr.x = ts.width * cth;
+			lr.y = ts.width * sth;
+			ul.x = - ts.height * sth;
+			ul.y = ts.height * cth;
+			// adjust the origin by the two orthogonal vectors
+			ll.x += - adj.x * lr.x - adj.y * ul.x;
+			ll.y += - adj.y * ul.y - adj.x * lr.y;
+			/* make sure the texture is pixel-aligned
+			ll.x = round(ll.x) - 0.5;
+			ll.y = round(ll.y) - 0.5; */
+			TextOut(hDC, ll.x, _frame.height - ll.y, txt, strlen(txt));			
+		} else // if getting the size fails, just spit it out anyway
+			TextOut(hDC, pt.x, _frame.height - pt.y, txt, strlen(txt));
+
+		SelectObject(hDC, hPrevFont);
+		DeleteObject(hFont);
+		
+		SetBkMode( hDC, nOldBkMode );
+		//SetGraphicsMode( hDC, nOldGMode );
+#else
+		glPushMatrix();
+		SIZE bbox;
+		glTranslated(pt.x, pt.y, 0.0);
+		
+		ASize ts;
+		if (GetTextExtentPoint32(hDC, txt, strlen(txt), &bbox)) {
+			ts = AMkSize((double) bbox.cx, (double) bbox.cy);
+			APoint lr, ul;			
+
+			double th = rot * PI / 180.0; // theta
+			double cth = cos(th), sth = sin(th); // cos(theta), sin(theta)
+			
+			// base point in x (width) and y (height) direction (delta from point of text origin)
+			lr.x = ts.width * cth;
+			lr.y = ts.width * sth;
+			ul.x = - ts.height * sth;
+			ul.y = ts.height * cth;
+			// adjust the origin by the two orthogonal vectors
+			glTranslated(- adj.x * lr.x - adj.y * ul.x, - adj.y * ul.y - adj.x * lr.y, -1.0);
+			if (rot != 0.0) glRotated(rot, 0.0, 0.0, 1.0);
+		} else // very rough guess
+			ts = AMkSize(5.6 / 12.0 * font_size * (double) strlen(txt), 0.85 * font_size);
+
+#ifdef DEBUG
+		glBegin(GL_LINE_STRIP);
+		glColor4f(0.0, 0.0, 1.0, 0.5);
+		glVertex2f(0.0, ts.height);
+		glVertex2f(0.0, 0.0);
+		glColor4f(0.0, 1.0, 0.0, 0.5);
+		glVertex2f(ts.width, 0.0);
+		glEnd();
+#endif
+		glColor4f(0.0, 0.0, 0.0, 1.0);
+		glRasterPos2d(0.0, 0.0);
+		glListBase(FONT_LIST_ID - FONT_LIST_START);
+		glCallLists(strlen(txt), GL_UNSIGNED_BYTE, txt);
+		glPopMatrix();
+#endif
+	}
+
+	virtual void glfont(const char *name, AFloat size) {
+		bool changed = false;
+		if (!*name) name = "Arial"; /* default font is Arial */
+		if (size > 0.0 && size != font_size) {
+			changed = true;
+			font_size = size;
+		}
+		if (name && strcmp(name, font_name)) {
+			free(font_name);
+			font_name = strdup(name);
+			changed = true;
+		}
+		if (changed) {
+			if (hFont)
+				glDeleteLists(FONT_LIST_ID, FONT_LIST_CHARS);
+			LOGFONT lf = { 0 };
+			strncpy(lf.lfFaceName, font_name, LF_FACESIZE);
+			lf.lfWeight = FW_NORMAL;
+			lf.lfOrientation = lf.lfEscapement = 0.0;
+			lf.lfHeight = (font_size * (double) GetDeviceCaps(hDC, LOGPIXELSY)) / 72.0;
+#ifdef USE_OUTLINES
+			lf.lfOutPrecision = OUT_TT_PRECIS;
+#endif
+			HFONT newFont = (HFONT) CreateFontIndirect(&lf);
+			if (SelectObject(hDC, newFont) == hFont && hFont)
+				DeleteObject(hFont);
+			hFont = newFont;
+#ifdef DEBUG
+			Rprintf("create wgl outlines from font '%s', size %g\n", font_name, font_size);
+#endif
+#ifdef USE_OUTLINES
+			GLYPHMETRICSFLOAT agmf[FONT_LIST_CHARS];
+			PrintLastError("wglUseFontOutlines",
+						   wglUseFontOutlines(hDC, FONT_LIST_START, FONT_LIST_CHARS, FONT_LIST_ID, 0.0, 0.1, WGL_FONT_POLYGONS, (GLYPHMETRICSFLOAT*) &agmf));
+#else
+			PrintLastError("wglUseFontBitmaps",
+						   wglUseFontBitmaps(hDC, FONT_LIST_START, FONT_LIST_CHARS, FONT_LIST_ID));
+#endif
+		}
+	}
+	//
+
 };
 
 
