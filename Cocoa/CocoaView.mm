@@ -42,13 +42,13 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 @implementation CocoaView
 
 - (id)initWithFrame:(NSRect)frame visual: (AVisual*) aVisual {
-	NSOpenGLPixelFormatAttribute attrs[] = {
+	unsigned int attrs[] = {
 		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAColorSize, 24,
 //		NSOpenGLPFAAlphaSize, 8,
-		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, /* <- anti-aliasing */
+		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, 1, NSOpenGLPFASamples, 4, /* <- anti-aliasing */
 	0 };
-    self = [super initWithFrame:frame pixelFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs]];
+    self = [super initWithFrame:frame pixelFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:(NSOpenGLPixelFormatAttribute*)attrs]];
     if (self) {
 		ARect aFrame = AMkRect(0,0,frame.size.width,frame.size.height);
 		// visual = new MyVisual(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
