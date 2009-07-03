@@ -73,24 +73,34 @@ public:
 		if (pps) pps->release();
 		DCLASS(APlot)
 	}
-	//virtual void drawLayer(int l) = 0;
 	
+	/** returns the number of scales used in this plot.
+	 *  @return number of scales in this plot. */
 	vsize_t scales() { return nScales; }
 	
+	/** returns the scale at the given index. This method is meant mostly for the internal use of the plot. Use designatedScale() to select a scale by its properties.
+	 *  @return scale at the given index or NULL in the index is out of bounds */
 	AScale *scale(vsize_t index) { return (index < nScales) ? _scales[index] : NULL; }
 	
-	// by default 0 is X scale and 1 is Y scale - other plots can override this
+	/** returns a scale by its type. By default index 0 is X scale and index 1 is Y scale, however plots implmenetations can override this
+	 *  @param type scale type
+	 *  @return scale of the given type or NULL if such scale is not supported by the plot */
 	virtual AScale *designatedScale(scale_t type) {
 		if (type == XScale && nScales > 0) return _scales[0];
 		if (type == YScale && nScales > 1) return _scales[1];
 		return NULL;
 	}
 	
+	/** returns the primary marker for the plot (can be NULL). Note that some plots may have multiple markers and others may have none, so the interpretation depends on the semantics in the subclass.
+	 *  @return the primary marker or NULL if there is none. */
 	AMarker *primaryMarker() { return marker; }
 
-	void queryAt(APoint pt, int level) {
-		_query->move(pt);
+	/** initiates a query at the given point and level. First it resets the query, then queries any internal primitives that contain the point, then queries any visual primitives that contain the point. If there is no text in the query by this point, the plot itself will be queried (and implicitly its children). Finally, if there is still no text, queryOff() is called. Otherwise the query object is made visible.
+	 *  @param pt location at which the query should be performed
+	 *  @param level level of the query */
+	virtual void queryAt(APoint pt, int level) {
 		_query->reset();
+		_query->move(pt); // after reset we have 0 width, so the location should be precise for all dependents to use
 		if (pps) { // query internal plot primitives
 			vsize_t n = pps->length();
 			for (vsize_t i = 0; i < n; i++) {
@@ -108,23 +118,32 @@ public:
 					o->query(_query, level);
 			}
 		}
-		if (_query->text()) {
+
+		if (!_query->text()) // if no primitives responded, query the plot itself
+			query(_query, level);
+
+		if (_query->text()) { // if the query was successfull, show it
 			inQuery = true;
+			_query->move(pt); // move again to make sure we fit in the window since our size may have changed
 			_query->setHidden(false);
-		} else queryOff();
+		} else // hide it otherwise
+			queryOff();
 	}
 
-	void queryOff() {
+	/** hides the query */
+	virtual void queryOff() {
 		bool needRedraw = !_query->isHidden();
 		_query->setHidden(true);
 		inQuery = false;
 		if (needRedraw) redraw();
 	}
 	
-	virtual void home() { // scale back to the "home" scale
+	/** scale all scales back to "home" scale */
+	virtual void home() {
 	}
 	
-	virtual void update() { // this is called when plot properties change (including plot is resize)
+	/** update is called when plot properties change (including plot is resized) */
+	virtual void update() {
 		// update plot primitives
 		if (pps) {
 			vsize_t i = 0, n = pps->length();

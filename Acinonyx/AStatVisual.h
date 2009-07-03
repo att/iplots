@@ -141,9 +141,12 @@ public:
 	
 	virtual void query(AQuery *query, int level) {
 		ALog("%s: query, level=%d", describe(), level);
-		if (visible)
-			snprintf(query_buffer, sizeof(query_buffer), "%d/%d (%g%%)", selected, visible, ((double) selected) / ((double) visible) * 100.0);
-		else
+		if (visible) {
+			if (selected)
+				snprintf(query_buffer, sizeof(query_buffer), "%d / %d (%.2f%%)", selected, visible, ((double) selected) / ((double) visible) * 100.0);
+			else
+				snprintf(query_buffer, sizeof(query_buffer), "%d cases", visible);
+		} else
 			snprintf(query_buffer, sizeof(query_buffer), "no cases are visible");
 		ALog(" - set %s to '%s'", query->describe(), query_buffer);
 		query->setText(query_buffer);

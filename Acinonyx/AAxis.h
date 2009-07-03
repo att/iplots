@@ -8,6 +8,7 @@
  */
 
 #include "AVisual.h"
+#include "AQuery.h"
 
 class AAxis : public AVisual {
 protected:

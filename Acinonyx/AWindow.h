@@ -51,11 +51,13 @@ protected:
 	unsigned int _layers, _redraw_layer;
 	texture_t _layer[_max_layers];
 	bool _layers_initialized;
+	AColor text_color;
 public:
 	int *dirtyFlag;
 
 	AWindow(ARect frame) : modalOwner(0), _frame(frame), _rootVisual(0), dirtyFlag(0) {
 		_redraw_layer = _layers = 0;
+		text_color = AMkColor(0.0, 0.0, 0.0, 1.0);
 		OCLASS(AWindow)
 	};
 
@@ -94,7 +96,7 @@ public:
 		ALog("%s: creating POTS texture %d x %d", describe(), width, height);
 #endif
 
-		GLC(glCopyTexImage2D(A_TEXTURE_TYPE, 0, GL_RGBA, 0, 0, width, height, 0));
+		GLC(glCopyTexImage2D(A_TEXTURE_TYPE, 0, GL_RGB, 0, 0, width, height, 0));
 		
 #ifdef DEBUG
 		unsigned char *foo = (unsigned char*) malloc(width * height * 4);
@@ -119,7 +121,8 @@ public:
 		ALog(" <- recall layer %d (texture %d)", layer, _layer[layer]);
 		
 		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
-		glDisable (GL_DEPTH_TEST);
+		glDisable(GL_BLEND); // make sure all gets replaced, no blending
+		glDisable(GL_DEPTH_TEST);
 		glEnable(A_TEXTURE_TYPE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		GLC(glBindTexture(A_TEXTURE_TYPE, _layer[layer]));
@@ -167,6 +170,12 @@ public:
 		if (_redraw_layer > layer)
 			_redraw_layer = layer;
 	}
+	
+	void setTextColor(AColor col) {
+		text_color = col;
+	}
+	
+	AColor textColor() { return text_color; }
 	
 	void begin() {
 		profStart()

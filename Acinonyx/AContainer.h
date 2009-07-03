@@ -12,6 +12,7 @@
 
 #include "ATypes.h"
 #include "AVisual.h"
+#include "AQuery.h"
 
 #include <stdlib.h>
 
@@ -96,6 +97,15 @@ public:
 		while (c) {
 			if (!c->o->isHidden())
 				c->o->draw(layer);
+			c = c->next;
+		}
+	}
+
+	virtual void query(AQuery *query, int level) {
+		chList_t *c = chRoot;
+		while (c) {
+			if (!c->o->isHidden())
+				c->o->query(query, level);
 			c = c->next;
 		}
 	}

@@ -16,7 +16,7 @@
 
 #include "ATypes.h"
 
-extern AColor backgroundColor, pointColor, hiliteColor, barColor;
+extern AColor backgroundColor, pointColor, hiliteColor, barColor, textColor;
 
 extern long profilerTime, startupTime;
 

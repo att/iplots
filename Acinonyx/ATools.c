@@ -12,6 +12,7 @@
 // common color scheme
 AColor backgroundColor = { 1.0, 1.0, 0.7, 1.0 };
 AColor pointColor      = { 0.0, 0.0, 0.0, 1.0 };
+AColor textColor       = { 0.0, 0.0, 0.0, 1.0 };
 AColor hiliteColor     = { 1.0, 0.0, 0.0, 1.0 };
 AColor barColor        = { 0.8, 0.8, 0.8, 1.0 };
 

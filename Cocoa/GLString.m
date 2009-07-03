@@ -111,6 +111,11 @@
 	return [self initWithAttributedString:attributedString withTextColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:1.0f] withBoxColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:0.0f] withBorderColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:0.0f]];
 }
 
+- (id) initWithString:(NSString *)aString withAttributes:(NSDictionary *)attribs color:(NSColor*)color
+{
+	return [self initWithAttributedString:[[[NSAttributedString alloc] initWithString:aString attributes:attribs] autorelease] withTextColor:color withBoxColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:0.0f] withBorderColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:0.0f]];
+}
+
 - (id) initWithString:(NSString *)aString withAttributes:(NSDictionary *)attribs
 {
 	return [self initWithAttributedString:[[[NSAttributedString alloc] initWithString:aString attributes:attribs] autorelease] withTextColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:1.0f] withBoxColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:0.0f] withBorderColor:[NSColor colorWithDeviceRed:1.0f green:1.0f blue:1.0f alpha:0.0f]];
@@ -133,6 +138,7 @@
 	[image lockFocus];
 	[[NSGraphicsContext currentContext] setShouldAntialias:antialias];
 	
+	/*
 	if ([boxColor alphaComponent]) { // this should be == 0.0f but need to make sure
 		[boxColor set]; 
 		NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect(NSMakeRect (0.0f, 0.0f, frameSize.width, frameSize.height) , 0.5, 0.5)
@@ -147,14 +153,29 @@
 		[path setLineWidth:1.0f];
 		[path stroke];
 	}
-	
+	*/
+	NSLog(@"textColor=%@", textColor);
 	[textColor set]; 
 	[string drawAtPoint:NSMakePoint (marginSize.width, marginSize.height)]; // draw at offset position
 	bitmap = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect (0.0f, 0.0f, frameSize.width, frameSize.height)];
 	[image unlockFocus];
 	texSize.width = [bitmap pixelsWide];
 	texSize.height = [bitmap pixelsHigh];
-	
+	//NSLog(@"hasAlpha=%d", [bitmap hasAlpha]);
+
+#ifdef DEBUG
+	unsigned char *foo = [bitmap bitmapData];
+	printf("texture [");
+	{ int i; for (i = 0; i < 32; i++) printf("%02x%s", (int) foo[i + (int)texSize.width * 6 * 4 + 8], ((i & 3) == 3) ? " " : "-"); }
+	printf("]\n");
+	/*
+	 unsigned char R = ((unsigned char)([textColor redComponent] * 255.0));
+	 unsigned char G = ((unsigned char)([textColor greenComponent] * 255.0));
+	 unsigned char B = ((unsigned char)([textColor blueComponent] * 255.0));
+	 #define SC(X) ((unsigned char)(((unsigned int)(X) * (unsigned int)(a)) >> 8))
+	{ int i = 0, n = (int) [bitmap pixelsWide] * (int) [bitmap pixelsHigh]; for(; i < n; i++) { unsigned char a = foo[i * 4 + 3]; if (a) { foo[i * 4] = SC(R); foo[i * 4 + 1] = SC(G); foo[i * 4 + 2] = SC(B); } } }
+	 */
+#endif
 	if (cgl_ctx = CGLGetCurrentContext ()) { // if we successfully retrieve a current context (required)
 		glPushAttrib(GL_TEXTURE_BIT);
 		if (0 == texName) glGenTextures (1, &texName);
@@ -330,8 +351,9 @@
 		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT); // GL_COLOR_BUFFER_BIT for glBlendFunc, GL_ENABLE_BIT for glEnable / glDisable
 		
 		glDisable (GL_DEPTH_TEST); // ensure text is not remove by depth buffer test.
-		glEnable (GL_BLEND); // for text fading
-		glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // ditto
+//		glEnable (GL_BLEND); // for text fading
+//		glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // ditto
+		glDisable(GL_BLEND);
 		glEnable (GL_TEXTURE_RECTANGLE_EXT);  
 		
 		glBindTexture (GL_TEXTURE_RECTANGLE_EXT, texName);

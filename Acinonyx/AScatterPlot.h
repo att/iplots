@@ -125,9 +125,40 @@ public:
 		}
 		return true;
 	}
+
+	virtual void queryAt(APoint pt, int level) {
+		APlot::queryAt(pt, level);
+		if (level == 0) inQuery = true; // force inQuery since we'll use the orientation query that we plot ourself
+	}
+
+	virtual void queryOff() {
+		if (inQuery && _query->isHidden())
+			redraw();
+		APlot::queryOff();
+	}
 	
 	virtual void draw(vsize_t layer) {
-		ALog("%s: draw", describe());
+		if (layer == LAYER_TRANS) { // draw the orientation query if needed
+			if (_query->isHidden() && inQuery) {
+				clip(AMkRect(mLeft, mBottom, _frame.width - mRight - mLeft, _frame.height - mTop - mBottom));
+				APoint ql = AMkPoint(_query->frame().x, _query->frame().y);
+				char buf[64];
+				snprintf(buf, 64, "%g, %g", _scales[0]->value(ql.x), _scales[1]->value(ql.y));
+				color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.6);
+				ASize ts = bbox(buf);
+				rect(AMkRect(ql.x, ql.y, ts.width + 6.0, ts.height + 4.0));
+				color(0,0,0,0.7);
+				line(0.0, ql.y, _frame.width, ql.y);
+				line(ql.x, 0.0, ql.x, _frame.height);
+				color(1,1,1,0.7);
+				line(0.0+1, ql.y+1, _frame.width+1, ql.y+1);
+				line(ql.x+1, 0.0+1, ql.x+1, _frame.height+1);
+				//txtcolor(0,0,0.4);
+				text(ql.x + 4.0, ql.y + 2.0, buf, 0.0);
+				clip(_frame);
+			}
+		}
+
 		if (layer == LAYER_ROOT) {
 			clip(_frame);
 			glPointSize(ptSize);

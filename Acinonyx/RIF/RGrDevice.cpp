@@ -117,6 +117,14 @@ public:
 		if (!dss->redraw) dss->dirty = 1;
 		return true;
 	}							
+
+	bool prepare_text_color(int col) {
+		// printf("prepare color %08x (%d)\n", col, R_TRANSPARENT(col));
+		if (R_TRANSPARENT(col)) return false;
+		txtcolor((double) R_RED(col) / 255.0, (double) R_GREEN(col) / 255.0, (double) R_BLUE(col) / 255.0, (double) R_ALPHA(col) / 255.0);
+		if (!dss->redraw) dss->dirty = 1;
+		return true;
+	}							
 };
 
 #if 0
@@ -312,7 +320,7 @@ static void RAcinonyxDevice_Text(double x, double y, const char *text, double ro
 {
 	DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	double height = xd->height;
-	if (xd->agd && xd->agd->prepare_color(gc->col)) {
+	if (xd->agd && xd->agd->prepare_text_color(gc->col)) {
 		xd->agd->font(gc->fontfamily, gc->cex * gc->ps);
 		xd->agd->text(AMkPoint(x, height - y), text, /* AMkPoint(hadj * cos(rot * PI / 180.0), hadj * sin(rot * PI / 180.0)) */ AMkPoint(hadj, 0), rot);
 #ifdef DEBUG

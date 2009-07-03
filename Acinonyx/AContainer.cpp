@@ -11,6 +11,7 @@
 
 #include "AVisual.h"
 #include "AWindow.h"
+#include "ATools.h"
 
 void AWindow::draw() {
 	AVisual *rv = (AVisual*) _rootVisual;
@@ -22,6 +23,7 @@ void AWindow::draw() {
 		vsize_t layer = _redraw_layer;
 		while (layer < _max_layers) {
 			rv->clipOff();
+			setTextColor(::textColor); // default text color - black
 			printf("  - draw layer %d\n", layer);
 			rv->draw(layer);
 			freezeLayer(layer++);

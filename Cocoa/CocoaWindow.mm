@@ -10,6 +10,8 @@
 #import "AWindow.h"
 #import "GLString.h"
 
+static const char *default_font = "Futura"; //"Futura Condensed ExtraBold"; //"Trebuchet MS Bold"; // "Futura"
+
 class ACocoaWindow : public AWindow {
 	CocoaWindow *window;
 	NSFont *font;
@@ -18,7 +20,7 @@ class ACocoaWindow : public AWindow {
 public:
 	ACocoaWindow(CocoaWindow *window, ARect frame) : AWindow(frame) {
 		this->window = window;
-		font_name = strdup("Arial");
+		font_name = strdup(default_font);
 		font_size = 10.0;
 		font = [NSFont fontWithName:[NSString stringWithUTF8String:font_name] size:font_size];
 		if (!font) font = [NSFont userFontOfSize:font_size];
@@ -35,33 +37,16 @@ public:
 	}
 
 	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {
-#if 0 // double-the-size-code but that doesn't support rotation
-		NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont userFontOfSize:20] forKey:NSFontAttributeName];
-		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt] attributes:attr];
-		//NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
-		GLString *gs = [[GLString alloc] initWithAttributedString:str];
-		NSPoint loc = NSMakePoint(pt.x, pt.y);
-		[gs genTexture];
-		NSSize ts = [gs texSize];
-		// rendering hack - we generate a texture double the size to achieve nicer results
-		ts.width *= 0.5; ts.height *= 0.5;
-		if (adj.x) loc.x -= ts.width * adj.x;
-		if (adj.y) loc.y -= ts.height * adj.y;
-		[gs drawAtPoint:loc];
-		[gs release];
-		[str release];
-#else
-		NSDictionary *attr = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
-		NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt] attributes:attr];
-		//NSAttributedString *str = [[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:txt]];
-		GLString *gs = [[GLString alloc] initWithAttributedString:str];
+		NSDictionary *attr = [[NSDictionary alloc] initWithObjectsAndKeys:font, NSFontAttributeName, nil];
+		NSColor *c = [NSColor colorWithDeviceRed:text_color.r green:text_color.g blue:text_color.b alpha:text_color.a];
+		// NSLog(@"glstring - text_color = %g,%g,%g,%g = %@", text_color.r, text_color.g, text_color.b, text_color.a, c);
+		GLString *gs = [[GLString alloc] initWithString:[NSString stringWithUTF8String:txt] withAttributes:attr color:c];
 		NSPoint loc = NSMakePoint(pt.x, pt.y), adjp = NSMakePoint(adj.x, adj.y);
 		[gs genTexture];
 		NSSize ts = [gs texSize];
 		[gs drawAtPoint:loc withAdjustment:adjp rotation:rot];
 		[gs release];
-		[str release];
-#endif
+		[attr release];
 	}
 	
 	virtual void glfont(const char *name, AFloat size) {
@@ -70,6 +55,7 @@ public:
 			changed = true;
 			font_size = size;
 		}
+		if (name && !*name) name = default_font;
 		if (name && strcmp(name, font_name)) {
 			free(font_name);
 			font_name = strdup(name);

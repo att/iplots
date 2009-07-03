@@ -97,11 +97,11 @@ public:
 		glColor4f(c.r, c.g, c.b, c.a);
 	}
 
-	void color(GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
+	void color(GLfloat r, GLfloat g, GLfloat b, GLfloat a = 1.0) {
 		glColor4f(r, g, b, a);
 	}
 
-	void color255(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+	void color255(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255) {
 		glColor4b(r, g, b, a);
 	}
 	
@@ -109,6 +109,14 @@ public:
 		float f[4] = { col[0], col[1], col[2], col[3] };
 		glColor4fv(f);
 	}*/
+	
+	void txtcolor(AColor c) {
+		if (_window) _window->setTextColor(c);
+	}
+	
+	void txtcolor(AFloat r, AFloat g, AFloat b, AFloat a = 1.0) {
+		if (_window) _window->setTextColor(AMkColor(r,g,b,a));
+	}
 	
 	void color(GLfloat r, GLfloat g, GLfloat b) {
 		glColor3f(r, g, b);

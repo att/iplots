@@ -40,6 +40,8 @@ class AContainer;
 
 #define AVF_DEFAULT (AVF_CLIPPED)
 
+class AQuery;
+
 class AVisual : public ARenderer {
 protected:
 	AContainer *_parent;
@@ -57,8 +59,16 @@ public:
 	bool isContainer() { return (_flags & AVF_CONTAINER) ? true : false; }
 	bool isHidden() { return (_flags & AVF_HIDDEN) ? true : false ; }
 
+	/** this method should be overridden by subclasses to implement the actual drawing of individual layers. Note that although layers will be draw in sequential order, lower layer can be cached, so all necessary data processing shoul dbe done in update() instead.
+	 *  @param layer layer to draw (see LAYER_xx constants for default layers) */
 	virtual void draw(vsize_t layer) { }
 
+	/** this method should be overridden by subclasses to provide query information.
+	 *  @param query current query object that can be modified to display the desired information.
+	 *  @param level level of the query */
+	virtual void query(AQuery *query, int level) {
+	}
+	
 	void setHidden(bool hf) {
 		// FIXME: we sould do a redraw or something ...
 		if (hf && (_flags & AVF_HIDDEN) == 0)

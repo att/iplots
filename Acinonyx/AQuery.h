@@ -37,14 +37,22 @@ public:
 		}
 	}
 	
+	/** resets the query by removing all content. This method should be called when building up a new query. Implicitly it sets the status of the query to hidden, but it doesn't cause a redraw. */
 	void reset() {
 		setHidden(true);
 		if (q_text) { free(q_text); q_text = 0; }
 	}
 	
+	/** move the query to a given point. The point is adjusted based on its size if it would not fit in the window. This method causes a redraw.
+	 *  @param pt point at which the query shall be displayed (if visible) */
 	void move(APoint pt) {
 		_frame.x = pt.x;
 		_frame.y = pt.y;
+		if (window()) { // if there is a window, let's see if we fit in and adjust the position if we don't
+			ARect wf = window()->frame();
+			if (_frame.x + _frame.width > wf.width - 2.0) _frame.x = wf.width - _frame.width - 2.0;
+			if (_frame.y + _frame.height > wf.height - 2.0) _frame.y = wf.height - _frame.height - 2.0;
+		}
 		redraw();
 	}
 	
