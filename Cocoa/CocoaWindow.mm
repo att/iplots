@@ -89,6 +89,17 @@ public:
 			}
 		}
 	}
+	
+	virtual ASize glbbox(const char *txt) {
+		NSDictionary *attr = [[NSDictionary alloc] initWithObjectsAndKeys:font, NSFontAttributeName, nil];
+		NSString *ns = [[NSString alloc] initWithUTF8String:txt];
+		NSAttributedString *str = [[NSAttributedString alloc] initWithString:ns attributes:attr];
+		NSSize ss = [str size];
+		[str release];
+		[attr release];
+		[ns release];
+		return AMkSize(ss.width, ss.height);;
+	}
 };
 
 @implementation CocoaWindow

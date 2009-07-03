@@ -195,6 +195,10 @@ public:
 		if (_window) _window->glstring(AMkPoint(x,y), AMkPoint(0,0), rot, txt);
 	}
 	
+	ASize bbox(const char *txt) {
+		return (_window) ? _window->glbbox(txt) : AMkSize(strlen(txt) * 5.6, 10.0); // a crude fall-back
+	}
+	
 	void clip(ARect where) {
 		glScissor(where.x, where.y, where.width, where.height);
 		ALog("clip to (%g,%g - %g,%g)", where.x, where.y, where.width, where.height);

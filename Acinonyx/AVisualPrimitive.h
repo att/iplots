@@ -12,6 +12,7 @@
 
 #include "ARenderer.h"
 #include "AMarker.h"
+#include "AQuery.h"
 
 class APlot;
 
@@ -39,7 +40,7 @@ public:
 	virtual void draw(ARenderer &renderer) = 0;
 	
 	virtual void update() { };
-	virtual char *query(int level) { return NULL; }
+	virtual void query(AQuery *query, int level) { }
 	virtual bool containsPoint(APoint pt) { return false; }
 	virtual bool intersects(ARect rect) { return false; }
 	virtual bool select(AMarker *marker, int type) { return false; }	

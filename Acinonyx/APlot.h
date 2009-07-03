@@ -18,6 +18,7 @@
 #include "AContainer.h"
 #include "AStack.h"
 #include "ADataVector.h"
+#include "AQuery.h"
 
 #include "RValueHolder.h" // for variables stored in the plot object
 
@@ -41,16 +42,21 @@ protected:
 	AObjectVector *pps;        /* plot primitives (used by the plot internally - usually statistical visuals) */
 	AStack *zoomStack;
 	AMarker *marker; // subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives)
-
+	AQuery *_query;
+	bool inQuery;
+	
 	// those may not be needed, but since most plots use them it makes sense to keep them here
 	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 
 public:
-	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6) {
+	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inQuery(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6) {
+		_query = new AQuery(this);
+		_query->setHidden(true);
+		add(*_query);
 		OCLASS(APlot)
 	}
 
-	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0) {
+	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), inQuery(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0) {
 		_scales = (AScale**) malloc(sizeof(AScale*)*2);
 		_scales[0] = xScale;
 		_scales[1] = yScale;
@@ -82,6 +88,39 @@ public:
 	
 	AMarker *primaryMarker() { return marker; }
 
+	void queryAt(APoint pt, int level) {
+		_query->move(pt);
+		_query->reset();
+		if (pps) { // query internal plot primitives
+			vsize_t n = pps->length();
+			for (vsize_t i = 0; i < n; i++) {
+				AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i);
+				if (o->containsPoint(pt))
+					o->query(_query, level);
+			}
+		}
+
+		if (vps) { // query visual primitives
+			vsize_t n = vps->length();
+			for (vsize_t i = 0; i < n; i++) {
+				AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i);
+				if (o->containsPoint(pt))
+					o->query(_query, level);
+			}
+		}
+		if (_query->text()) {
+			inQuery = true;
+			_query->setHidden(false);
+		} else queryOff();
+	}
+
+	void queryOff() {
+		bool needRedraw = !_query->isHidden();
+		_query->setHidden(true);
+		inQuery = false;
+		if (needRedraw) redraw();
+	}
+	
 	virtual void home() { // scale back to the "home" scale
 	}
 	
@@ -311,10 +350,20 @@ public:
 	}
 	
 	virtual bool mouseMove(AEvent e) {
+		// ALog("%s: mouseMove (flags=%02x, x=%g, y=%g)", describe(), e.flags, e.location.x, e.location.y);
+		
+		if (inQuery) {
+			if (e.flags & AEF_CTRL) {
+				queryAt(e.location, (e.flags & AEF_SHIFT) ? 1 : 0);
+			} else
+				queryOff();
+		}
 		if (inSelection || inZoom) {
 			dragEndPoint = e.location;
 			redraw();
 			return true;
+		} else if (e.flags & AEF_CTRL) {
+			queryAt(e.location, (e.flags & AEF_SHIFT) ? 1 : 0);
 		}
 		return false;
 	}

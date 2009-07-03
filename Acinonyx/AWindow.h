@@ -249,6 +249,7 @@ public:
 	/* the following are rendering methods that are off-loaded to the window implementation since they are not part of OpenGL */
 	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {}; //  we need some implementation help here since gl cannot draw text
 	virtual void glfont(const char *name, AFloat size) {}
+	virtual ASize glbbox(const char *txt) { return AMkSize(strlen(txt) * 5.6, 10.0); } // jsut a very crude fallback
 	
 	void setDirtyFlag(int *newDF) { dirtyFlag = newDF; };
 	bool isDirty() { return (dirtyFlag && dirtyFlag[0] != 0); }
