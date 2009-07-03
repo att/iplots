@@ -69,7 +69,8 @@ public:
 		OCLASS(ARGraphicsDevice)
 	}
 	
-	virtual void draw() {
+	virtual void draw(vsize_t layer) {
+		if (layer != LAYER_ROOT) return;
 		if (dss && dss->dev) {
 			pGEDevDesc gdd = desc2GEDesc(dss->dev);
 			dss->redraw = 1;

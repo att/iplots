@@ -254,9 +254,9 @@ public:
 #endif
 		if (v) {
 			wglMakeCurrent(hDC, hRC);
-			v->begin();
-			v->draw();
-			v->end();
+			begin();
+			draw();
+			end();
 		}
 #ifndef USE_GDI
 		SwapBuffers(hDC);

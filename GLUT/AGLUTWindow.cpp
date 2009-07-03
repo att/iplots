@@ -27,12 +27,9 @@ static void a_glut_init() {
 static void a_glut_draw() {
 	int w = glutGetWindow();
 	if (w >=0 && w < gwin_max && gwin[w]) {
-		AVisual *v = (AVisual*) gwin[w]->rootVisual();
-		if (v) {
-			v->begin();
-			v->draw();
-			v->end();
-		}
+		w->begin();
+		w->draw();
+		w->end();
 	}
 }
 

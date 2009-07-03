@@ -102,7 +102,8 @@ public:
 				AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
 				if (o) o->update();
 			}
-		}		
+		}
+		setRedrawLayer(LAYER_ROOT);
 	}
 
 	virtual double doubleProperty(const char *name) {
@@ -124,46 +125,52 @@ public:
 		return false;
 	}
 	
-	virtual void draw() {
-		// draw plot primitives
-		if (pps) {
-			vsize_t i = 0, n = pps->length();
-			while (i < n) {
-				AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i++);
-				// ALog("%s: draw", o->describe());
-				o->draw(*this);
+	virtual void draw(vsize_t layer) {
+		if (layer == LAYER_ROOT) {
+			// draw plot primitives
+			if (pps) {
+				vsize_t i = 0, n = pps->length();
+				while (i < n) {
+					AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i++);
+					// ALog("%s: draw", o->describe());
+					o->draw(*this);
+				}
 			}
-		}
-
-		// draw visual primitives
-		if (vps) {
-			vsize_t i = 0, n = vps->length();
-			while (i < n) {
-				AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
-				ALog("%s: draw", o->describe());
-				o->draw(*this);
-			}
-		}
-
-		// draw interactive stuff
-		if (inSelection || inZoom) {
-			ARect r = AMkRect(dragStartPoint.x, dragStartPoint.y, dragEndPoint.x - dragStartPoint.x, dragEndPoint.y - dragStartPoint.y);
-			if (r.width < 0) { r.x += r.width; r.width = -r.width; }
-			if (r.height < 0) { r.y += r.height; r.height = -r.height; }
-			if (inSelection) {
-				color(AMkColor(1.0,0.4,0.4,0.5));
-			} else if (inZoom)
-				color(AMkColor(0.0,0.0,1.0,0.3));				
-			rect(r);
-			if (inSelection)
-				color(AMkColor(1.0,0.0,0.0,1.0));
-			else if (inZoom)
-				color(AMkColor(0.0,0.0,1.0,1.0));
-			rectO(r);			
 		}
 		
+		if (layer == LAYER_OBJECTS) {
+			// draw visual primitives
+			if (vps) {
+				vsize_t i = 0, n = vps->length();
+				while (i < n) {
+					AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
+					ALog("%s: draw", o->describe());
+					o->draw(*this);
+				}
+			}
+		}
+
+		if (layer == LAYER_TRANS) {
+			// draw interactive stuff
+			if (inSelection || inZoom) {
+				ARect r = AMkRect(dragStartPoint.x, dragStartPoint.y, dragEndPoint.x - dragStartPoint.x, dragEndPoint.y - dragStartPoint.y);
+				if (r.width < 0) { r.x += r.width; r.width = -r.width; }
+				if (r.height < 0) { r.y += r.height; r.height = -r.height; }
+				if (inSelection) {
+					color(AMkColor(1.0,0.4,0.4,0.5));
+				} else if (inZoom)
+					color(AMkColor(0.0,0.0,1.0,0.3));				
+				rect(r);
+				if (inSelection)
+					color(AMkColor(1.0,0.0,0.0,1.0));
+				else if (inZoom)
+					color(AMkColor(0.0,0.0,1.0,1.0));
+				rectO(r);			
+			}
+		}
+
 		// draw all children
-		AContainer::draw();
+		AContainer::draw(layer);
 	}
 
 	// in batch mode the marker's batch mode won't be chenged such that multiple selections can be performed (e.g. selection sequence). The correct usage then is: marker->begin(); performSelection(,,true); ...; marker->end();
@@ -194,6 +201,7 @@ public:
 			if ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point)))
 				vp->select(marker, type);
 		}
+		setRedrawLayer(LAYER_HILITE);
 		if (!batch) marker->end();
 		_prof(profReport("$performSelection %s", describe()))
 		return true;
@@ -220,8 +228,10 @@ public:
 				}
 			}		
 
-			if (nid == N_MarkerChanged)
+			if (nid == N_MarkerChanged) {
+				setRedrawLayer(LAYER_HILITE);
 				redraw();
+			}
 			AContainer::notification(source, nid);
 		}
 	}
@@ -229,11 +239,13 @@ public:
 	void addPrimitive(AVisualPrimitive *vp) {
 		vp->setPlot(this);
 		vps->addObject(vp);
+		setRedrawLayer(LAYER_OBJECTS);
 	}
 	
 	void removePrimitive(AVisualPrimitive *vp) {
 		if (vp->plot() == this) vp->setPlot(NULL);
 		vps->removeObject(vp);
+		setRedrawLayer(LAYER_OBJECTS);
 	}
 	
 	void removeAllPrimitives() {
@@ -243,6 +255,7 @@ public:
 			if (vp) vp->setPlot(NULL);
 		}
 		vps->removeAll();
+		setRedrawLayer(LAYER_OBJECTS);
 	}
 	
 	AObjectVector *primitives() {

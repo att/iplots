@@ -11,6 +11,11 @@
 #ifndef A_TYPES_H
 #define A_TYPES_H
 
+#define LAYER_ROOT    0
+#define LAYER_HILITE  0
+#define LAYER_OBJECTS 1
+#define LAYER_TRANS   2 /* transient layer - topmost */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

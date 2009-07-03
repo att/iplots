@@ -112,47 +112,33 @@ public:
 		APlot::update();
 	}
 	
-	virtual void draw() {
+	virtual void draw(vsize_t layer) {
 		ALog("%s: draw", describe());
 		//xa->draw();
 		//ya->draw();
 		
-		//clip(AMkRect(_frame.x + mLeft, _frame.y + mBottom, _frame.width - mLeft - mRight, _frame.height - mTop - mBottom));
-		clip(_frame);
-		// glPointSize(ptSize);
+		if (layer == LAYER_ROOT) {
+			//clip(AMkRect(_frame.x + mLeft, _frame.y + mBottom, _frame.width - mLeft - mRight, _frame.height - mTop - mBottom));
+			clip(_frame);
+			// glPointSize(ptSize);
 		
-		// draw axes and calculate locations
-		color(AMkColor(0.0, 0.0, 0.5, 0.4));
-		vsize_t i = 0;
-		while (i < coords) {
-			vsize_t si = _scales[0]->permutationAt(i);
-			if (si != ANotFound) {
-				AFloat xpos = _scales[0]->discreteCenter(i);
-				ARange gr = _scales[si]->range();
-				line(xpos, gr.begin, xpos, gr.length);
+			// draw axes and calculate locations
+			color(AMkColor(0.0, 0.0, 0.5, 0.4));
+			vsize_t i = 0;
+			while (i < coords) {
+				vsize_t si = _scales[0]->permutationAt(i);
+				if (si != ANotFound) {
+					AFloat xpos = _scales[0]->discreteCenter(i);
+					ARange gr = _scales[si]->range();
+					line(xpos, gr.begin, xpos, gr.length);
+				}
+				i++;
 			}
-			i++;
-		}
 		
-		// draw lines
-		color(AMkColor(0.0,0.0,0.0,ptAlpha));
-		vsize_t j = 0, n = _data[0]->length();
-		while (j < n) {
-			lineBegin();
-			for (vsize_t ci = 0; ci < coords; ci++) {
-				AFloat xpos = _scales[0]->discreteCenter(ci);
-				if (ptGrid[ci])
-					lineTo(xpos, ptGrid[ci][j]);
-			}
-			lineEnd();
-			j++;
-		}
-		
-		// draw selection
-		color(AMkColor(1.0, 0.0, 0.0, 1.0));
-		j = 0, n = _data[0]->length();
-		while (j < n) {
-			if (marker->isSelected(j)) {
+			// draw lines
+			color(AMkColor(0.0,0.0,0.0,ptAlpha));
+			vsize_t j = 0, n = _data[0]->length();
+			while (j < n) {
 				lineBegin();
 				for (vsize_t ci = 0; ci < coords; ci++) {
 					AFloat xpos = _scales[0]->discreteCenter(ci);
@@ -160,11 +146,27 @@ public:
 						lineTo(xpos, ptGrid[ci][j]);
 				}
 				lineEnd();
+				j++;
 			}
-			j++;
+		
+			// draw selection
+			color(AMkColor(1.0, 0.0, 0.0, 1.0));
+			j = 0, n = _data[0]->length();
+			while (j < n) {
+				if (marker->isSelected(j)) {
+					lineBegin();
+					for (vsize_t ci = 0; ci < coords; ci++) {
+						AFloat xpos = _scales[0]->discreteCenter(ci);
+						if (ptGrid[ci])
+							lineTo(xpos, ptGrid[ci][j]);
+					}
+					lineEnd();
+				}
+				j++;
+			}
 		}
 
-		APlot::draw();
+		APlot::draw(layer);
 	}
 	
 	virtual bool performSelection(ARect where, int type, bool batch = false) {
@@ -217,10 +219,10 @@ public:
 	
 	virtual bool keyDown(AEvent e) {
 		switch (e.key) {
-			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; redraw(); }; break;
-			case KEY_UP: ptSize += 1.0; redraw(); break;
-			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; redraw(); }; break;
-			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; redraw(); } break;
+			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
+			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); redraw(); break;
+			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
+			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); redraw(); } break;
 			default:
 				return false;
 		}

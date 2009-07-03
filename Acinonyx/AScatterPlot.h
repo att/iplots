@@ -68,6 +68,7 @@ public:
 			_scales[0]->setDataRange(ze->range(0));
 			_scales[1]->setDataRange(ze->range(1));
 			if (!homeZoom) ze->release();
+			setRedrawLayer(LAYER_ROOT); 
 			redraw();
 			return true;
 		} else {
@@ -77,7 +78,8 @@ public:
 			_scales[0]->setDataRange(ze->range(0));
 			_scales[1]->setDataRange(ze->range(1));
 			ze->release();
-			redraw();
+			setRedrawLayer(LAYER_ROOT);
+ 			redraw();
 			return true;
 		}
 		return false;
@@ -114,38 +116,40 @@ public:
 
 	virtual bool keyDown(AEvent e) {
 		switch (e.key) {
-			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; redraw(); }; break;
-			case KEY_UP: ptSize += 1.0; redraw(); break;
-			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; redraw(); }; break;
-			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; redraw(); } break;
+			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
+			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); redraw(); break;
+			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
+			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); redraw(); } break;
 			default:
 				return false;
 		}
 		return true;
 	}
 	
-	virtual void draw() {
+	virtual void draw(vsize_t layer) {
 		ALog("%s: draw", describe());
-
-		clip(_frame);
-		glPointSize(ptSize);
-		color(AMkColor(0.0,0.0,0.0,ptAlpha));
-		AFloat *lx = _scales[0]->locations();
-		AFloat *ly = _scales[1]->locations();
-		points(lx, ly, _scales[0]->data()->length());
-		if (marker) {
-			mark_t *ms = marker->rawMarks();
-			vsize_t n = marker->length();
-			color(AMkColor(1.0,0.0,0.0,1.0));
-			for (vsize_t i = 0; i < n; i++)
-				if (M_TRANS(ms[i]))
-					point(lx[i], ly[i]);
+		if (layer == LAYER_ROOT) {
+			clip(_frame);
+			glPointSize(ptSize);
+			color(AMkColor(0.0,0.0,0.0,ptAlpha));
+			AFloat *lx = _scales[0]->locations();
+			AFloat *ly = _scales[1]->locations();
+			points(lx, ly, _scales[0]->data()->length());
+			if (marker) {
+				mark_t *ms = marker->rawMarks();
+				vsize_t n = marker->length();
+				color(AMkColor(1.0,0.0,0.0,1.0));
+				for (vsize_t i = 0; i < n; i++)
+					if (M_TRANS(ms[i]))
+						point(lx[i], ly[i]);
+			}
+			clipOff();
+			color(AMkColor(backgroundColor.r,backgroundColor.g,backgroundColor.b,0.5));
+			rect(0.0,0.0,mLeft,mBottom);
 		}
-		clipOff();
-		color(AMkColor(backgroundColor.r,backgroundColor.g,backgroundColor.b,0.5));
-		rect(0.0,0.0,mLeft,mBottom);
+
 		// draw children - in our case axes etc.
-		APlot::draw();
+		APlot::draw(layer);
 	}
 
 	virtual char *describe() {

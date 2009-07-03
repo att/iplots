@@ -8,6 +8,7 @@
 
 #import "CocoaView.h"
 
+#include "ATypes.h"
 #include "AScatterPlot.h"
 
 // conversion between Cocoa events and AEvents
@@ -54,12 +55,21 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 	glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_EXTENSIONS)); */
 	
 	ARect nvframe = AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
-	ARect vframe = visual->frame();
-	if (!ARectsAreEqual(nvframe, vframe))
-		visual->moveAndResize(nvframe);
-	visual->begin();
-	visual->draw();
-	visual->end();
+	 /*
+	  ARect vframe = visual->frame();
+	  if (!ARectsAreEqual(nvframe, vframe))
+	  visual->moveAndResize(nvframe);
+	 */
+
+	AWindow *win = visual->window();
+	if (win) {
+		ARect wframe = win->frame();
+		if (!ARectsAreEqual(nvframe, wframe))
+			win->setFrame(nvframe);
+		win->begin();
+		win->draw();
+		win->end();
+	}
 
 	[pool release];
 }

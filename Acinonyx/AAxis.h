@@ -24,7 +24,8 @@ class AXAxis : public AAxis {
 public:
 	AXAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { }
 	
-	virtual void draw() {
+	virtual void draw(vsize_t layer) {
+		if (layer != LAYER_ROOT) return;
 		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
 		//rect(_frame);
 		//color(0.0, 0.0, 1.0, 0.3);
@@ -86,7 +87,8 @@ class ADiscreteXAxis : public AAxis, public ANamedAxis {
 public:
 	ADiscreteXAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { }
 
-	virtual void draw() {
+	virtual void draw(vsize_t layer) {
+		if (layer != LAYER_ROOT) return;
 		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
 		rect(_frame);
 		//color(0.0, 0.0, 1.0, 0.3);
@@ -135,7 +137,8 @@ class AYAxis : public AAxis, public ANamedAxis {
 public:
 	AYAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { }
 	
-	virtual void draw() {
+	virtual void draw(vsize_t layer) {
+		if (layer != LAYER_ROOT) return;
 		color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.8);
 		rect(_frame);
 		//color(1.0, 0.0, 0.0, 0.3);

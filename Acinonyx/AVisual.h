@@ -57,7 +57,7 @@ public:
 	bool isContainer() { return (_flags & AVF_CONTAINER) ? true : false; }
 	bool isHidden() { return (_flags & AVF_HIDDEN) ? true : false ; }
 
-	virtual void draw() { }
+	virtual void draw(vsize_t layer) { }
 
 	void setHidden(bool hf) {
 		// FIXME: we sould do a redraw or something ...

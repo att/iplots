@@ -84,6 +84,7 @@
 		68C25C9C0D7B5E3F0065C27A /* AVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVector.h; sourceTree = "<group>"; };
 		68C25C9D0D7B68190065C27A /* ATools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATools.h; sourceTree = "<group>"; };
 		68C25C9E0D7B68190065C27A /* ATools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ATools.c; sourceTree = "<group>"; };
+		68DED9C70FFD729C00C1DB43 /* AQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AQuery.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Acinonyx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Acinonyx.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -261,6 +262,7 @@
 				68A251980D7DEE9700007CBD /* AVisualPrimitive.h */,
 				682F02510FCACEFE00A2227E /* ABasicPrimitives.h */,
 				682DC9220FF26BAA00E8F17C /* ALinearProjection.h */,
+				68DED9C70FFD729C00C1DB43 /* AQuery.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";

@@ -80,6 +80,10 @@ public:
 	void setFrame(ARect frame) { _frame = frame; }
 	ARect frame() { return _frame; }
 
+	void setRedrawLayer(vsize_t layer) {
+		if (_window) _window->setRedrawLayer(layer);
+	}
+	
 	AWindow *window() { return _window; }
 	virtual void setWindow(AWindow *win) { _window = win; if (dirtyFlag && win) win->setDirtyFlag(dirtyFlag); }
 	
@@ -88,39 +92,6 @@ public:
 	
 	void redraw() { if (_window) _window->redraw(); }
 	void setDirtyFlag(int *df) { dirtyFlag=df; if (_window) _window->setDirtyFlag(df); }
-	
-	// drawing methods
-	
-	void begin() {
-		profStart()
-		glViewport(0.0f, 0.0f, _frame.width, _frame.height);
-		//glClearColor(0.0, 0.0, 0.0, 0);
-		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-#ifndef WIN32
-		glEnable(GL_MULTISAMPLE);
-#endif
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glPushMatrix();
-		// change coordinates to graphics coords
-		glTranslatef(-1, -1, 0);
-		glScalef( 2.0 / _frame.width, 2.0 / _frame.height, 1);
-		// anti-aliasing trick
-		glTranslatef(0.5, 0.5, 0.0); // subpixel shift to make sure that lines don't wash over two integration regions. However, filled areas are probably still in trouble
-		// default font ("" stands for user/default font)
-		// FIXME: 10.0 font size works well on OS X - check other platforms...
-		font("", 10.0);
-		_prof(profReport("$renderer.begin"))
-	}
-	
-	void end() {
-		_prof(profReport("^renderer.end"))
-		glPopMatrix();
-		glFlush();
-		_prof(profReport("$renderer.end"))
-	}
 	
 	void color(AColor c) {
 		glColor4f(c.r, c.g, c.b, c.a);

@@ -91,11 +91,11 @@ public:
 		while (c) { if (c->o) c->o->setWindow(win); c = c->next; }
 	}
 	
-	virtual void draw() {
+	virtual void draw(vsize_t layer) {
 		chList_t *c = chRoot;
 		while (c) {
 			if (!c->o->isHidden())
-				c->o->draw();
+				c->o->draw(layer);
 			c = c->next;
 		}
 	}
