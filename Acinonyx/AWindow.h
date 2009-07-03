@@ -20,7 +20,8 @@
 #define GLC(X) X
 #endif
 
-/** FIXME: so far POTS didn't work, at least not on OS X (but OS X does support NPOTS so there it's not an issue) - so we need to check POTS behavior ... */
+/* #define TEXTURE_RECTANGLE_ARB 0x84F5  (name "GL_ARB_texture_rectangle") -- it is equivalent to GL_TEXTURE_RECTANGLE_EXT (name "GL_EXT_texture_rectangle") on OS X */
+
 #ifdef GL_TEXTURE_RECTANGLE_EXT
 #define A_TEXTURE_TYPE GL_TEXTURE_RECTANGLE_EXT
 #define A_EXACT_TEXTURE 1
@@ -66,17 +67,17 @@ public:
 	// this function is called before the first OpenGL call is made but after at least one context has been created
 	// it can detect extensions and setup the behavior ...
 	void first_gl_call() {
-		ALog("OpenGL version: %s\n", glGetString(GL_VERSION));
-		ALog("OpenGL vendor: %s\n", glGetString(GL_VENDOR));
-		ALog("OpenGL renderer: %s\n", glGetString(GL_RENDERER));
-		ALog("OpenGL extensions: %s\n", glGetString(GL_EXTENSIONS));
+		ALog("OpenGL version: %s", glGetString(GL_VERSION));
+		ALog("OpenGL vendor: %s", glGetString(GL_VENDOR));
+		ALog("OpenGL renderer: %s", glGetString(GL_RENDERER));
+		ALog("OpenGL extensions: %s", glGetString(GL_EXTENSIONS));
 		first_gl = 0;
 	}
 	
 	bool freezeLayer(vsize_t layer) {
 		if (layer >= _max_layers) return false;
 		GLC(glBindTexture(A_TEXTURE_TYPE, _layer[layer]));
-		ALog(" -> freeze layer %d (texture %d)\n", layer, _layer[layer]);
+		ALog(" -> freeze layer %d (texture %d)", layer, _layer[layer]);
 		int width = _frame.width, height = _frame.height;
 /*
 		int dbuf, rbuf;
@@ -90,18 +91,22 @@ public:
 		width = height = 32;
 		while (width < rw) width <<= 2;
 		while (height < rh) height <<= 2;
-		ALog("%s: creating POTS texture %d x %d\n", width, height);
+		ALog("%s: creating POTS texture %d x %d", describe(), width, height);
 #endif
 
 		GLC(glCopyTexImage2D(A_TEXTURE_TYPE, 0, GL_RGBA, 0, 0, width, height, 0));
 		
-#ifdef DEBUG_TEXTURE
+#ifdef DEBUG
 		unsigned char *foo = (unsigned char*) malloc(width * height * 4);
-		GLC(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, foo));
+		GLC(glGetTexImage(A_TEXTURE_TYPE, 0, GL_RGBA, GL_UNSIGNED_BYTE, foo));
 		printf("texture [");
 		for (vsize_t i = 0; i < 32; i++) printf("%02x%s", (int) foo[i + width * 40 + 40], ((i & 3) == 3) ? " " : "-");
 		printf("]\n");
 		free(foo);
+#endif
+#if ! A_EXACT_TEXTURE
+		glTexParameteri(A_TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(A_TEXTURE_TYPE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 #endif
 		_redraw_layer = layer;
 		if (layer >= _layers) _layers = layer + 1;
@@ -111,7 +116,7 @@ public:
 	bool recallLayer(vsize_t layer) {
 		if (_layers == 0) return false;
 		if (layer >= _layers) layer = _layers - 1; // recall the topmost layer if layer is too high
-		ALog(" <- recall layer %d (texture %d)\n", layer, _layer[layer]);
+		ALog(" <- recall layer %d (texture %d)", layer, _layer[layer]);
 		
 		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 		glDisable (GL_DEPTH_TEST);
@@ -121,6 +126,16 @@ public:
 		glBegin(GL_QUADS);
 		int width = _frame.width - 1, height = _frame.height - 1;
 
+#if ! A_EXACT_TEXTURE
+		int tw = 32, th = 32;
+		while (tw < width) tw <<= 2;
+		while (th < height) th <<= 2;
+		double tpw = (double) width / (double) tw;
+		double tph = (double) height / (double) th;
+		ALog("%s: recalling POTS texture %d x %d", describe(), tw, th);
+#endif
+		
+#if A_EXACT_TEXTURE
 		glTexCoord2i(0, 0);
 		glVertex3f(-0.5, -0.5, 0);
 		glTexCoord2i(0, height);
@@ -129,7 +144,16 @@ public:
 		glVertex3f(width - 0.5, height - 0.5, 0);
 		glTexCoord2i(width, 0);
 		glVertex3f(width - 0.5, -0.5, 0);
-		
+#else
+		glTexCoord2d(0.0, 0.0);
+		glVertex3f(-0.5, -0.5, 0);
+		glTexCoord2d(0.0, tph);
+		glVertex3f(-0.5, height - 0.5, 0);
+		glTexCoord2d(tpw, tph);
+		glVertex3f(width - 0.5, height - 0.5, 0);
+		glTexCoord2d(tpw, 0.0);
+		glVertex3f(width - 0.5, -0.5, 0);
+#endif
 		glEnd();
 		glPopAttrib();		
 		
@@ -139,7 +163,7 @@ public:
 	
 	// Note that redraw layer specifies the bottom-most layer to be redrawn, i.e. 0 means that everything needs to be cleared, 1 means that layer 0 can be restored etc.
 	void setRedrawLayer(vsize_t layer) {
-		ALog("%s: setRedrawLayer(%d)\n", describe(), layer);
+		ALog("%s: setRedrawLayer(%d)", describe(), layer);
 		if (_redraw_layer > layer)
 			_redraw_layer = layer;
 	}
@@ -152,7 +176,7 @@ public:
 			GLC(glGenTextures(_max_layers, _layer));
 			_layers = _max_layers;
 		}
-		ALog("%s: begin, redraw layer = %d\n", describe(), _redraw_layer);
+		ALog("%s: begin, redraw layer = %d", describe(), _redraw_layer);
 		glViewport(0.0f, 0.0f, _frame.width, _frame.height);
 		//glClearColor(0.0, 0.0, 0.0, 0);
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0);
