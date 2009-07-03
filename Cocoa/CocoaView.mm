@@ -11,8 +11,19 @@
 #include "ATypes.h"
 #include "AScatterPlot.h"
 
-// conversion between Cocoa events and AEvents
+/* for pre-10.5 compatibility */
+#ifndef NSINTEGER_DEFINED
+#if __LP64__ || NS_BUILD_32_LIKE_64
+typedef long NSInteger;
+typedef unsigned long NSUInteger;
+#else
+typedef int NSInteger;
+typedef unsigned int NSUInteger;
+#endif
+#define NSINTEGER_DEFINED 1
+#endif
 
+// conversion between Cocoa events and AEvents
 static int NSEvent2AEFlags(NSEvent *e) {
 	int flags = 0;
 	NSUInteger ef = [e modifierFlags];
@@ -31,11 +42,11 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 @implementation CocoaView
 
 - (id)initWithFrame:(NSRect)frame visual: (AVisual*) aVisual {
-	const NSOpenGLPixelFormatAttribute attrs[] = {
+	NSOpenGLPixelFormatAttribute attrs[] = {
 		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAColorSize, 24,
 //		NSOpenGLPFAAlphaSize, 8,
-		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, 1, NSOpenGLPFASamples, 4, /* <- anti-aliasing */
+		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)4, /* <- anti-aliasing */
 	0 };
     self = [super initWithFrame:frame pixelFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs]];
     if (self) {
