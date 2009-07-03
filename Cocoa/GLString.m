@@ -154,7 +154,9 @@
 		[path stroke];
 	}
 	*/
+#ifdef DEBUG
 	NSLog(@"textColor=%@", textColor);
+#endif
 	[textColor set]; 
 	[string drawAtPoint:NSMakePoint (marginSize.width, marginSize.height)]; // draw at offset position
 	bitmap = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect (0.0f, 0.0f, frameSize.width, frameSize.height)];

@@ -24,11 +24,11 @@ void AWindow::draw() {
 		while (layer < _max_layers) {
 			rv->clipOff();
 			setTextColor(::textColor); // default text color - black
-			printf("  - draw layer %d\n", layer);
+			ALog("  - draw layer %d\n", layer);
 			rv->draw(layer);
 			freezeLayer(layer++);
 		}
-		printf("  - draw layer %d (transient)\n", LAYER_TRANS);
+		ALog("  - draw layer %d (transient)\n", LAYER_TRANS);
 		rv->draw(LAYER_TRANS); // the transient layer is not stored
 		_redraw_layer = LAYER_TRANS;
 	}
