@@ -153,7 +153,6 @@ public:
 			setredraw(gawin, HelpExpose);
 			setclose(gawin, HelpClose);
 			
-#if 0
 			addto(gawin);
 			gsetcursor(gawin, ArrowCursor);
 			if (ismdi()) {
@@ -164,7 +163,7 @@ public:
 				gsetcursor(tb, ArrowCursor);
 				addto(tb);
 			}
-#endif
+
 			addto(gawin);
 			newmenubar(NULL);
 			newmdimenu();
