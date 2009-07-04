@@ -264,7 +264,10 @@ static DeviceSpecific_t* RAcinonyxDevice_Create(pDevDesc dev, double width, doub
 	dev->bottom= height;
 
 	qd->agd = new ARGraphicsDevice(NULL, qd, AMkRect(100.0, 100.0, width, height), AVF_XSPRING | AVF_YSPRING);
-	if (qd->agd) qd->agd->setDirtyFlag(&(qd->dirty));
+	if (qd->agd) {
+		qd->agd->setDirtyFlag(&(qd->dirty));
+		qd->agd->setDirtyFlagLayer(LAYER_ROOT);
+	}
     return qd;
 }
 

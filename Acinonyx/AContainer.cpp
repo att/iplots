@@ -20,6 +20,8 @@ void AWindow::draw() {
 		// FIXME: 10.0 font size works well on OS X - check other platforms...
 		rv->font("", 10.0);
 
+		if (dirtyFlag && dirtyFlagLayer < _redraw_layer)
+			_redraw_layer = dirtyFlagLayer;
 		vsize_t layer = _redraw_layer;
 		while (layer < _max_layers) {
 			rv->clipOff();

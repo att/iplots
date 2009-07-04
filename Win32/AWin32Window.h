@@ -11,12 +11,13 @@
 #ifndef A_WIN32_WINDOW_H__
 #define A_WIN32_WINDOW_H__
 
-#include "AWindow.h"
-#include "AVisual.h"
-
 #include <windows.h>
 #include <gl/gl.h>
 #include <gl/glu.h>
+
+#include "AWindow.h"
+#include "AVisual.h"
+
 #include "RObject.h" /* for debugging with Rprintf */
 
 /* --- GraphApp support --- we use GA from R headers --- */

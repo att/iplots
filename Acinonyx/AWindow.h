@@ -52,11 +52,13 @@ protected:
 	texture_t _layer[_max_layers];
 	bool _layers_initialized;
 	AColor text_color;
+	vsize_t dirtyFlagLayer; ///< if the dirty flag triggers a redraw this variable specifies the redraw layer to use
 public:
 	int *dirtyFlag;
 
-	AWindow(ARect frame) : modalOwner(0), _frame(frame), _rootVisual(0), dirtyFlag(0) {
+	AWindow(ARect frame) : modalOwner(0), _rootVisual(0), _frame(frame), dirtyFlag(0) {
 		_redraw_layer = _layers = 0;
+		dirtyFlagLayer = LAYER_TRANS; /* by default dirty flag triggers the transient layer only - use setDirtyFlagLayer() to change this */
 		text_color = AMkColor(0.0, 0.0, 0.0, 1.0);
 		OCLASS(AWindow)
 	};
@@ -261,6 +263,7 @@ public:
 	virtual ASize glbbox(const char *txt) { return AMkSize(strlen(txt) * 5.6, 10.0); } // jsut a very crude fallback
 	
 	void setDirtyFlag(int *newDF) { dirtyFlag = newDF; };
+	void setDirtyFlagLayer(vsize_t layer) { dirtyFlagLayer = layer; }
 	bool isDirty() { return (dirtyFlag && dirtyFlag[0] != 0); }
 
 	virtual bool canClose() { return true; }

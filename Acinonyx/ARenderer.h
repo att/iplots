@@ -66,10 +66,11 @@ protected:
 	ARect _frame; // in window coords
 	AWindow *_window;
 	int *dirtyFlag;
+	int dirtyFlagLayer;
 	GLUtesselator *tess;
 public:
 
-	ARenderer(AWindow *aWindow, ARect frame) : _window(aWindow), _frame(frame), tess(0), dirtyFlag(0) { OCLASS(ARenderer) }
+	ARenderer(AWindow *aWindow, ARect frame) : _frame(frame), _window(aWindow), dirtyFlag(0), dirtyFlagLayer(-1), tess(0) { OCLASS(ARenderer) }
 
 	virtual ~ARenderer() {
 		if (tess)
@@ -85,14 +86,15 @@ public:
 	}
 	
 	AWindow *window() { return _window; }
-	virtual void setWindow(AWindow *win) { _window = win; if (dirtyFlag && win) win->setDirtyFlag(dirtyFlag); }
+	virtual void setWindow(AWindow *win) { _window = win; if (dirtyFlag && win) { win->setDirtyFlag(dirtyFlag); if (dirtyFlagLayer >= 0) win->setDirtyFlagLayer(dirtyFlagLayer); } }
 	
 	bool containsPoint(APoint pt) { return (!((pt.x < _frame.x) || (pt.y < _frame.y) || (pt.x > _frame.x + _frame.width) || (pt.y > _frame.y + _frame.height))); }
 	bool intersectsRect(ARect r) { return (!((r.x > _frame.x + _frame.width) || (r.x + r.width < _frame.x) || (r.y > _frame.y + _frame.height) || (r.y + r.height < _frame.y))); }
 	
 	void redraw() { if (_window) _window->redraw(); }
 	void setDirtyFlag(int *df) { dirtyFlag=df; if (_window) _window->setDirtyFlag(df); }
-	
+	void setDirtyFlagLayer(vsize_t layer) { dirtyFlagLayer = layer; if (_window) _window->setDirtyFlagLayer(layer); }
+
 	void color(AColor c) {
 		glColor4f(c.r, c.g, c.b, c.a);
 	}
