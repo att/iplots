@@ -37,12 +37,9 @@ public:
 		line(_frame.x + _frame.width, _frame.y + _frame.height / 2, _frame.x + _frame.width, _frame.y + _frame.height);
 		
 		// show outer labels
-		char buf[64];
 		ADataRange dr = _scale->dataRange();
-		snprintf(buf, 64, "%g", dr.begin);
-		text(AMkPoint(_frame.x, _frame.y + _frame.height / 2), buf, AMkPoint(0.0, 0.5));
-		snprintf(buf, 64, "%g", dr.begin + dr.length);
-		text(AMkPoint(_frame.x + _frame.width, _frame.y + _frame.height / 2), buf, AMkPoint(1.0, 0.5));
+		text(AMkPoint(_frame.x, _frame.y + _frame.height / 2), _scale->stringForDoubleValue(dr.begin), AMkPoint(0.0, 0.5));
+		text(AMkPoint(_frame.x + _frame.width, _frame.y + _frame.height / 2), _scale->stringForDoubleValue(dr.begin + dr.length), AMkPoint(1.0, 0.5));
 	}
 };
 

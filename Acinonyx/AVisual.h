@@ -53,6 +53,10 @@ public:
 	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(parent?((ARenderer*)parent)->window():NULL, frame), _parent(parent), _flags(flags),
 	_min_size(AUndefSize), _max_size(AUndefSize) { OCLASS(AVisual) };
 	
+	virtual const char *caption() {
+		return describe();
+	}
+
 	AContainer *parent() { return _parent; }
 	unsigned int flags() { return _flags; }
 		

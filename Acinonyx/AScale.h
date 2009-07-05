@@ -10,6 +10,9 @@
 #ifndef A_SCALE_H_
 #define A_SCALE_H_
 
+#include <time.h>
+
+#include "ATools.h"
 #include "AVector.h"
 
 typedef enum { XScale = 1, YScale } scale_t; // designated scale types
@@ -181,6 +184,17 @@ public:
 
 	AFloat discreteWidth(vsize_t value) { 
 		return gr.length / ((AFloat) (n));
+	}
+	
+	const char *stringForDoubleValue(double val) {
+		if (_data && _data->isTime()) {
+			time_t t = (time_t) val;
+			struct tm *ts = gmtime(&t);
+			return value_printf("%u/%02u/%02u %02u:%02u:%02u", ts->tm_year + 1900, ts->tm_mon + 1,
+								ts->tm_mday, ts->tm_hour, ts->tm_min, ts->tm_sec);
+			
+		}
+		return value_printf("%g", val);
 	}
 };
 

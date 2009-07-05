@@ -24,6 +24,8 @@ extern long profilerTime, startupTime;
 extern "C" {
 #endif
 
+const char *value_printf(const char *fmt, ...);
+
 void *memdup(const void *buf, unsigned int len);
 
 	/*-- profiling support --*/

@@ -48,6 +48,19 @@ public:
 	}
 };
 
+class ARTimeVector : public ATimeVector, public AContainsRObject {
+public:
+	ARTimeVector(AMarker *m, SEXP data) : ATimeVector(m, REAL(data), LENGTH(data), false), AContainsRObject(data) {
+		owned = false; // do not free the pointer since it's owned by R
+		OCLASS(ARTimeVector)
+	}
+	
+	ARTimeVector(AMarker *m, RObject *o) : ATimeVector(m, REAL(o->value()), LENGTH(o->value()), false), AContainsRObject(o) {
+		owned = false; // do not free the pointer since it's owned by R
+		OCLASS(ARTimeVector)
+	}
+};
+
 class ARIntVector : public AIntVector, public AContainsRObject {
 public:
 	ARIntVector(AMarker *m, SEXP data) : AIntVector(m, INTEGER(data), LENGTH(data), false), AContainsRObject(data) {

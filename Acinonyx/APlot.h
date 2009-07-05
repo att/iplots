@@ -398,6 +398,10 @@ public:
 			update();
 		}
 	}
+	
+	virtual const char *caption() {
+		return "generic plot";
+	}
 };
 
 class AZoomEntryBiVar : public AZoomEntry {

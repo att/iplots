@@ -18,7 +18,7 @@ class AScatterPlot : public APlot {
 protected:
 	AXAxis *xa;
 	AYAxis *ya;
-
+	ADataVector *datax, *datay;
 public:
 	AScatterPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags) {
 		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
@@ -33,8 +33,8 @@ public:
 			marker->add(this);
 		}
 		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
-		_scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
-		_scales[1] = new AScale(y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
+		_scales[0] = new AScale(datax = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
+		_scales[1] = new AScale(datay = y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
 		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
 		add(*xa);
 		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, _scales[1]);
@@ -143,10 +143,13 @@ public:
 				clip(AMkRect(mLeft, mBottom, _frame.width - mRight - mLeft, _frame.height - mTop - mBottom));
 				APoint ql = AMkPoint(_query->frame().x, _query->frame().y);
 				char buf[64];
-				snprintf(buf, 64, "%g, %g", _scales[0]->value(ql.x), _scales[1]->value(ql.y));
+				const char *v2;
+				strcpy(buf, _scales[0]->stringForDoubleValue(_scales[0]->value(ql.x)));
+				v2 = _scales[1]->stringForDoubleValue(_scales[1]->value(ql.y));
 				color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.6);
-				ASize ts = bbox(buf);
-				rect(AMkRect(ql.x, ql.y, ts.width + 6.0, ts.height + 4.0));
+				ASize ts1 = bbox(buf), ts2 = bbox(v2);
+				if (ts1.width < ts2.width) ts1.width = ts2.width;
+				rect(AMkRect(ql.x, ql.y - 4.0, ts1.width + 6.0, ts2.height + ts1.height + 8.0));
 				color(0,0,0,0.7);
 				line(0.0, ql.y, _frame.width, ql.y);
 				line(ql.x, 0.0, ql.x, _frame.height);
@@ -155,6 +158,7 @@ public:
 				line(ql.x+1, 0.0+1, ql.x+1, _frame.height+1);
 				//txtcolor(0,0,0.4);
 				text(ql.x + 4.0, ql.y + 2.0, buf, 0.0);
+				text(ql.x + 4.0, ql.y + 2.0 + ts1.height, v2, 0.0);
 				clip(_frame);
 			}
 		}
@@ -192,6 +196,11 @@ public:
 		return desc_buf;
 	}
 	
+	virtual const char *caption() {
+		return value_printf("Scatteplot %s vs %s",
+					 (datay->name()) ? datay->name() : "<tmp>",
+					 (datax->name()) ? datax->name() : "<tmp>");
+	}
 };
 
 #endif

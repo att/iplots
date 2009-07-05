@@ -16,6 +16,7 @@
 class ABarChart : public APlot {
 protected:
 	ADiscreteXAxis *xa;
+	AFactorVector *data;
 	AYAxis *ya;
 	vsize_t bars;
 	bool spines;
@@ -36,7 +37,7 @@ public:
 		bars = 0;
 		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
 		AUnivarTable *tab = x->table();
-		_scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), bars = x->levels());
+		_scales[0] = new AScale(data = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), bars = x->levels());
 		_scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), tab->maxCount());
 		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
 		add(*xa);
@@ -174,6 +175,10 @@ public:
 	virtual bool setDoubleProperty(const char *name, double value) {
 		if (!strcmp(name, "spines")) { bool desired = (value > 0.5); if (spines != desired) { spines=desired; update(); redraw(); return true; } };
 		return APlot::setDoubleProperty(name, value);
+	}
+	
+	virtual const char *caption() {
+		return value_printf("Barchart of %s", (data && data->name()) ? data->name() : "<tmp>");
 	}
 	
 };

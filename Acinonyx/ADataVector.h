@@ -16,6 +16,8 @@
 #include "ANotfier.h"
 #include "AMarker.h"
 
+extern "C" int R_IsNA(double x);
+
 /*
 class AObjectWithMarker {
 protected:
@@ -122,15 +124,12 @@ protected:
 	float *f_data;
 	int *i_data;
 public:
-	ADoubleVector(AMarker *m, double *data, vsize_t len, bool copy) : ADataVector(m, len), f_data(0), i_data(0) {
+	ADoubleVector(AMarker *m, double *data, vsize_t len, bool copy=true) : ADataVector(m, len), f_data(0), i_data(0) {
 		_data = copy?(double*)memdup(data, len * sizeof(double)):data; OCLASS(ADoubleVector)
 	}
-	ADoubleVector(double *data, vsize_t len, bool copy) : ADataVector(0, len), f_data(0), i_data(0) {
+	ADoubleVector(double *data, vsize_t len, bool copy=true) : ADataVector(0, len), f_data(0), i_data(0) {
 		_data = copy?(double*)memdup(data, len * sizeof(double)):data; OCLASS(ADoubleVector)
 	}
-	ADoubleVector(const double *data, vsize_t len) : ADataVector(0, len), f_data(0), i_data(0) {
-		_data = (double*)memdup(data, len * sizeof(double)); OCLASS(ADoubleVector)
-	}	
 	virtual ~ADoubleVector() {
 		if (owned) free(_data);
 		if (f_data) free(f_data);
@@ -145,7 +144,8 @@ public:
 		if (length()) {
 			double e = r.begin = _data[0];
 			for (int i = 0; i < length(); i++)
-				if (_data[i] < r.begin) r.begin = _data[i]; else if (_data[i] > e) e = _data[i];
+				if (R_IsNA(e)) e = r.begin = _data[i]; else
+					if (!R_IsNA(_data[i])) { if(_data[i] < r.begin) r.begin = _data[i]; else if (_data[i] > e) e = _data[i]; }
 			r.length = e - r.begin;
 		}
 		return r;
@@ -180,6 +180,21 @@ public:
 		for (int i = 0; i < length(); i++)
 			f[i] = _data[i] * a + b;
 	}
+};
+
+class ATimeVector : public ADoubleVector {
+protected:
+	double _tzOffset;
+public:
+	ATimeVector(AMarker *m, double *data, vsize_t len, bool copy=true) : ADoubleVector(m, data, len, copy), _tzOffset(0.0) {
+		OCLASS(ATimeVector)
+	}
+	ATimeVector(double *data, vsize_t len, bool copy=true) : ADoubleVector(data, len, copy), _tzOffset(0.0) {
+		OCLASS(ATimeVector)
+	}
+	
+	virtual bool isTime() { return true; }
+	double tzOffset() { return _tzOffset; }
 };
 
 class AIntVector : public ADataVector {

@@ -171,7 +171,10 @@ SEXP A_VarRegister(SEXP v, SEXP mark, SEXP sName)
 	AObject *vo = NULL;
 	AMarker *m = (mark == R_NilValue) ? NULL : (AMarker*) SEXP2A(mark);
 	if (TYPEOF(v) == REALSXP) {
-		vo = new ARDoubleVector(m, v);
+		if (Rf_inherits(v, "POSIXct"))
+			vo = new ARTimeVector(m, v);
+		else
+			vo = new ARDoubleVector(m, v);
 	} else if (TYPEOF(v) == INTSXP) {
 		if (Rf_inherits(v, "factor"))
 			vo = new ARFactorVector(m, v);

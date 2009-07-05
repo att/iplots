@@ -28,6 +28,16 @@ void *memdup(const void *buf, unsigned int len) {
 double NA_double;
 float NA_float;
 
+char value_buf[128];
+
+const char *value_printf(const char *fmt, ...) {
+	va_list v;
+	va_start(v, fmt);
+	vsnprintf(value_buf, sizeof(value_buf), fmt, v);
+	va_end(v);
+	return (const char*) value_buf;
+}
+
 #include <stdio.h>
 
 #ifdef DEBUG

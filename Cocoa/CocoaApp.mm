@@ -31,7 +31,7 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 
 	CocoaWindow *window = [[CocoaWindow alloc] initWithContentRect:rect visual:visual];
 
-	[window setTitle:[NSString stringWithUTF8String:visual->describe()]];
+	[window setTitle:[NSString stringWithUTF8String:visual->caption()]];
     [window makeKeyAndOrderFront:nil];
 	// [window setDelegate:self];
 	// no idea why, but the shadow is not there until you cycle the shadow setting...

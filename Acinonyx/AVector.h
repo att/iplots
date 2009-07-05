@@ -93,6 +93,7 @@ public:
 	virtual ADataRange range() { return AUndefDataRange; }
 	
 	virtual bool isFactor() { return false; }
+	virtual bool isTime() { return false; }
 	virtual APermutation* permutation() { return NULL; }
 	
 	AObject *objectAt(vsize_t i) { if (i >= _len) return NULL; AObject **x = asObjects(); return x?x[i]:NULL; }

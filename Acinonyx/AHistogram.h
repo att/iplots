@@ -208,7 +208,12 @@ public:
 				return false;
 		}
 		return true;
-	}	
+	}
+	
+	virtual const char *caption() {
+		return value_printf("Histogram of %s", (data && data->name()) ? data->name() : "<tmp>");
+	}
+	
 };
 
 #endif
