@@ -266,6 +266,8 @@ public:
 	void setDirtyFlagLayer(vsize_t layer) { dirtyFlagLayer = layer; }
 	bool isDirty() { return (dirtyFlag && dirtyFlag[0] != 0); }
 
+	bool event(AEvent event);
+
 	virtual bool canClose() { return true; }
 	virtual void close() {};
 

@@ -29,6 +29,7 @@ extern "C" {
 }
 #undef resize
 #undef draw
+#undef redraw
 
 /* this is an excerpt from internal.h objinfo structure
  we need it to get the window handle for native GDI */
@@ -42,6 +43,13 @@ typedef struct ga_objinfo {
 static void HelpClose(window w);
 static void HelpExpose(window w, rect r);
 static void HelpResize(window w, rect r);
+static void HelpMouseClick(window w, int button, point pt);
+static void HelpMouseMove(window w, int button, point pt);
+static void HelpMouseUp(window w, int button, point pt);
+static void HelpMouseDown(window w, int button, point pt);
+static void HelpKeyDown(control w, int key);
+static void HelpKeyAction(control w, int key);
+
 static void SetupPixelFormat(HDC hDC);
 
 static void PrintLastError(const char *fname, BOOL result) 
@@ -152,6 +160,13 @@ public:
 			setresize(gawin, HelpResize);
 			setredraw(gawin, HelpExpose);
 			setclose(gawin, HelpClose);
+			setmousedown(gawin, HelpMouseClick);
+			setmousemove(gawin, HelpMouseMove);
+			setmousedrag(gawin, HelpMouseMove);
+			setmouseup(gawin, HelpMouseUp);
+			setmousedown(gawin, HelpMouseDown);
+			setkeydown(gawin, HelpKeyDown);
+			setkeyaction(gawin, HelpKeyAction);
 			
 			addto(gawin);
 			gsetcursor(gawin, ArrowCursor);
@@ -246,7 +261,11 @@ public:
 			v->moveAndResize(vf);
 		}
 	}
-	
+
+	virtual void redraw() {
+		if (gawin) GA_redraw(gawin);
+	}
+
 	void expose() {
 		AVisual * v = (AVisual*) rootVisual();
 #ifdef DEBUG

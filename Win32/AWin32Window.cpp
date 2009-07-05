@@ -42,6 +42,48 @@ static void HelpResize(window w, rect r)
 	if (win) win->resize(AMkRect(0.0, 0.0, r.width, r.height));
 }
 
+static unsigned int geventFlags(int button b) {
+	unsigned int f = 0;
+	if (b == 1) f |= AEF_BUTTON1;
+	if (b == 2) f |= AEF_BUTTON2;
+	if (b == 3) f |= AEF_BUTTON3;
+	return f;
+}
+
+static void HelpMouseClick(window w, int button, point pt)
+{
+	AWin32Window *win = (AWin32Window*) getdata(w);
+}
+
+static void HelpMouseMove(window w, int button, point pt)
+{
+	AWin32Window *win = (AWin32Window*) getdata(w);
+	win->event(AMkEvent(AE_MOUSE_MOVE, geventFlags(button), 0, AMkPoint(pt.x, pt.y)));
+}
+
+static void HelpMouseUp(window w, int button, point pt)
+{
+	AWin32Window *win = (AWin32Window*) getdata(w);
+	win->event(AMkEvent(AE_MOUSE_UP, geventFlags(button), 0, AMkPoint(pt.x, pt.y)));
+}
+
+static void HelpMouseDown(window w, int button, point pt)
+{
+	AWin32Window *win = (AWin32Window*) getdata(w);
+	win->event(AMkEvent(AE_MOUSE_DOWN, geventFlags(button), 0, AMkPoint(pt.x, pt.y)));
+}
+
+static void HelpKeyDown(control w, int key)
+{
+	AWin32Window *win = (AWin32Window*) getdata(w);
+	win->event(AMkEvent(AE_KEY_DOWN, geventFlags(0), key, AMkPoint(0.0, 0.0)));
+}
+
+static void HelpKeyAction(control w, int key)
+{
+	AWin32Window *win = (AWin32Window*) getdata(w);
+}
+
 static void SetupPixelFormat(HDC hDC)
 {
 	int nPixelFormat;

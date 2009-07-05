@@ -36,6 +36,12 @@ void AWindow::draw() {
 	}
 }
 
+bool AWindow::event(AEvent event)
+{
+	AVisual *rv = (AVisual*) _rootVisual;
+	return rv ? rv->event(event) : false;
+}
+
 void AWindow::setFrame(ARect frame) {
 	_frame = frame;
 	AVisual *rv = (AVisual*) _rootVisual;
