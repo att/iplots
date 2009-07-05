@@ -228,5 +228,8 @@ public:
 		}
 		return true;
 	}
-	
+
+	virtual const char *caption() {
+		return "Parallel Coordinates Plot";
+	}	
 };
