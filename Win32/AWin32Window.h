@@ -52,6 +52,9 @@ static void HelpKeyAction(control w, int key);
 
 static void SetupPixelFormat(HDC hDC);
 
+static DWORD WINAPI AWin32Heartbeat( LPVOID lpParam );
+
+#ifdef DEBUG
 static void PrintLastError(const char *fname, BOOL result) 
 { 
 	if (result) return; // return on success
@@ -71,6 +74,9 @@ static void PrintLastError(const char *fname, BOOL result)
     Rprintf("%s failed with error %d: %s\n", fname, dw, (const char*) lpMsgBuf);
     LocalFree(lpMsgBuf);
 }
+#else
+#define PrintLastError(FN, X) X
+#endif
 
 // FIXME: implement check for anti-aliasing and review how to enable it on Win32
 
@@ -83,6 +89,7 @@ protected:
 	HFONT hFont;
 	char *font_name;
 	double font_size;
+	bool _active;
 public:
 	// FIXME: window coordinates in Windows are flipped so placement of windows has to be re-calculated
 	AWin32Window(ARect frame) : AWindow(frame) {
@@ -102,6 +109,7 @@ public:
 		}
 #endif
 
+		_active = true;
 		font_size = 10.0;
 		font_name = strdup("Arial");
 		
@@ -227,12 +235,16 @@ public:
 		w32_resize(be, width, height);
 		
 		UpdateWindow(xd->wh);
-#endif		
+#endif
+		
+		CreateThread(NULL, 0, AWin32Heartbeat, this, 0, NULL);
 	}
 	
 	virtual ~AWin32Window() {
 		if (font_name) free(font_name);
 	}
+	
+	bool active() { return _active; }
 	
 	/* FIXME: destroy ...
 	{
@@ -263,7 +275,8 @@ public:
 	}
 
 	virtual void redraw() {
-		if (gawin) GA_redraw(gawin);
+		//if (gawin) GA_redraw(gawin);
+		if (wh) InvalidateRect(wh, NULL, FALSE);
 	}
 
 	void expose() {
@@ -272,10 +285,12 @@ public:
 		Rprintf("%s: expose, visual=%p\n", describe(), v);
 #endif
 		if (v) {
+			if (dirtyFlag) dirtyFlag[0] = 0;
 			wglMakeCurrent(hDC, hRC);
 			begin();
 			draw();
 			end();
+			if (dirtyFlag) dirtyFlag[0] = 0;
 		}
 #ifndef USE_GDI
 		SwapBuffers(hDC);
@@ -289,6 +304,13 @@ public:
 		if (hDC) wglMakeCurrent(hDC, NULL);
 		wglDeleteContext(hRC);
 		
+		DeleteDC(hDC);
+		if (gawin) {
+			del(gawin);
+			doevent();
+			gawin=0;
+		}
+		_active = FALSE;
 		/*      Send quit message to queue*/
 		/* PostQuitMessage(0); */
 	}
@@ -428,6 +450,7 @@ public:
 	}
 	//
 
+	void heartbeat();
 };
 
 

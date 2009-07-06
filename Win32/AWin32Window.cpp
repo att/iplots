@@ -140,4 +140,21 @@ static void SetupPixelFormat(HDC hDC)
 	SetPixelFormat(hDC, nPixelFormat, &pfd);
 }
 
+void AWin32Window::heartbeat() {
+	if (dirtyFlag && dirtyFlag[0]) {
+		dirtyFlag[0]++;
+		if (dirtyFlag[0] > 2)
+			redraw();
+	}
+}
+	
+static DWORD WINAPI AWin32Heartbeat( LPVOID lpParam ) {
+	AWin32Window *win = (AWin32Window*) lpParam;
+	win->retain();
+	while (win->active()) {
+		Sleep(200);
+		win->heartbeat();
+	}
+}
+
 #endif
