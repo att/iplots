@@ -16,7 +16,6 @@
 #include "ANotfier.h"
 #include "AMarker.h"
 
-extern "C" int R_IsNA(double x);
 
 /*
 class AObjectWithMarker {
@@ -144,8 +143,8 @@ public:
 		if (length()) {
 			double e = r.begin = _data[0];
 			for (int i = 0; i < length(); i++)
-				if (R_IsNA(e)) e = r.begin = _data[i]; else
-					if (!R_IsNA(_data[i])) { if(_data[i] < r.begin) r.begin = _data[i]; else if (_data[i] > e) e = _data[i]; }
+				if (AisNA(e)) e = r.begin = _data[i]; else
+					if (!AisNA(_data[i])) { if(_data[i] < r.begin) r.begin = _data[i]; else if (_data[i] > e) e = _data[i]; }
 			r.length = e - r.begin;
 		}
 		return r;
