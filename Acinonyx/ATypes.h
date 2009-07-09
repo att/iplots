@@ -11,6 +11,8 @@
 #ifndef A_TYPES_H
 #define A_TYPES_H
 
+#define PFA 1
+
 #define LAYER_ROOT    0
 #define LAYER_HILITE  0
 #define LAYER_OBJECTS 1
@@ -111,6 +113,10 @@ extern float NA_float;
 #define ELog printf
 #endif
 #endif
+	
+	int R_IsNA(double x);
+
+#define AisNA(X) R_IsNA(X)
 	
 #ifdef __cplusplus
 }

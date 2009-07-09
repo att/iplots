@@ -167,17 +167,44 @@ public:
 			clip(_frame);
 			glPointSize(ptSize);
 			color(AMkColor(0.0,0.0,0.0,ptAlpha));
+#ifndef PFA
+			glNewList(5, GL_COMPILE);
+			circle(0, 0, ptSize / 2.0);
+			glEndList();
+			glPushMatrix();
+#endif
 			AFloat *lx = _scales[0]->locations();
 			AFloat *ly = _scales[1]->locations();
+#ifdef PFA
 			points(lx, ly, _scales[0]->data()->length());
+#else
+			vsize_t n = _scales[0]->data()->length();
+			for (vsize_t i = 0; i < n; i++) {
+				glTranslated(lx[i], ly[i], 0.0);
+				glCallList(5);
+				glTranslated(-lx[i], -ly[i], 0.0);
+			}
+#endif
+			
+			//points(lx, ly, _scales[0]->data()->length());
 			if (marker) {
 				mark_t *ms = marker->rawMarks();
 				vsize_t n = marker->length();
 				color(AMkColor(1.0,0.0,0.0,1.0));
 				for (vsize_t i = 0; i < n; i++)
-					if (M_TRANS(ms[i]))
+					if (M_TRANS(ms[i])) {
+#ifdef PFA
 						point(lx[i], ly[i]);
+#else
+						glTranslated(lx[i], ly[i], 0.0);
+						glCallList(5);
+						glTranslated(-lx[i], -ly[i], 0.0);
+#endif
+					}
 			}
+#ifndef PFA
+			glPopMatrix();
+#endif
 			clipOff();
 			color(AMkColor(backgroundColor.r,backgroundColor.g,backgroundColor.b,0.5));
 			rect(0.0,0.0,mLeft,mBottom);
@@ -197,7 +224,7 @@ public:
 	}
 	
 	virtual const char *caption() {
-		return value_printf("Scatteplot %s vs %s",
+		return value_printf("Scatterplot %s vs %s",
 					 (datay->name()) ? datay->name() : "<tmp>",
 					 (datax->name()) ? datax->name() : "<tmp>");
 	}

@@ -47,9 +47,9 @@ public:
 		const double *d = x->asDoubles(), maxv = _anchor + ((double) _bins) * _binw;
 		vsize_t n = x->length();
 		for (vsize_t i = 0; i < n; i++) {
-			// FIXME: we need IS_NA(X)!
 			vsize_t this_bin = NA_BIN;
-			if (d[i] < _anchor) this_bin = UNDERFLOW_BIN;
+			if (AisNA(d[i])) this_bin = NA_BIN;
+			else if (d[i] < _anchor) this_bin = UNDERFLOW_BIN;
 			else if (d[i] >= maxv) this_bin = OVERFLOW_BIN;
 			else this_bin = (vsize_t) ((d[i] - _anchor) / _binw);
 			_counts[this_bin]++;
