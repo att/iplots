@@ -1,19 +1,22 @@
-. <- new.env(TRUE, emptyenv())
+.ipe <- new.env(TRUE, emptyenv())
 
 .init.set <- function(len, name="data") {
- if (!is.null(.$len) && len == .$len) return(TRUE)
- .$len = len
- .$name = name
- .$m = .Call("A_MarkerCreate", as.integer(len))
+ if (!is.null(.ipe$len) && len == .ipe$len) return(TRUE)
+ .ipe$len = len
+ .ipe$name = name
+ .ipe$m = .Call("A_MarkerCreate", as.integer(len))
  TRUE
 }
 
 ## hack!
-addCallback <- function(FUN) .Call("A_MarkerDependentCreate", .$m, FUN)
+addCallback <- function(FUN) .Call("A_MarkerDependentCreate", .ipe$m, FUN)
+reset <- function() rm(len,name,m,envir=.ipe)
+restore <- function() { if (exists(".last.ipe")).ipe <<- .last.ipe; invisible(.ipe$len) }
 
 .var <- function(x, name=deparse(substitute(x))) {
- if (is.null(.$m)) .init.set(length(x))
- .Call("A_VarRegister", x, .$m, name)
+ if (is.null(.ipe$m)) .init.set(length(x))
+ if (.ipe$len != length(x)) { .last.ipe <<- .ipe; reset() }
+ .Call("A_VarRegister", x, .ipe$m, name)
 }
 
 iplot <- function(x, ...) UseMethod("iplot")
@@ -25,10 +28,16 @@ redraw <- function(x, ...) UseMethod("redraw")
 selected <- function(x, ...) UseMethod("selected")
 select <- function(x, ...) UseMethod("select")
 
+add <- function(x, ...) UseMethod("add")
+add.iPlot <- function(x, obj, ...) UseMethod("add.iPlot", obj)
+add.default <- function(x, obj, ...) UseMethod("add.default", obj)
+
 .mp <- function(w, p, clazz) {
   class(w) <- "iWindow"
   .Call("A_PlotSetValue", p, list(window = w, subclass = clazz))
   class(p) <- c(clazz, "iPlot")
+  .Last.plot <<- p
+  if (.Platform$OS.type == "windows") redraw(p, TRUE)
   p
 }
 
@@ -42,14 +51,14 @@ select <- function(x, ...) UseMethod("select")
 iplot.default <- function(x, y, xname=deparse(substitute(x)), yname=deparse(substitute(y)), ...) {
  vx = .var(x, xname)
  vy = .var(y, yname)
- sp = .Call("A_ScatterPlot", vx, vy, c(100,100,400,300))
+ sp = .Call("A_ScatterPlot", vx, vy, c(0,0,400,300))
  w  = .Call("A_WindowCreate", sp, c(100,100))
  .mp(w, sp, "iScatterplot")
 }
 
 ibar.factor <- function(x, xname=deparse(substitute(x)), ...) {
  vx = .var(x, xname)
- bc = .Call("A_BarPlot", vx, c(100,100,400,300))
+ bc = .Call("A_BarPlot", vx, c(0,0,400,300))
  w  = .Call("A_WindowCreate", bc, c(100,100))
  .mp(w, bc, "iBarchart")
 }
@@ -58,7 +67,7 @@ ibar.default <- function(x, ...) stop("Sorry, bar charts for this data type are 
 
 ihist.default <- function(x, xname=deparse(substitute(x)), ...) {
  vx = .var(x, xname)
- h  = .Call("A_HistPlot", vx, c(100,100,400,300))
+ h  = .Call("A_HistPlot", vx, c(0,0,400,300))
  w  = .Call("A_WindowCreate", h, c(100,100))
  .mp(w, h, "iHist")
 }
@@ -66,7 +75,7 @@ ihist.default <- function(x, xname=deparse(substitute(x)), ...) {
 ipcp.list <- function(x, ...) {
   if (length(x) < 2) stop("need at least 2 dimensions")
   v = lapply(seq.int(x), function(i) .var(x[[i]], names(x)[i]))
-  p = .Call("A_PCPPlot", v, c(100,100,400,300))
+  p = .Call("A_PCPPlot", v, c(0,0,400,300))
   w  = .Call("A_WindowCreate", p, c(100,100))
   .mp(w, p, "iPCP")
 }
@@ -80,8 +89,8 @@ ipcp.default <- function(x, ...) {
   ipcp.list(l)
 }
 
-redraw.iPlot <- function(x, ...)
-  invisible(.Call("A_PlotRedraw", x))
+redraw.iPlot <- function(x, entirely=FALSE, ...)
+  invisible(.Call("A_PlotRedraw", x, entirely))
 
 redraw.iVisual <- function(x, ...)
   invisible(.Call("A_PlotRedraw", x))
@@ -128,3 +137,4 @@ idev <- function(width=640, height=480, ps=12, bg=0, canvas=0, dpi=90) {
   attr(dev, "window") <- w
   dev
 }
+

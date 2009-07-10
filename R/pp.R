@@ -3,13 +3,16 @@ primitives <- function(plot)
 
 ##--- methods
 
-add <- function(x, what, ...) UseMethod("add")
-delete <- function(x, what, ...) UseMethod("delete")
-
 color <- function(x, ...) UseMethod("color")
 fill <- function(x, ...) UseMethod("fill")
 "color<-" <- function(x, value, ...) UseMethod("color<-")
 "fill<-" <- function(x, value, ...) UseMethod("fill<-")
+
+ilines <- function(x, ...) UseMethod("ilines")
+iabline <- function(a, ...) UseMethod("iabline")
+ipoints <- function(x, ...) UseMethod("ipoints")
+itext <- function(x, ...) UseMethod("itext")
+ipolygon <- function(x, ...) UseMethod("ipolygon")
 
 ##--- primitives constructors ---
 
@@ -34,16 +37,22 @@ iText <- function(x, y, text) {
 
 ##--- add/delete
 
-add.iPlot <- function(x, what, ...) {
+add.iPlot.primitive <- function(x, what, ...) {
   .Call("A_PlotAddPrimitive", x, what)
+  redraw(x) # just to make sure for now
 }
 
-delete.iPlot <- function(x, what, ...) {
-  if (is.character(what) && all(what == "all"))
-    .Call("A_PlotRemoveAllPrimitives")
-  else
-    .Call("A_PlotRemovePrimitive", x, what)
+delete.iPlot.primitive <- function(x, what, ...) {
+  .Call("A_PlotRemovePrimitive", x, what)
+  redraw(x) # just to make sure for now
 }
+
+delete.iPlot.character <- function(x, what, ...) {
+  if (all(what == "all"))
+    .Call("A_PlotRemoveAllPrimitives")
+  else stop("invalid argument")
+}
+
 
 ##--- primitive properties
 
@@ -86,6 +95,25 @@ fill.primitive <- function(x, ...) {
   stop("no writable property", name)
   x
 }
+
+iabline.lm <- function(a, ...) {
+  mc <- coef(a)
+  if (length(mc) != 2) stop("invalid dimensions")
+  iabline(mc[1], mc[2], ...)
+}
+
+iabline.default <- function(a, b, ...) {
+  
+}
+
+ilines.default <- function(x, y, col, plot, ...) {
+  p <- iPolygon(x, y)
+  if (!missing(col)) p$color <- col
+  if (missing(plot) && exists(".Last.plot")) plot <- .Last.plot
+  add(plot, p)
+  p
+}
+
 
 replacePoints <- function(p, x, y)
   .Call("A_PolygonSetPoints", p, as.double(x), as.double(y))
