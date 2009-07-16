@@ -48,3 +48,4 @@ void AWindow::setFrame(ARect frame) {
 	if (rv)
 		rv->moveAndResize(AMkRect(0.0, 0.0, frame.width, frame.height));
 }
+

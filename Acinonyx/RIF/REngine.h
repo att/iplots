@@ -53,7 +53,7 @@ public:
 				if (rarch && !getenv("R_ARCH")) setenv("R_ARCH", rarch, 1);
 #else
 #ifndef WIN32
-				setenv("R_HOME","/usr/local/lib/R");
+				setenv("R_HOME", "/usr/local/lib/R", 1);
 #endif
 #endif
 			}

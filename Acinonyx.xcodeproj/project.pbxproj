@@ -44,6 +44,7 @@
 		682DCBB80FFAAA9E00E8F17C /* RGrDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RGrDevice.cpp; sourceTree = "<group>"; };
 		682F02510FCACEFE00A2227E /* ABasicPrimitives.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ABasicPrimitives.h; sourceTree = "<group>"; };
 		682F031C0FCC2D2300A2227E /* ARVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARVector.h; sourceTree = "<group>"; };
+		683F313610090AB300B885DE /* APair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APair.h; sourceTree = "<group>"; };
 		687A31E30FAA6DF600EAF459 /* RObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RObject.h; sourceTree = "<group>"; };
 		687A31ED0FAA71D500EAF459 /* R.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R.framework; path = /Library/Frameworks/R.framework; sourceTree = "<absolute>"; };
 		687CA1480FAF346B00D249DB /* ANotfier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANotfier.h; sourceTree = "<group>"; };
@@ -200,6 +201,7 @@
 				688A31970FC16E7B00532F79 /* RCalls.h */,
 				688A31980FC16E7B00532F79 /* RCalls.cpp */,
 				682DC9F30FF3A73400E8F17C /* RValueHolder.h */,
+				683F313610090AB300B885DE /* APair.h */,
 			);
 			path = RIF;
 			sourceTree = "<group>";
@@ -400,6 +402,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Cocoa/Acinonyx_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					PFA,
 					DEBUG,
 					PROFILE,
 					EDEBUG,

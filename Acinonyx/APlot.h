@@ -3,7 +3,7 @@
  *  Acinonyx
  *
  *  Created by Simon Urbanek on 3/4/08.
- *  Copyright 2008 __MyCompanyName__. All rights reserved.
+ *  Copyright 2008 Simon Urbanek. All rights reserved.
  *
  */
 
@@ -28,24 +28,26 @@
 #define SEL_AND     3
 #define SEL_NOT     4
 
+/** AZoomEntry is an interface that represents arbitrary entries on the zoom stack. */
 class AZoomEntry : public AObject {
 public:
 	virtual ADataRange range(vsize_t coord) { return AUndefDataRange; };
 };
 
+/** APlot is the base of all visual representing statistical plots. It provides scales, handling of visual primitives, storage for plot primitives (statistical primitives), zoom, query and selection. */
 class APlot : public AContainer, public RValueHolder {
 protected:
-	AScale **_scales;
-	int nScales;
+	AScale **_scales;          /**< scales used by this plot */
+	int nScales;               /**< number of scales in _scales */
 	
-	AMutableObjectVector *vps; /* visual plot primitives (managed externally) */
-	AObjectVector *pps;        /* plot primitives (used by the plot internally - usually statistical visuals) */
-	AStack *zoomStack;
-	AMarker *marker; // subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives)
-	AQuery *_query;
-	bool inQuery;
+	AMutableObjectVector *vps; /**< visual plot primitives (managed externally) */
+	AObjectVector *pps;        /**< plot primitives (used by the plot internally - usually statistical visuals) */
+	AStack *zoomStack;         /**< stack of zoom definitions */
+	AMarker *marker;           /**< subclasses should use this marker if they want primitives to handle selection automatically. It is not used by the APlot class itself (except as pass-through to visual primitives) */
+	AQuery *_query;            /**< query object associated with this plot */
+	bool inQuery;              /**< flag specifying whether the is currently a query in display */
 	
-	// those may not be needed, but since most plots use them it makes sense to keep them here
+	/** general-purpose status variables - those may not be needed in general, but since most plots use them it makes sense to keep them here */
 	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 
 public:
@@ -191,7 +193,7 @@ public:
 				while (i < n) {
 					AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i++);
 					// ALog("%s: draw", o->describe());
-					o->draw(*this);
+					if (!o->hidden()) o->draw(*this);
 				}
 			}
 		}
@@ -203,7 +205,7 @@ public:
 				while (i < n) {
 					AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
 					ALog("%s: draw", o->describe());
-					o->draw(*this);
+					if (!o->hidden()) o->draw(*this);
 				}
 			}
 		}
@@ -231,8 +233,11 @@ public:
 		AContainer::draw(layer);
 	}
 
-	// in batch mode the marker's batch mode won't be chenged such that multiple selections can be performed (e.g. selection sequence). The correct usage then is: marker->begin(); performSelection(,,true); ...; marker->end();
-	// this implementation uses stat primitives
+	/** performs a selection based on a rectangle.
+	 *  @param where definition of the graphocal area selected
+	 *  @param type type of the selection (one of SEL_REPLACE, SEL_OR, SEL_AND, SEL_XOR and SEL_NOT)
+	 *  @param batch whether to perform the selction as a part of a batch (true) or not (false). In batch mode the marker's batch mode won't be changed such that multiple selections can be performed (e.g. selection sequence). The correct usage then is: marker->begin(); performSelection(,,true); ...; marker->end();
+	 *  @return whether the selection was performed succesfully (true) or not (false). The latter can essentially happen only if there is no marker or no primitives. */
 	virtual bool performSelection(ARect where, int type, bool batch = false) {
 		if (!marker) return false;
 		if (!vps->length() && !pps && !pps->length()) return false;
@@ -248,7 +253,7 @@ public:
 			n = pps->length();
 			while (i < n) {
 				AVisualPrimitive *vp = (AVisualPrimitive*) pps->objectAt(i++);
-				if ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point)))
+				if (!vp->hidden() && ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point))))
 					vp->select(marker, type);
 			}
 		}
@@ -256,7 +261,7 @@ public:
 		i = 0; n = vps->length();
 		while (i < n) {
 			AVisualPrimitive *vp = (AVisualPrimitive*) vps->objectAt(i++);
-			if ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point)))
+			if (!vp->hidden() && ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point))))
 				vp->select(marker, type);
 		}
 		setRedrawLayer(LAYER_HILITE);
@@ -265,6 +270,7 @@ public:
 		return true;
 	}
 	
+	/** the notification is forwarded to all primitives. In addition, N_MarkerChanged causes a redraw from LAYER_HILITE on. */
 	virtual void notification(AObject *source, notifid_t nid)
 	{
 		if (source != this) {
@@ -294,18 +300,23 @@ public:
 		}
 	}
 
+	/** adds a new visual primitive to the plot. AVisualPrimitive::setPlot() is automatically called on the primitive and the redraw layer is set to LAYER_OBJECTS
+	 *  @param vp primitive to add (may not be NULL!) */
 	void addPrimitive(AVisualPrimitive *vp) {
 		vp->setPlot(this);
 		vps->addObject(vp);
 		setRedrawLayer(LAYER_OBJECTS);
 	}
 	
+	/** remove a visual primitive form the plot
+	 *  @param vp primitive to remove (may not be NULL!) */
 	void removePrimitive(AVisualPrimitive *vp) {
 		if (vp->plot() == this) vp->setPlot(NULL);
 		vps->removeObject(vp);
 		setRedrawLayer(LAYER_OBJECTS);
 	}
 	
+	/** remove all visual primitives from the plot */
 	void removeAllPrimitives() {
 		vsize_t n = vps->length();
 		for (vsize_t i = 0; i < n; i++) {
@@ -316,11 +327,15 @@ public:
 		setRedrawLayer(LAYER_OBJECTS);
 	}
 	
+	/** return a vector of all visual primitives used in the plot
+	 *  @return vector of all visual primitives. Note that the returned vector shoud be considered immutable! Use addPrimitive()/removePrimitive() to modify the vector instead.
+	 *   NOTE: the current implementation does not return a copy, so use with care! */
 	AObjectVector *primitives() {
 		return vps;
 	}
 	
 	// we should move this to another class - this is here for now ...
+	// handling of selection, zoom, etc.
 	
 	bool inSelection, inZoom;
 	APoint dragStartPoint, dragEndPoint;

@@ -45,8 +45,12 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 	unsigned int attrs[] = {
 		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAColorSize, 24,
-//		NSOpenGLPFAAlphaSize, 8,
-		NSOpenGLPFANoRecovery, NSOpenGLPFASampleBuffers, 1, NSOpenGLPFASamples, 4, /* <- anti-aliasing */
+//		NSOpenGLPFAAlphaSize, 16,
+		NSOpenGLPFANoRecovery,
+#ifdef PFA
+		 NSOpenGLPFASampleBuffers, 1, NSOpenGLPFASamples, 4,
+#endif
+		/* <- anti-aliasing */
 	0 };
     self = [super initWithFrame:frame pixelFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:(NSOpenGLPixelFormatAttribute*)attrs]];
     if (self) {

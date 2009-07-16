@@ -1,5 +1,5 @@
 primitives <- function(plot)
-  lapply(.Call("A_PlotPrimitives", plot), function(x) { class(x) <- "primitive"; x })
+  lapply(.Call("A_PlotPrimitives", plot), function(x) { class(x) <- c("primitive", "iObject"); x })
 
 ##--- methods
 
@@ -7,6 +7,8 @@ color <- function(x, ...) UseMethod("color")
 fill <- function(x, ...) UseMethod("fill")
 "color<-" <- function(x, value, ...) UseMethod("color<-")
 "fill<-" <- function(x, value, ...) UseMethod("fill<-")
+hidden <- function(x, ...) UseMethod("hidden")
+"hidden<-" <- function(x, value, ...) UseMethod("hidden<-")
 
 ilines <- function(x, ...) UseMethod("ilines")
 iabline <- function(a, ...) UseMethod("iabline")
@@ -16,22 +18,26 @@ ipolygon <- function(x, ...) UseMethod("ipolygon")
 
 ##--- primitives constructors ---
 
-iLine <- function(x, y) {
+iLine <- function(x, y, color) {
   o <- .Call("A_LineCreate", as.double(c(x[1],y[1],x[2],y[2])))
-  class(o) <- c("iLine", "primitive")
+  class(o) <- c("iLine", "primitive", "iObject")
+  if (!missing(color)) color(o, redraw=FALSE) <- color
   invisible(o)
 }
 
-iPolygon <- function(x, y) {
+iPolygon <- function(x, y, color, fill) {
   o <- .Call("A_PolygonCreate", as.double(x), as.double(y));
-  class(o) <- c("iPolygon", "primitive")
+  class(o) <- c("iPolygon", "primitive", "iObject")
+  if (!missing(color)) color(o, redraw=FALSE) <- color
+  if (!missing(fill)) fill(o, redraw=FALSE) <- fill
   invisible(o)
 }
 
-iText <- function(x, y, text) {
+iText <- function(x, y, text, color) {
   if (!length(text)) stop("missing text")
   o <- .Call("A_TextCreate", as.double(c(x,y)), as.character(text))
-  class(o) <- c("iText", "primitive")
+  class(o) <- c("iText", "primitive", "iObject")
+  if (!missing(color)) color(o, redraw=FALSE) <- color
   invisible(o)
 }
 
@@ -42,15 +48,38 @@ add.iPlot.primitive <- function(x, what, ...) {
   redraw(x) # just to make sure for now
 }
 
+add.iPlot.pairlist <- function(x, what, ...) {
+  .Call("A_PlotAddPrimitives", x, what)
+  redraw(x) # just to make sure for now
+}
+
+add.primitive.primitive <- function(x, what, ...)
+  CONS(x, CONS(what))
+
+add.pairlist.primitive <- function(x, what, ...)
+  CONS(what, x)
+
 delete.iPlot.primitive <- function(x, what, ...) {
   .Call("A_PlotRemovePrimitive", x, what)
   redraw(x) # just to make sure for now
 }
 
+delete.iPlot.pairlist <- function(x, what, ...) {
+  .Call("A_PlotRemovePrimitives", x, what)
+  redraw(x) # just to make sure for now
+}
+
+delete.primitive.primitive <- function(x, what, ...)
+  CONS(x, CONS(what))
+
+delete.pairlist.primitive <- function(x, what, ...)
+  CONS(what, x)
+
 delete.iPlot.character <- function(x, what, ...) {
-  if (all(what == "all"))
-    .Call("A_PlotRemoveAllPrimitives")
-  else stop("invalid argument")
+  if (all(what == "all")) {
+    .Call("A_PlotRemoveAllPrimitives", x)
+    redraw(x)
+  } else stop("invalid argument")
 }
 
 
@@ -80,18 +109,26 @@ fill.primitive <- function(x, ...) {
   rgb(v[1], v[2], v[3], v[4])
 }
 
+hidden.primitive <- function(x, ...)
+  .Call("A_VPGetHidden", x)
+
+`hidden<-.primitive` <- function(x, value, ...)
+  .Call("A_VPSetHidden", x, as.logical(value))
+
 `$.primitive` <- function(x, name) {
   if (name == "plot") return(.po(.Call("A_VPPlot", x)))
-  if (name == "color") return(color(x))
+  if (name == "color" || name == "col") return(color(x))
   if (name == "fill") return(fill(x))
-  if (name == "callback") return (.Call("A_VPGetCallback", x))
+  if (name == "hidden") return(hidden(x))
+  if (name == "callback" || name == "onChange") return (.Call("A_VPGetCallback", x))
   NULL
 }
 
 `$<-.primitive` <- function(x, name, value) {
-  if (name == "color") color(x) <- value else
+  if (name == "color" || name == "col") color(x) <- value else
   if (name == "fill") fill(x) <- value else
-  if (name == "callback") .Call("A_VPSetCallback", x, value) else
+  if (name == "hidden") hidden(x) <- value else
+  if (name == "callback" || name == "onChange") .Call("A_VPSetCallback", x, value) else
   stop("no writable property", name)
   x
 }
@@ -102,18 +139,24 @@ iabline.lm <- function(a, ...) {
   iabline(mc[1], mc[2], ...)
 }
 
-iabline.default <- function(a, b, ...) {
-  
+iabline.default <- function(a, b, ..., plot=.Last.plot) {
+  x <- plot$xlim
+  y <- x * b + a
+  l <- iLine(x, y, ...)
+  add(plot, l)
+  invisible(l)
 }
 
-ilines.default <- function(x, y, col, plot, ...) {
+ilines.default <- function(x, y, col, ..., plot=.Last.plot) {
   p <- iPolygon(x, y)
   if (!missing(col)) p$color <- col
-  if (missing(plot) && exists(".Last.plot")) plot <- .Last.plot
   add(plot, p)
-  p
+  invisible(p)
 }
 
+# we need to map Ops to other functions, because Ops dispatch attempts to enforce type equality which is stupid (more precisely it doesn't displatch if it finds a function for each type even though it should have ignored the second argument)
+`+.iObject` <- function(e1, e2) add(e1, e2)
+`-.iObject` <- function(e1, e2) delete(e1, e2)
 
 replacePoints <- function(p, x, y)
   .Call("A_PolygonSetPoints", p, as.double(x), as.double(y))

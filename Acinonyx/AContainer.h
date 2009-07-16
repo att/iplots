@@ -38,6 +38,11 @@ public:
 		// FIXME: assert(n!=0)
 		obj.retain();
 		n->o = &obj;
+		if (_window) {
+			obj.setWindow(_window);
+			_window->setRedrawLayer(LAYER_ROOT); // the window has to redraw form scratch
+		}
+		
 		n->next = 0;
 		if (chRoot)
 			chTail = chTail->next = n;
@@ -95,8 +100,10 @@ public:
 	virtual void draw(vsize_t layer) {
 		chList_t *c = chRoot;
 		while (c) {
-			if (!c->o->isHidden())
+			if (!c->o->isHidden()) {
+				// clip(c->o->frame()); // bad things happen if you do that ... (e.g. axes don't like to be clipped)
 				c->o->draw(layer);
+			}
 			c = c->next;
 		}
 	}
@@ -143,53 +150,59 @@ public:
 		
 		setFrame(frame);
 		
-		// FIXME: resize children
-		chList_t *c = chRoot;
-		while (c) {
-			unsigned int cf = c->o->flags();
-			ARect cr = c->o->frame();
-			ARect pr = cr;
-			ALog("child frame %s: (%f, %f) (%f x %f) flags: %04x", c->o->describe(), cr.x, cr.y, cr.width, cr.height, cf);
-			if (cf & AVF_FIX_LEFT)
-				cr.x += movX;
-			else if (cf & AVF_FIX_WIDTH) {
-				if (cf & AVF_FIX_RIGHT)
-					cr.x += movX + deltaW; // full share in the left part
-				else
-					cr.x += movX + deltaW / 2; // only half the share of the width change
-			} else
-				cr.x = movX + cr.x / previousFrame.width * frame.width;
-			if (cf & AVF_FIX_TOP)
-				cr.y += movY + deltaH;
-			else if (cf & AVF_FIX_HEIGHT) {
-				if (cf & AVF_FIX_BOTTOM)
-					cr.y += movY;
-				else
-					cr.y += movY + deltaH / 2;
-			} else
-				cr.y = movY + cr.y / previousFrame.height * frame.height;
-			ALog("  step 1: %f, %f (from %f, %f)", cr.x, cr.y, pr.x, pr.y);
-			if ((cf & AVF_FIX_WIDTH) == 0) { // change width only if it's not fixed
-				if (cf & AVF_FIX_RIGHT)
-					cr.width += deltaW - ( cr.x - pr.x - movX ); // it's delta minus the part taken by previous x adjustment (disregarding movX)
-				else if (cf & AVF_FIX_LEFT)
-					cr.width *= frame.width / previousFrame.width;
-				else
-					cr.width = (cr.x + cr.width) * frame.width / previousFrame.width - cr.x;
-			}
-			if ((cf & AVF_FIX_HEIGHT) == 0) { // change height only if it's not fixed
-				if (cf & AVF_FIX_BOTTOM)
+		// do the resizing part only if the size really changed
+		if (previousFrame.width != frame.width || previousFrame.height != frame.height) {
+			chList_t *c = chRoot;
+			while (c) {
+				unsigned int cf = c->o->flags();
+				ARect cr = c->o->frame();
+				ARect pr = cr;
+				ALog("child frame %s: (%f, %f) (%f x %f) flags: %04x", c->o->describe(), cr.x, cr.y, cr.width, cr.height, cf);
+				if (cf & AVF_FIX_LEFT)
+					cr.x += movX;
+				else if (cf & AVF_FIX_WIDTH) {
+					if (cf & AVF_FIX_RIGHT)
+						cr.x += movX + deltaW; // full share in the left part
+					else
+						cr.x += movX + deltaW / 2; // only half the share of the width change
+				} else
+					cr.x = movX + cr.x / previousFrame.width * frame.width;
+				if (cf & AVF_FIX_TOP)
+					cr.y += movY + deltaH;
+				else if (cf & AVF_FIX_HEIGHT) {
+					if (cf & AVF_FIX_BOTTOM)
+						cr.y += movY;
+					else
+						cr.y += movY + deltaH / 2;
+				} else
+					cr.y = movY + cr.y / previousFrame.height * frame.height;
+				ALog("  step 1: %f, %f (from %f, %f)", cr.x, cr.y, pr.x, pr.y);
+				if ((cf & AVF_FIX_WIDTH) == 0) { // change width only if it's not fixed
+					if (cf & AVF_FIX_RIGHT)
+						cr.width += deltaW - ( cr.x - pr.x - movX ); // it's delta minus the part taken by previous x adjustment (disregarding movX)
+					else if (cf & AVF_FIX_LEFT)
+						cr.width *= frame.width / previousFrame.width;
+					else
+						cr.width = (cr.x + cr.width) * frame.width / previousFrame.width - cr.x;
+				}
+				if ((cf & AVF_FIX_HEIGHT) == 0) { // change height only if it's not fixed
+					if (cf & AVF_FIX_BOTTOM)
 					cr.height += deltaH - ( cr.y - pr.y - movY );
-				else if (cf & AVF_FIX_TOP)
-					cr.height *= frame.height / previousFrame.height;
-				else
-					cr.height = (cr.y + cr.height) * frame.height / previousFrame.height - cr.y;
-			}
-			ALog("  step 2: %f x %f (from %f x %f)", cr.width, cr.height, pr.width, pr.height);
-			if (!ARectsAreEqual(cr, pr))
-				c->o->moveAndResize(cr);
-			c = c->next;
-		}		
+					else if (cf & AVF_FIX_TOP)
+						cr.height *= frame.height / previousFrame.height;
+					else
+						cr.height = (cr.y + cr.height) * frame.height / previousFrame.height - cr.y;
+				}
+				ALog("  step 2: %f x %f (from %f x %f)", cr.width, cr.height, pr.width, pr.height);
+				if (!ARectsAreEqual(cr, pr))
+					c->o->moveAndResize(cr);
+				c = c->next;
+			}		
+		}
+	}
+	
+	virtual const char *caption() {
+		return "Container";
 	}
 };
 

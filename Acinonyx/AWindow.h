@@ -79,6 +79,7 @@ public:
 	}
 	
 	bool freezeLayer(vsize_t layer) {
+		glDisable(GL_SCISSOR_TEST);
 		if (layer >= _max_layers) return false;
 		GLC(glBindTexture(A_TEXTURE_TYPE, _layer[layer]));
 		ALog(" -> freeze layer %d (texture %d)", layer, _layer[layer]);
@@ -98,7 +99,7 @@ public:
 		ALog("%s: creating POTS texture %d x %d", describe(), width, height);
 #endif
 
-		GLC(glCopyTexImage2D(A_TEXTURE_TYPE, 0, GL_RGB, 0, 0, width, height, 0));
+		GLC(glCopyTexImage2D(A_TEXTURE_TYPE, 0, GL_RGBA, 0, 0, width, height, 0));
 		
 #ifdef DEBUG
 		unsigned char *foo = (unsigned char*) malloc(width * height * 4);
@@ -121,6 +122,7 @@ public:
 		if (_layers == 0) return false;
 		if (layer >= _layers) layer = _layers - 1; // recall the topmost layer if layer is too high
 		ALog(" <- recall layer %d (texture %d)", layer, _layer[layer]);
+		glDisable(GL_SCISSOR_TEST);
 		
 		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 		glDisable(GL_BLEND); // make sure all gets replaced, no blending
@@ -141,14 +143,21 @@ public:
 #endif
 		
 #if A_EXACT_TEXTURE
+#define TOX - 0.5
+#ifdef PFA
+#define TOY + 0.5
+#else
+#define TOY - 0.5
+#endif
 		glTexCoord2i(0, 0);
-		glVertex3f(-0.5, -0.5, 0);
+		glVertex3f(TOX, TOY, 0);
 		glTexCoord2i(0, height);
-		glVertex3f(-0.5, height - 0.5, 0);
+		glVertex3f(TOX, height TOY, 0);
 		glTexCoord2i(width, height);
-		glVertex3f(width - 0.5, height - 0.5, 0);
+		glVertex3f(width TOX, height TOY, 0);
 		glTexCoord2i(width, 0);
-		glVertex3f(width - 0.5, -0.5, 0);
+		glVertex3f(width TOX, TOY, 0);
+#undef TO
 #else
 		glTexCoord2d(0.0, 0.0);
 		glVertex3f(-0.5, -0.5, 0);
@@ -166,19 +175,26 @@ public:
 		return true;
 	}
 	
-	// Note that redraw layer specifies the bottom-most layer to be redrawn, i.e. 0 means that everything needs to be cleared, 1 means that layer 0 can be restored etc.
+	/** specifies the bottom-most layer that needs to be re-drawn in response to the next redraw event. (I.e., 0 means that everything needs to be cleared, 1 means that layer 0 can be restored etc.). Note that between redraws the redraw layer is never increased, so specifying a higher value than the current redraw layer does not change the redraw layer.
+	    @param layer that needs to be re-drawn on next redraw event
+	 */
 	void setRedrawLayer(vsize_t layer) {
 		ALog("%s: setRedrawLayer(%d)", describe(), layer);
 		if (_redraw_layer > layer)
 			_redraw_layer = layer;
 	}
 	
+	/** set the color of subsequent text drawing operations
+	    @param col color */
 	void setTextColor(AColor col) {
 		text_color = col;
 	}
 	
+	/** get the color currently used by text drawing operations
+	    @return current text color */
 	AColor textColor() { return text_color; }
 	
+	/** this method is called to setup the OpenGL environemnt on a redraw. */
 	void begin() {
 		profStart()
 		if (_layers == 0) {
@@ -195,11 +211,28 @@ public:
 			glClear(GL_COLOR_BUFFER_BIT);
 
 #ifndef WIN32
-		glEnable(GL_MULTISAMPLE);
+		// glEnable(GL_MULTISAMPLE);
 #endif
 		glEnable(GL_BLEND);
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_POINT_SMOOTH);
+		glEnable(GL_POLYGON_SMOOTH);
+		glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+		glHint (GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
+		glHint (GL_POINT_SMOOTH_HINT, GL_DONT_CARE);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
+
+#if 0
+		// paint the background (for alpha's sake clean buffer is not sufficient)
+		glColor4f(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0);
+		glEnable(GL_QUADS);
+		glVertex3f(-1.0, -1.0, 0.0);
+		glVertex3f(-1.0, 1.0, 0.0);
+		glVertex3f(1.0, 1.0, 0.0);
+		glVertex3f(1.0, -1.0, 0.0);
+		glEnd();
+#endif
+				
 		glPushMatrix();
 		// change coordinates to graphics coords
 		glTranslatef(-1, -1, 0);
@@ -214,8 +247,10 @@ public:
 		_prof(profReport("$window.begin"))
 	}
 
+	/** this method is called to draw in the currently prepared OpenGL scene. It essentially dispatches drawing to different layers by calling the draw method of the root visual for each layer necessary. */
 	void draw();
 	
+	/** this method is called after the drawing in the current context of the window has been finished. */
 	void end() {
 		_prof(profReport("^window.end"))
 		glPopMatrix();
@@ -223,14 +258,24 @@ public:
 		_prof(profReport("$window.end"))
 	}
 	
+	/** returns the current redraw layer.
+	    @return redraw layer */
 	vsize_t redrawLayer() { return _redraw_layer; }
 
+	/** returns the current root visual.
+	    @return root visual object on NULL if there is none */
 	AObject *rootVisual() { return _rootVisual; }
 	
+	/** returns the current window frame describing the position and size of the window (without decorations).
+	    @return a rectangle describing the drawing plane in screen coordinates */
 	ARect frame() { return _frame; }
 
+	/** this method sets the desired frame and resizes all children without triggering any window-system events. Use moveAndResize() instead to trigger an acutal move and/or resize of the visible window.
+	    @param frame new location of the window and size of the root plane */
 	void setFrame(ARect frame);
 	
+	/** replaces the current root visual object with another one. Each window contains exactly one root visual object which spans the entire drawing plane of the window. In the root visual object is set to NULL only the window background is painted. This method does NOT perform a redraw or call setWindow!
+	    @param rv new root visual or NULL to just remove the current one. The visual is retained by the window while in use. */
 	void setRootVisual(AObject *rv) {
 		if (_rootVisual) _rootVisual->release();
 		_rootVisual = rv;
@@ -255,6 +300,7 @@ public:
 		return false;
 	}
 	
+	/** inform the window subsystem that the window needs to be redrawn. The actual redrawing is asynchronous, i.e. several redraw events can be combined before the actual redraw occurs. This method needs to be implemented by every subclass to trigger a redraw, it is a no-op in the AWindow class. */
 	virtual void redraw() {};
 	
 	/* the following are rendering methods that are off-loaded to the window implementation since they are not part of OpenGL */
@@ -262,6 +308,8 @@ public:
 	virtual void glfont(const char *name, AFloat size) {}
 	virtual ASize glbbox(const char *txt) { return AMkSize(strlen(txt) * 5.6, 10.0); } // jsut a very crude fallback
 	
+	/** specify a dirty flag - a location in memory that can be used to trigger redraws asynchronously. This flag is checked continuously by the heartbeat thread of the window and a value of 1 will trigger a redraw.
+	 @param newDF new dirty flag location - must either point to a location capable of holding an int or be NULL (to disable the dirty flag). Note that the caller is responsible for making sure that the memory location is accessible for the entire lifetime of the window (or until replaced). */
 	void setDirtyFlag(int *newDF) { dirtyFlag = newDF; };
 	void setDirtyFlagLayer(vsize_t layer) { dirtyFlagLayer = layer; }
 	bool isDirty() { return (dirtyFlag && dirtyFlag[0] != 0); }
@@ -271,6 +319,8 @@ public:
 	virtual bool canClose() { return true; }
 	virtual void close() {};
 
+	virtual void moveAndResize(ARect frame) { setFrame(frame); }
+	
 	virtual void setVisible(bool flag) {};
 	virtual bool visible() { return false; }
 };

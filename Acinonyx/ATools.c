@@ -7,6 +7,9 @@
  *
  */
 
+#include <stdio.h> /* for vsnprintf for value_printf() */
+#include <stdarg.h>
+
 #include "ATools.h"
 
 // common color scheme
@@ -37,8 +40,6 @@ const char *value_printf(const char *fmt, ...) {
 	va_end(v);
 	return (const char*) value_buf;
 }
-
-#include <stdio.h>
 
 #ifdef DEBUG
 void ALog(const char *fmt, ...) {

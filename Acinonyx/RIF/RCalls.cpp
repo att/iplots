@@ -24,6 +24,8 @@ extern "C" {
 	SEXP A_ReleaseObject(SEXP o);
 	SEXP A_Describe(SEXP o);
 
+	SEXP A_CONS(SEXP head, SEXP tail);
+	
 	SEXP A_MarkerCreate(SEXP len);
 	SEXP A_MarkerAdd(SEXP m, SEXP o);
 	SEXP A_MarkerSelected(SEXP m);
@@ -31,7 +33,11 @@ extern "C" {
 	SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun);
 
 	SEXP A_WindowCreate(SEXP w, SEXP pos);
-
+	SEXP A_WindowMoveAndResize(SEXP w, SEXP pos, SEXP size);
+	
+	SEXP A_ContainerCreate(SEXP sParent /* can be NULL */, SEXP sRect, SEXP sFlags);
+	SEXP A_ContainerAdd(SEXP sCont, SEXP sVis);
+	
 	SEXP A_VarMark(SEXP v);
 	SEXP A_VarRegister(SEXP v, SEXP mark, SEXP sName);
 	SEXP A_VarName(SEXP v);
@@ -52,26 +58,34 @@ extern "C" {
 	SEXP A_VPPlot(SEXP vp);
 	SEXP A_VPSetCallback(SEXP vp, SEXP cb);
 	SEXP A_VPGetCallback(SEXP vp);
+	SEXP A_VPSetHidden(SEXP vp, SEXP hf);
+	SEXP A_VPGetHidden(SEXP vp);
 
 	SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp);
 
+	SEXP A_VisualSetFrame(SEXP sPlot, SEXP sFrame);
+	SEXP A_VisualGetFrame(SEXP sPlot);
+	
 	SEXP A_PlotPrimitives(SEXP sPlot);
 	SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim);
+	SEXP A_PlotAddPrimitives(SEXP sPlot, SEXP sPrim);
 	SEXP A_PlotRemovePrimitive(SEXP sPlot, SEXP sPrim);
+	SEXP A_PlotRemovePrimitives(SEXP sPlot, SEXP sPrim);
 	SEXP A_PlotRemoveAllPrimitives(SEXP sPlot);
 	SEXP A_PlotScale(SEXP sPlot, SEXP sSNR);
 	SEXP A_PlotScales(SEXP sPlot);
-	SEXP A_PlotRedraw(SEXP sPlot);
+	SEXP A_PlotCaption(SEXP sPlot);
+	SEXP A_PlotRedraw(SEXP sPlot, SEXP sRoot);
 	SEXP A_PlotValue(SEXP sPlot);
 	SEXP A_PlotSetValue(SEXP sPlot, SEXP sValue);
 	SEXP A_PlotDoubleProperty(SEXP sPlot, SEXP pName);
 	SEXP A_PlotSetDoubleProperty(SEXP sPlot, SEXP pName, SEXP sValue);
 	SEXP A_PlotPrimaryMarker(SEXP sPlot);
 	
-	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect);
-	SEXP A_BarPlot(SEXP x, SEXP rect);
-	SEXP A_HistPlot(SEXP x, SEXP rect);
-	SEXP A_PCPPlot(SEXP vl, SEXP rect);
+	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect, SEXP flags);
+	SEXP A_BarPlot(SEXP x, SEXP rect, SEXP flags);
+	SEXP A_HistPlot(SEXP x, SEXP rect, SEXP flags);
+	SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags);
 }
 
 
@@ -159,6 +173,14 @@ void call_with_object(SEXP fun, AObject *o, const char *clazz) {
 	PROTECT(sCall);
 	Rf_applyClosure(sCall, fun, CDR(sCall), R_GlobalEnv, R_BaseEnv);
 	UNPROTECT(2);
+}
+
+/** A_CONS is simply CONS - strangely enough R has completely hidden this useful feature at the R level AFAICT
+ *  @param head the CAR part of the entry
+ *  @param tail the CDR part of the entry (must be a pairlist or NULL)
+ *  @return pairlist with head prepended */
+SEXP A_CONS(SEXP head, SEXP tail) {
+	return CONS(head, tail);
 }
 
 #undef cons
@@ -280,6 +302,62 @@ SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun)
 	return sM;
 }
 
+static int visual_flags(SEXP sFlags) {
+	int flags = 0;
+	if (TYPEOF(sFlags) == INTSXP) {
+		vsize_t n = LENGTH(sFlags);
+		int *fi = INTEGER(sFlags);
+		for (vsize_t i = 0; i < n; i++)
+			flags |= fi[i];
+	} else if (sFlags != R_NilValue)
+		Rf_error("invalid flags");
+	return flags;
+}
+
+static ARect visual_frame(SEXP sFrame) {
+	if (TYPEOF(sFrame) != REALSXP || LENGTH(sFrame) != 4)
+		Rf_error("invalid frame size specification");
+	double *d = REAL(sFrame);
+	return AMkRect(d[0], d[1], d[2], d[3]);
+}
+
+SEXP A_ContainerCreate(SEXP sParent /* can be NULL */, SEXP sRect, SEXP sFlags)
+{
+	AContainer *co = (AContainer*) ((sParent == R_NilValue) ? NULL : SEXP2A(sParent));
+	AContainer *nc = new AContainer(co, visual_frame(sRect),  visual_flags(sFlags));
+	if (!nc) Rf_error("failed to create a container");
+	if (co) co->add(*nc);
+	return A2SEXP(nc);
+}
+
+SEXP A_ContainerAdd(SEXP sCont, SEXP sVis) {
+	AContainer *co = (AContainer*) SEXP2A(sCont);
+	AVisual *vi = (AVisual*) SEXP2A(sVis);
+	if (co && vi)
+		co->add(*vi);
+	return sCont;
+}
+
+/*------------- AVisual ------------*/
+
+SEXP A_VisualSetFrame(SEXP sPlot, SEXP sFrame)
+{
+	AVisual *pl = (AVisual*) SEXP2A(sPlot);
+	if (pl) pl->setFrame(visual_frame(sFrame));
+	return sPlot;
+}
+
+SEXP A_VisualGetFrame(SEXP sPlot)
+{
+	AVisual *pl = (AVisual*) SEXP2A(sPlot);
+	if (!pl) Rf_error("invalid visual object (NULL)");
+	ARect r = pl->frame();
+	SEXP res = Rf_allocVector(REALSXP, 4);
+	double *d = REAL(res);
+	d[0] = r.x; d[1] = r.y; d[2] = r.width; d[3] = r.height;
+	return res;
+}
+
 
 /*------------- APlot --------------*/
 
@@ -290,11 +368,53 @@ SEXP A_PlotAddPrimitive(SEXP sPlot, SEXP sPrim) {
 	return sPlot;
 }
 
+SEXP A_PlotAddPrimitives(SEXP sPlot, SEXP sPrim) {
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (!pl) return sPlot;
+	if (TYPEOF(sPrim) == LISTSXP) {
+		while (sPrim != R_NilValue) {
+			AVisualPrimitive *vp = (AVisualPrimitive*) SEXP2A(CAR(sPrim));
+			if (vp)
+				pl->addPrimitive(vp);
+			sPrim = CDR(sPrim);
+		}
+	} else if (TYPEOF(sPrim) == VECSXP) {
+		vsize_t i = 0, n = LENGTH(sPrim);
+		for (; i < n; i++) {
+			AVisualPrimitive *vp = (AVisualPrimitive*) SEXP2A(VECTOR_ELT(sPrim, i));
+			if (vp)
+				pl->addPrimitive(vp);
+		}
+	} else Rf_error("invalid primitive object");
+	return sPlot;
+}
+
 SEXP A_PlotRemovePrimitive(SEXP sPlot, SEXP sPrim)
 {
 	APlot *pl = (APlot*) SEXP2A(sPlot);
 	AVisualPrimitive *vp = (AVisualPrimitive*) SEXP2A(sPrim);
 	if (pl && vp) pl->removePrimitive(vp);
+	return sPlot;
+}
+
+SEXP A_PlotRemovePrimitives(SEXP sPlot, SEXP sPrim) {
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (!pl) return sPlot;
+	if (TYPEOF(sPrim) == LISTSXP) {
+		while (sPrim != R_NilValue) {
+			AVisualPrimitive *vp = (AVisualPrimitive*) SEXP2A(CAR(sPrim));
+			if (vp)
+				pl->removePrimitive(vp);
+			sPrim = CDR(sPrim);
+		}
+	} else if (TYPEOF(sPrim) == VECSXP) {
+		vsize_t i = 0, n = LENGTH(sPrim);
+		for (; i < n; i++) {
+			AVisualPrimitive *vp = (AVisualPrimitive*) SEXP2A(VECTOR_ELT(sPrim, i));
+			if (vp)
+				pl->removePrimitive(vp);
+		}
+	} else Rf_error("invalid primitive object");
 	return sPlot;
 }
 
@@ -321,11 +441,23 @@ SEXP A_PlotScales(SEXP sPlot)
 	return Rf_ScalarInteger(pl ? pl->scales() : 0);
 }
 
-SEXP A_PlotRedraw(SEXP sPlot)
+SEXP A_PlotCaption(SEXP sPlot)
 {
 	APlot *pl = (APlot*) SEXP2A(sPlot);
-	if (pl) pl->redraw();
-	return R_NilValue;
+	if (!pl) return Rf_mkString("<NULL>");
+	const char *cap = pl->caption();
+	return cap ? Rf_mkString(cap) : A_Describe(sPlot);
+}
+
+SEXP A_PlotRedraw(SEXP sPlot, SEXP sRoot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (pl) {
+		if (sRoot && TYPEOF(sRoot) == LGLSXP && LENGTH(sRoot) > 0 && LOGICAL(sRoot)[0])
+			pl->setRedrawLayer(LAYER_ROOT);
+		pl->redraw();
+	}
+	return sPlot;
 }
 
 SEXP A_PlotPrimitives(SEXP sPlot)
@@ -499,7 +631,10 @@ SEXP A_VPPlot(SEXP vp)
 
 SEXP A_VPRedraw(SEXP vp) {
 	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
-	if (p && p->plot()) p->plot()->redraw();
+	if (p && p->plot()) { // FIXME: we do this due to issues with layers ...!
+		p->plot()->setRedrawLayer(LAYER_ROOT);
+		p->plot()->redraw();
+	}
 	return vp;
 }
 
@@ -516,6 +651,22 @@ SEXP A_VPGetCallback(SEXP vp)
 	ARCallbackPrimitive *p = (ARCallbackPrimitive*) SEXP2A(vp);
 	if (!p) Rf_error("invalid object (NULL)");
 	return p->value();
+}
+
+SEXP A_VPSetHidden(SEXP vp, SEXP hf)
+{
+	if (LENGTH(hf) < 1 && TYPEOF(hf) != LGLSXP)
+		Rf_error("invalid value for hidden flag");
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (p) p->setHidden(LOGICAL(hf)[0]);
+	return vp;
+}
+
+SEXP A_VPGetHidden(SEXP vp)
+{
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid visual primitive object (NULL)");
+	return Rf_ScalarLogical(p->hidden());
 }
 
 SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp)
@@ -564,43 +715,60 @@ SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 }
 #endif
 
+SEXP A_WindowMoveAndResize(SEXP w, SEXP pos, SEXP size)
+{
+	AWindow *win = (AWindow*) SEXP2A(w);
+	if (win) {
+		ARect frame = win->frame();
+		if (pos != R_NilValue) {
+			if (TYPEOF(pos) != REALSXP || LENGTH(pos) != 2)
+				Rf_error("invalid position specification");
+			frame.x = REAL(pos)[0];
+			frame.y = REAL(pos)[1];
+		}
+		if (size != R_NilValue) {
+			if (TYPEOF(size) != REALSXP || LENGTH(size) != 2)
+				Rf_error("invalid size specification");
+			frame.width = REAL(size)[0];
+			frame.height = REAL(size)[1];
+		}
+		win->moveAndResize(frame);
+	}
+	return w;
+}
 
 /*------------- plot implementations --------------*/
 
-SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect)
+SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect, SEXP flags)
 {
 	ADataVector *xv = (ADataVector*) SEXP2A(x);
 	ADataVector *yv = (ADataVector*) SEXP2A(y);
-	double *rv = REAL(rect);
-	AScatterPlot *sp = new AScatterPlot(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, xv, yv);
+	AScatterPlot *sp = new AScatterPlot(NULL, visual_frame(rect), visual_flags(flags), xv, yv);
 	return A2SEXP(sp);
 }
 
-SEXP A_BarPlot(SEXP x, SEXP rect)
+SEXP A_BarPlot(SEXP x, SEXP rect, SEXP flags)
 {
 	ADataVector *xv = (ADataVector*) SEXP2A(x);
 	if (!xv->isFactor()) Rf_error("x must be a factor");
-	double *rv = REAL(rect);
-	ABarChart *sp = new ABarChart(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, (AFactorVector*) xv);
+	ABarChart *sp = new ABarChart(NULL, visual_frame(rect), visual_flags(flags), (AFactorVector*) xv);
 	return A2SEXP(sp);
 }
 
-SEXP A_HistPlot(SEXP x, SEXP rect)
+SEXP A_HistPlot(SEXP x, SEXP rect, SEXP flags)
 {
 	ADataVector *xv = (ADataVector*) SEXP2A(x);
-	double *rv = REAL(rect);
-	AHistogram *sp = new AHistogram(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, xv);
+	AHistogram *sp = new AHistogram(NULL, visual_frame(rect), visual_flags(flags), xv);
 	return A2SEXP(sp);
 }
 
-SEXP A_PCPPlot(SEXP vl, SEXP rect)
+SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags)
 {
 	vsize_t n = LENGTH(vl);
-	double *rv = REAL(rect);
 	ADataVector **dv = (ADataVector**) malloc(sizeof(ADataVector*) * n);
 	for (vsize_t i = 0; i < n; i++)
 		dv[i] = (ADataVector*) SEXP2A(VECTOR_ELT(vl, i));
-	AParallelCoordPlot *pcp = new AParallelCoordPlot(NULL, AMkRect(rv[0], rv[1], rv[2], rv[3]), 0, n, dv);
+	AParallelCoordPlot *pcp = new AParallelCoordPlot(NULL, visual_frame(rect), visual_flags(flags), n, dv);
 	free(dv);
 	return A2SEXP(pcp);
 }

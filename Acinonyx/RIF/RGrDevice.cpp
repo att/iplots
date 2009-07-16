@@ -71,6 +71,7 @@ public:
 	
 	virtual void draw(vsize_t layer) {
 		if (layer != LAYER_ROOT) return;
+		clip(_frame);
 		if (dss && dss->dev) {
 			pGEDevDesc gdd = desc2GEDesc(dss->dev);
 			dss->redraw = 1;
@@ -79,6 +80,7 @@ public:
 				GEplayDisplayList(gdd);
 			dss->redraw = 0;
 		}
+		clipOff();
 	}
 	
 	virtual void moveAndResize(ARect frame) {
@@ -104,7 +106,7 @@ public:
 	}
 	
 	void new_page() {
-		clipOff();
+		clip(_frame);
 		glClearColor(R_RED(dss->canvas), R_GREEN(dss->canvas), R_BLUE(dss->canvas), 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		if (!dss->redraw) dss->dirty = 1;
@@ -263,7 +265,7 @@ static DeviceSpecific_t* RAcinonyxDevice_Create(pDevDesc dev, double width, doub
 	dev->right = width;
 	dev->bottom= height;
 
-	qd->agd = new ARGraphicsDevice(NULL, qd, AMkRect(100.0, 100.0, width, height), AVF_XSPRING | AVF_YSPRING);
+	qd->agd = new ARGraphicsDevice(NULL, qd, AMkRect(0.0, 0.0, width, height), (flags == 0) ? (AVF_XSPRING | AVF_YSPRING) : flags);
 	if (qd->agd) {
 		qd->agd->setDirtyFlag(&(qd->dirty));
 		qd->agd->setDirtyFlagLayer(LAYER_ROOT);

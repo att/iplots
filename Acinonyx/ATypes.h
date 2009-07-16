@@ -24,21 +24,22 @@ extern "C" {
 	
 	/* basic types */
 
-	typedef double AFloat;
+	typedef double AFloat; /**< basic floating point type used throughout Acinonyx for graphics purposes */
 	
-	typedef unsigned int vsize_t;
+	typedef unsigned int vsize_t; /**< basic unsigned type for iterations and sized in Acinonyx */
 	
-	typedef unsigned int notifid_t;
+	typedef unsigned int notifid_t; /**< notification ID type */ 
 
-	typedef struct ARect_s { AFloat x,y,width,height; } ARect;
-	typedef struct APoint_s { AFloat x,y; } APoint;
-	typedef struct ASize_s { AFloat width, height; } ASize;
+	typedef struct ARect_s { AFloat x,y,width,height; } ARect; /**< structure representing a rectangular region by progin and size */
+	typedef struct APoint_s { AFloat x,y; } APoint; /**< structure describing a point */
+	typedef struct ASize_s { AFloat width, height; } ASize; /**< structure describing size */
 
-	typedef struct ADataRange_s { double begin, length; } ADataRange;
-	typedef struct ARange_s { AFloat begin, length; } ARange;
+	typedef struct ADataRange_s { double begin, length; } ADataRange; /**< structure describing a range of data points */
+	typedef struct ARange_s { AFloat begin, length; } ARange; /**< structure describing a range of graphics points */
 
-	typedef struct AColor_s { AFloat r,g,b,a; } AColor;
+	typedef struct AColor_s { AFloat r,g,b,a; } AColor; /**< structure describing RGBA color */
 	
+	/** strcture describing an event in Acinonyx */
 	typedef struct AEvent_s {
 		int event;
 		int flags;
@@ -95,11 +96,11 @@ extern "C" {
 #define AE_KEY_TYPED    0x0203
 
 #define KEY_LEFT  123
-#define KEY_RIGHT 124	
+#define KEY_RIGHT 124
 #define KEY_DOWN  125
 #define KEY_UP    126
 	
-// This macro is used after memory allocation to check for out of memory issues
+/** This macro is used after memory allocation to check for out of memory issues */
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
 	
 extern double NA_double;
@@ -116,6 +117,7 @@ extern float NA_float;
 	
 	int R_IsNA(double x);
 
+/* AinNA should be used to check for the presence of NA in the data */
 #define AisNA(X) R_IsNA(X)
 	
 #ifdef __cplusplus

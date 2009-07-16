@@ -221,8 +221,8 @@ public:
 		switch (e.key) {
 			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
 			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); redraw(); break;
-			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
-			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); redraw(); } break;
+			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.01; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
+			case KEY_RIGHT: if (ptAlpha < 0.99) { if (ptAlpha < 0.02) ptAlpha = 0.02; else ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); redraw(); } break;
 			default:
 				return false;
 		}
