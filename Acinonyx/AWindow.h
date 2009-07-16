@@ -144,7 +144,7 @@ public:
 		
 #if A_EXACT_TEXTURE
 #define TOX - 0.5
-#ifdef PFA
+#ifdef PFA_SHIFT_Y
 #define TOY + 0.5
 #else
 #define TOY - 0.5
