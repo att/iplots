@@ -11,9 +11,15 @@ OBJ = $(ASRC:%.cpp=%.o) $(CSRC:%.c=%.o) $(MMSRC:%.mm=%.o) $(MSRC:%.m=%.o) $(WINS
 
 FOBJ=AContainer.o AObject.o ATools.o CocoaApp.o CocoaView.o CocoaWindow.o RCalls.o REngine.o GLString.o AWin32Window.o
 
+OS=$(shell uname)
 
+ifeq ($(OS),Darwin)
 Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
 	PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -ICocoa' R CMD SHLIB -o $@ $^
+else
+Acinonyx.so: $(ASRC) $(CSRC) $(GLUTSRC)
+	PKG_LIBS='-lglut -lGLU -lGL' PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -IGLUT -DGLUT' R CMD SHLIB -o $@ $^
+endif
 
 glut.so: $(ASRC) $(CSRC) $(GLUTSRC)
 	PKG_LIBS='-framework GLUT -framework OpenGL' PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -IGLUT -DGLUT' R CMD SHLIB -o $@ $^

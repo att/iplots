@@ -27,9 +27,9 @@ static void a_glut_init() {
 static void a_glut_draw() {
 	int w = glutGetWindow();
 	if (w >=0 && w < gwin_max && gwin[w]) {
-		w->begin();
-		w->draw();
-		w->end();
+		gwin[w]->begin();
+		gwin[w]->draw();
+		gwin[w]->end();
 	}
 }
 

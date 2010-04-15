@@ -34,8 +34,8 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h> /* for polygon tessellation */
 #else
-#include <gl/gl.h>
-#include <gl/glu.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #endif
 #include "AWindow.h"
 #include <math.h>

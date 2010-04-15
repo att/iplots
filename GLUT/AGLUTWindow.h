@@ -7,13 +7,13 @@
  *
  */
 
-#include "AWindow.h"
-
-#ifdef __APPLE__
+#if __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
+
+#include "AWindow.h"
 
 class AGLUTWindow : public AWindow {
 protected:
