@@ -1,59 +1,36 @@
 \name{ilines}
 \alias{ilines}
-%- Also NEED an '\alias' for EACH other topic documented here.
+\alias{ilines.default}
 \title{
-%%  ~~function to do ... ~~
+Add lines to an interactive plot
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+\code{ilines} method adds lines objects to an interactive plot
 }
 \usage{
 ilines(x, ...)
+ilines.default(x, y, col, ..., plot = .Last.plot)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{x}{
-%%     ~~Describe \code{x} here~~
-}
-  \item{\dots}{
-%%     ~~Describe \code{\dots} here~~
-}
+  \item{x}{specification of the lines (generic) or numeric vector of the
+    x coordinates (default method)}
+  \item{y}{numeric vector of the y coordinates}
+  \item{col}{color of the line}
+  \item{\dots}{further optional arguments}
+  \item{plot}{plot to add the lines to}
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+  \code{ilines} is a shorthand for creating \code{iPolygon} object a and
+  adding it to the plot.
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
-}
-\references{
-%% ~put references to the literature/web site here ~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
+  object of the class \code{iPolygon} which has been added to the
+  plot. The object can be used to subsequently modify the lines and
+  their attributes.
+}  
+%\seealso{
 %% ~~objects to See Also as \code{\link{help}}, ~~~
-}
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (x, ...) 
-UseMethod("ilines")
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+%}
+%\examples{
+%}
+\keyword{iplot}
