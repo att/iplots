@@ -60,7 +60,7 @@ void ACocoa_Init() {
 	ADataVector *vx = new ARDoubleVector(mark, o);
 	vx->setName("x");
 	o->release();
-	o = eng->parseAndEval("y<-rnorm(n)+1");
+	o = eng->parseAndEval("y<-rnorm(n)*2+1");
 	ADataVector *vy = new ARDoubleVector(mark, o);
 	vy->setName("y");
 	o->release();

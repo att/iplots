@@ -102,17 +102,18 @@ public:
 		if (dv && dv->isFactor())
 			tab = ((AFactorVector*)dv)->table();
 		for (vsize_t i = 0;i <= n; i++) {
-			AFloat c = _scale->discreteCenter(i);
+			ARange dr = _scale->discreteRange(i);
+			AFloat c = dr.begin + (dr.length * 0.5);
+			char *txt = 0, buf[32];
 			line(c, _frame.y + _frame.height, c, _frame.y + _frame.height * 0.8);
 			if (tab && tab->name(i))
-				text(AMkPoint(c, _frame.y + _frame.height * 0.4), tab->name(i), centerAdj);
+				txt = tab->name(i);
 			else if (_names > i && _name[i])
-				text(AMkPoint(c, _frame.y + _frame.height * 0.4), _name[i], centerAdj);
-			else {
-				char buf[32];
-				snprintf(buf, 32, "%d", i);
-				text(AMkPoint(c, _frame.y + _frame.height * 0.4), buf, centerAdj);
-			}				
+				txt = _name[i];
+			else
+				snprintf(txt = buf, 32, "%d", i);
+			if (txt && dr.length > 10 && (strlen(txt) < 3 || dr.length > 40))
+				text(AMkPoint(c, _frame.y + _frame.height * 0.4), txt, centerAdj);
 		}
 		/*
 		color(0.0, 0.0, 0.0, 1.0);
