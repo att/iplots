@@ -29,6 +29,8 @@ protected:
 	// - indexing by group (_group = value which will be checked against ids = int[all cases])
 	vsize_t *ids, n; // FIXME: we may want to abstract this out / generalize later ...
 	group_t _group;
+	// group name - used for queries, optional
+	const char *_group_name;
 	AMarker *mark;
 	// cached values - those are updated by update()
 	vsize_t selected, hidden, visible; 
@@ -37,7 +39,7 @@ protected:
 	bool release_ids;
 
 public:
-	AStatVisual(APlot *plot, AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true, bool releaseIDs=true) : AVisualPrimitive(plot), mark(m), n(len), _group(group), flags(0) {
+	AStatVisual(APlot *plot, AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true, bool releaseIDs=true) : AVisualPrimitive(plot), mark(m), n(len), _group(group), _group_name(NULL), flags(0) {
 		if (mark) {
 			mark->retain();
 			mark->add(this);
@@ -59,6 +61,10 @@ public:
 	
 	bool isHidden() { return (flags & ASVF_HIDDEN) ? true : false; }
 	void setHidden(bool h) { flags &= ~ASVF_HIDDEN; if (h) flags |= ASVF_HIDDEN; }
+	
+	void setGroupName(const char *group_name) {
+		_group_name = group_name;
+	}
 	
 	// this method is called upon highlighting change
 	// and it calculates selected, hidden and min/max marks
@@ -141,13 +147,20 @@ public:
 	
 	virtual void query(AQuery *query, int level) {
 		ALog("%s: query, level=%d", describe(), level);
+		vsize_t aux = 0;
+		char *qb = query_buffer;
+		if (_group_name) {
+			strcpy(query_buffer, _group_name);
+			strcat(query_buffer, (strlen(_group_name) < 12) ? ": " : "\n");
+			qb = query_buffer + (aux = strlen(query_buffer));
+		}
 		if (visible) {
 			if (selected)
-				snprintf(query_buffer, sizeof(query_buffer), "%d / %d (%.2f%%)", selected, visible, ((double) selected) / ((double) visible) * 100.0);
+				snprintf(qb, sizeof(query_buffer) - aux, "%d / %d (%.2f%%)", selected, visible, ((double) selected) / ((double) visible) * 100.0);
 			else
-				snprintf(query_buffer, sizeof(query_buffer), "%d cases", visible);
+				snprintf(qb, sizeof(query_buffer) - aux, "%d cases", visible);
 		} else
-			snprintf(query_buffer, sizeof(query_buffer), "no cases are visible");
+			snprintf(query_buffer, sizeof(query_buffer) - aux, "no cases are visible");
 		ALog(" - set %s to '%s'", query->describe(), query_buffer);
 		query->setText(query_buffer);
 	}

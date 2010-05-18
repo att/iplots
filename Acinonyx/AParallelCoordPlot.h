@@ -104,7 +104,14 @@ public:
 		while (i < coords) {
 			ptGrid[i] = 0;
 			vsize_t si = _scales[0]->permutationAt(i);
-			if (si != ANotFound && !commonScale)
+			if (commonScale) { /* FIXME: this is currently a hack -- we need to check whether we could use the real scale sharing instead ... */
+				ARange gr = _scales[1]->range();
+				ADataRange dr = _scales[1]->dataRange();
+				float a = gr.length / dr.length;
+				float b = gr.begin - a * dr.begin;
+				ptGrid[i] = _scales[si + 2]->locations(); /* we use this only to maintain separate memory locations */
+				_data[i]->transformToFloats(ptGrid[i], a, b);
+			} else if (si != ANotFound)
 				ptGrid[i] = _scales[si + 2]->locations();
 			i++;
 		}
@@ -218,11 +225,13 @@ public:
 	}
 	
 	virtual bool keyDown(AEvent e) {
+	  ALog("PCP keyDown: %d\n", e.key);
 		switch (e.key) {
 			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
 			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); redraw(); break;
 			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.01; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
 			case KEY_RIGHT: if (ptAlpha < 0.99) { if (ptAlpha < 0.02) ptAlpha = 0.02; else ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); redraw(); } break;
+		  	case KEY_C: commonScale = !commonScale; setRedrawLayer(LAYER_ROOT); update(); redraw(); break;
 			default:
 				return false;
 		}

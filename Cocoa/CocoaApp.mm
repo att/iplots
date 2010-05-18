@@ -55,12 +55,12 @@ void ACocoa_Init() {
 {
 	ALog("applicationDidFinishLaunching:");
 	REngine *eng = REngine::mainEngine();
-	RObject *o = eng->parseAndEval("{n<-1e6; x<-rnorm(n)}");
+	RObject *o = eng->parseAndEval("{n<-1e5; x<-rnorm(n)}");
 	AMarker *mark = new AMarker(o->length());
 	ADataVector *vx = new ARDoubleVector(mark, o);
 	vx->setName("x");
 	o->release();
-	o = eng->parseAndEval("y<-rnorm(n)");
+	o = eng->parseAndEval("y<-rnorm(n)+1");
 	ADataVector *vy = new ARDoubleVector(mark, o);
 	vy->setName("y");
 	o->release();

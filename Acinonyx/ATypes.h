@@ -99,7 +99,11 @@ extern "C" {
 #define KEY_RIGHT 124
 #define KEY_DOWN  125
 #define KEY_UP    126
-	
+
+#define KEY_S       1
+#define KEY_C       8
+#define KEY_0      29
+  
 /** This macro is used after memory allocation to check for out of memory issues */
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
 	

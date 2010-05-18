@@ -200,8 +200,8 @@ public:
 	
 	virtual bool keyDown(AEvent e) {
 		switch (e.key) {
-			case 1: spines = !spines; home(); update(); redraw(); break;
-			case 29: home(); update(); redraw(); break;
+			case KEY_S: spines = !spines; home(); update(); redraw(); break;
+			case KEY_0: home(); update(); redraw(); break;
 			case KEY_UP: if (bin->bins() > 1) { bin->setBinWidth(bin->binWidth() * (double)bin->bins() / ((double)bin->bins() - 1.0)); bin->setBins(bin->bins() - 1); updatePrimitives(); APlot::update(); redraw(); }; break;
 			case KEY_DOWN: bin->setBinWidth(bin->binWidth() * (double)bin->bins() / ((double)bin->bins() + 1.0)); bin->setBins(bin->bins() + 1); updatePrimitives(); APlot::update(); redraw(); break;
 			default:

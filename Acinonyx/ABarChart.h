@@ -79,6 +79,7 @@ public:
 		for(vsize_t i = 0; i < bars; i++) {
 			group_t group = (group_t) i;
 			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false, false);
+			b->setGroupName(tab->name(i));
 			((ASettableObjectVector*)pps)->replaceObjectAt(i, b);
 			b->release(); // we passed the ownership to pps
 		}
@@ -110,7 +111,7 @@ public:
 	
 	virtual bool keyDown(AEvent e) {
 		switch (e.key) {
-			case 1: spines = !spines; update(); redraw(); break;
+			case KEY_S: spines = !spines; update(); redraw(); break;
 			default:
 				return false;
 		}

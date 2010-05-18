@@ -83,7 +83,8 @@ public:
 
 class ADiscreteXAxis : public AAxis, public ANamedAxis {
 public:
-	ADiscreteXAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { }
+	ADiscreteXAxis(AContainer *parent, ARect frame, int flags, AScale *scale) : AAxis(parent, frame, flags, scale) { OCLASS(ADiscreteXAxis) }
+	virtual ~ADiscreteXAxis() { DCLASS(ADiscreteXAxis) }
 
 	virtual void draw(vsize_t layer) {
 		if (layer != LAYER_ROOT) return;
