@@ -95,15 +95,27 @@ static void HelpKeyDown(control w, int key)
 #ifdef DEBUG
 	Rprintf("keyDown, key=%d\n", key);
 #endif
+	switch (key) {
+		case 48 : key = KEY_0; break;
+		case 115: key = KEY_S; break;
+	}
 	win->event(AMkEvent(AE_KEY_DOWN, lastButtonState, key, AMkPoint(0.0, 0.0)));
 }
 
 static void HelpKeyAction(control w, int key)
 {
+	int ac_key = 0;
 	AWin32Window *win = (AWin32Window*) getdata(w);
 #ifdef DEBUG
 	Rprintf("keyAction, key=%d\n", key);
 #endif
+	switch (key) {
+		case 8592: ac_key = KEY_LEFT; break;
+		case 8593: ac_key = KEY_UP; break;
+		case 8594: ac_key = KEY_RIGHT; break;
+		case 8595: ac_key = KEY_DOWN; break;
+	}
+	if (ac_key) win->event(AMkEvent(AE_KEY_DOWN, lastButtonState, ac_key, AMkPoint(0.0, 0.0)));
 }
 
 static void SetupPixelFormat(HDC hDC)
