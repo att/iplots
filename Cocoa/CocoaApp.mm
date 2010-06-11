@@ -9,6 +9,7 @@
 #import "CocoaApp.h"
 #import "CocoaWindow.h"
 
+#import "ATimeSeriesPlot.h"
 #import "AScatterPlot.h"
 #import "AParallelCoordPlot.h"
 #import "ABarChart.h"
@@ -28,9 +29,9 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 {
 	ARect aFrame = visual->frame();
 	NSRect rect = NSMakeRect(position.x, position.y, aFrame.width, aFrame.height);
-
+	
 	CocoaWindow *window = [[CocoaWindow alloc] initWithContentRect:rect visual:visual];
-
+	
 	[window setTitle:[NSString stringWithUTF8String:visual->caption()]];
     [window makeKeyAndOrderFront:nil];
 	// [window setDelegate:self];
@@ -38,7 +39,7 @@ CocoaWindow *ACocoa_CreateWindow(AVisual *visual, APoint position)
 	//[window setHasShadow:NO];
 	//[window setHasShadow:YES];
 	//[window setReleasedWhenClosed:YES];
-
+	
 	return window;
 }
 
@@ -55,7 +56,8 @@ void ACocoa_Init() {
 {
 	ALog("applicationDidFinishLaunching:");
 	REngine *eng = REngine::mainEngine();
-	RObject *o = eng->parseAndEval("{n<-1e5; x<-rnorm(n)}");
+	RObject *o = eng->parseAndEval("as.double({n<-1e5;  x<-rep(seq(1:(n/5)),5)})");
+//	RObject *o = eng->parseAndEval("as.double({n<-100;  x<-rep(seq(1:(n/5)),5)})");
 	AMarker *mark = new AMarker(o->length());
 	ADataVector *vx = new ARDoubleVector(mark, o);
 	vx->setName("x");
@@ -69,15 +71,18 @@ void ACocoa_Init() {
 	ARFactorVector *fv = new ARFactorVector(mark, o->value());
 	fv->setName("letters");
 	o->release();
-
+	
 	ARect aFrame = AMkRect(0, 0, 400, 300);
-	AVisual *visual = new AScatterPlot(NULL, aFrame, 0, vx, vy);
 	
-	/* CocoaWindow *window = */ ACocoa_CreateWindow(visual, AMkPoint(50, 100));
-	
-	// FIXME: we should assign the result or something ...
+	AVisual *visual = new ATimeSeriesPlot(NULL, aFrame, 0, vx, vy);
+	ACocoa_CreateWindow(visual, AMkPoint(50, 100));
 	visual->release();
 
+	visual = new AScatterPlot(NULL, aFrame, 0, vx, vy);
+	ACocoa_CreateWindow(visual, AMkPoint(500, 400));
+	// FIXME: we should assign the result or something ...
+	visual->release();
+	
 	ADataVector *pcv[] = { vx, vy, fv };
 	
 	visual = new AParallelCoordPlot(NULL, aFrame, 0, 3, pcv);
@@ -87,7 +92,7 @@ void ACocoa_Init() {
 	visual = new ABarChart(NULL, aFrame, 0, fv);
 	ACocoa_CreateWindow(visual, AMkPoint(950, 100));
 	visual->release();
-
+	
 	visual = new AHistogram(NULL, aFrame, 0, vx);
 	ACocoa_CreateWindow(visual, AMkPoint(50, 600));
 	visual->release();

@@ -365,6 +365,36 @@ public:
 	char **levelStrings() { return _names; }
 };
 
+class APointVector : public ADataVector {
+protected:
+	APoint *_data;
+public:
+	APointVector(AMarker *m, const APoint *data, vsize_t len, bool copy) : ADataVector(m, len){
+		_data = (APoint*)(copy?memdup(data, len * sizeof(APoint)):data); OCLASS(APointVector)
+	}
+	APointVector(const APoint *data, vsize_t len, bool copy) : ADataVector(0, len) {
+		_data = (APoint*)(copy?memdup(data, len * sizeof(APoint)):data); OCLASS(APointVector)
+	}
+	APointVector(const APoint *data, vsize_t len) : ADataVector(0, len) {
+		_data = (APoint*)memdup(data, len * sizeof(APoint)); OCLASS(APointVector)
+	}
+	
+	virtual ~APointVector() {
+		if (owned) free(_data);
+		DCLASS(APointVector)
+	}
+	
+	virtual const APoint* asPoints() { return _data; }
+	
+	bool isDataNull(){ 
+		return _data == NULL;
+	}
+	
+};
+
+
+
+
 // TODO: mutable vectors ( + notification?)
 
 #endif

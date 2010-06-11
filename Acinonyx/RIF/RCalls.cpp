@@ -16,6 +16,7 @@
 #include "AParallelCoordPlot.h"
 #include "ABarChart.h"
 #include "AHistogram.h"
+#include "ATimeSeriesPlot.h"
 #include "ARVector.h"
 
 // R API to Acinonyx
@@ -83,6 +84,7 @@ extern "C" {
 	SEXP A_PlotPrimaryMarker(SEXP sPlot);
 	
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect, SEXP flags);
+	SEXP A_TimePlot(SEXP x, SEXP y, SEXP rect, SEXP flags);
 	SEXP A_BarPlot(SEXP x, SEXP rect, SEXP flags);
 	SEXP A_HistPlot(SEXP x, SEXP rect, SEXP flags);
 	SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags);
@@ -744,6 +746,14 @@ SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect, SEXP flags)
 	ADataVector *xv = (ADataVector*) SEXP2A(x);
 	ADataVector *yv = (ADataVector*) SEXP2A(y);
 	AScatterPlot *sp = new AScatterPlot(NULL, visual_frame(rect), visual_flags(flags), xv, yv);
+	return A2SEXP(sp);
+}
+
+SEXP A_TimePlot(SEXP x, SEXP y, SEXP rect, SEXP flags)
+{
+	ADataVector *xv = (ADataVector*) SEXP2A(x);
+	ADataVector *yv = (ADataVector*) SEXP2A(y);
+	ATimeSeriesPlot *sp = new ATimeSeriesPlot(NULL, visual_frame(rect), visual_flags(flags), xv, yv);
 	return A2SEXP(sp);
 }
 

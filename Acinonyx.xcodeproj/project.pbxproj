@@ -87,6 +87,7 @@
 		68DED9C70FFD729C00C1DB43 /* AQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AQuery.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Acinonyx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Acinonyx.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E214E8E211BEBE37002E6540 /* ATimeSeriesPlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATimeSeriesPlot.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -208,6 +209,7 @@
 			isa = PBXGroup;
 			children = (
 				68A2519A0D7DF62600007CBD /* AScatterPlot.h */,
+				E214E8E211BEBE37002E6540 /* ATimeSeriesPlot.h */,
 				687CA3B80FB1D11000D249DB /* AParallelCoordPlot.h */,
 				687CA56B0FBA12FB00D249DB /* ABarChart.h */,
 				682DC6030FF1403F00E8F17C /* AHistogram.h */,
@@ -431,11 +433,14 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = /Library/Frameworks/R.framework/Headers;
 				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
 		};

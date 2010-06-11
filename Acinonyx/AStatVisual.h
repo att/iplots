@@ -174,7 +174,8 @@ protected:
 	ARect _r;
 	direction_t fillingDirection;
 public:
-	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true, bool releaseIDs=true) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _r(r), fillingDirection(fillDir) {
+	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true,
+				   bool releaseIDs=true) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _r(r), fillingDirection(fillDir) {
 		f = barColor;
 		c = pointColor;
 		OCLASS(ABarStatVisual);
@@ -228,6 +229,84 @@ public:
 	virtual bool containsPoint(APoint pt) {
 		return ARectContains(_r, pt);
 	}
+};
+
+
+class APolyLineStatVisual : public AStatVisual {
+protected:
+	APointVector *_l;
+	AFloat _ptSize;
+	
+public:
+	APolyLineStatVisual(APlot *plot, APointVector *l, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true, bool releaseIDs=true) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _l(l) {
+		c = pointColor;
+		if (!(_l->isDataNull())) _l->retain();
+		OCLASS(APolyLineStatVisual);
+	}
+	
+	void setPolyLine(APointVector *l) {
+		if (_l == l) return;
+		if (!(_l->isDataNull())) _l->release();
+		_l = l;
+		_l->retain();
+	}
+	
+	APointVector* polyline() {
+		return _l;
+	}
+	
+	void setDrawAttributes(AFloat ptSize, AFloat ptAlpha){
+		f.a = ptAlpha;
+		c.a = ptAlpha;
+		_ptSize = ptSize; 
+	}
+	
+	virtual void draw(ARenderer &renderer) {
+		if (isHidden()) return;
+		ALog("%s: draw (visible=%d, selected=%d, hidden=%d) PolyLine!", describe(), visible, selected, hidden);
+		if (c.a) {
+			renderer.color(c);	//draw lines and points in the same color
+			glPointSize(_ptSize);
+			renderer.polyline(_l->asPoints(), _l->length());
+			renderer.points(_l->asPoints(), _l->length());
+		}
+		if (visible) {
+			if (selected) {
+				renderer.color(hiliteColor);
+				glPointSize(_ptSize);
+				renderer.polyline(_l->asPoints(), _l->length());
+				renderer.points(_l->asPoints(), _l->length());
+			}
+		}		
+	}
+
+	//checks if the selection rectangle contains a point on this polyline
+	virtual bool intersects(ARect rect) {
+		const APoint* pts = _l->asPoints();
+		for (vsize_t i = 0; i < _l->length(); i++)
+			if (ARectContains(rect, AMkPoint(pts[i].x, pts[i].y))){
+				return true;
+			}
+		return false;
+	}
+	
+	//checks if this polyline contains the input point 
+	virtual bool containsPoint(APoint pt) {
+		const APoint* pts = _l->asPoints();
+		for (int i = 0; i < _l->length(); i++){
+			if (isNear(pt, pts[i]))
+				return true;
+		}
+		return false;
+		//return APolyLineContains(_l, pt);
+	}
+	bool isNear(APoint a, APoint b){
+		double dist = (a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y);
+		if (dist < 10) 
+			return true;
+		return false;
+	}
+				
 };
 
 #endif

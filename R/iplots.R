@@ -23,6 +23,7 @@ iplot <- function(x, ...) UseMethod("iplot")
 ibar <- function(x, ...) UseMethod("ibar")
 ipcp <- function(x, ...) UseMethod("ipcp")
 ihist <- function(x, ...) UseMethod("ihist")
+its <- function(x, ...) UseMethod("its")
 
 redraw <- function(x, ...) UseMethod("redraw")
 selected <- function(x, ...) UseMethod("selected")
@@ -86,6 +87,14 @@ iplot.default <- function(x, y, xname=deparse(substitute(x)), yname=deparse(subs
  vx = .var(x, xname)
  vy = .var(y, yname)
  .do.plot("A_ScatterPlot", "iScatterplot", window, frame, flags, vx, vy)
+}
+
+its.default <- function(x, y, xname=deparse(substitute(x)), yname=deparse(substitute(y)), ..., window, frame, flags) {
+  if (!is.character(xname) || length(xname) != 1) stop("invalid xname argument - must be a character vector of length one")
+  if (!is.character(yname) || length(yname) != 1) stop("invalid yname argument - must be a character vector of length one")
+  vx = .var(x, xname)
+  vy = .var(y, yname)
+  .do.plot("A_TimePlot", "iTimeSeriesPlot", window, frame, flags, vx, vy)
 }
 
 ibar.factor <- function(x, xname=deparse(substitute(x)), ..., window, frame, flags) {

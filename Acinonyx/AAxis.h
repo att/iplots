@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef A_AXIS_H_
+#define A_AXIS_H_
+
 #include "AVisual.h"
 #include "AQuery.h"
 
@@ -157,3 +160,5 @@ public:
 		text(AMkPoint(_frame.x + _frame.width / 2, _frame.y + _frame.height), buf, AMkPoint(0.0, 0.5), -90.0);
 	}
 };
+
+#endif;
