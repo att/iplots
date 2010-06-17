@@ -39,9 +39,26 @@ public:
 
 // scaled primitives allows the primitive to scale itself according to the scale used in the plod
 class AScaledPrimitive : public ARCallbackPrimitive {
+	char *query_string, *ext_query_string;
+
 public:
-	AScaledPrimitive(APlot *plot) : ARCallbackPrimitive(plot) { OCLASS(AScaledPrimitive) }
+	AScaledPrimitive(APlot *plot) : ARCallbackPrimitive(plot), query_string(0), ext_query_string(0) { OCLASS(AScaledPrimitive) }
+
+	virtual ~AScaledPrimitive() {
+		if (query_string) free(query_string);
+		if (ext_query_string) free(ext_query_string);
+		DCLASS(AScaledPrimitive)
+	}
 	
+	virtual void query(AQuery *query, int level) {
+		if (query) {
+			if ((level == 0 || !ext_query_string) && query_string)
+				query->setText(query_string);
+			if (level == 1 && ext_query_string)
+				query->setText(ext_query_string);
+		}
+	}
+    
 	APoint transformPoint(APoint pt) {
 		if (!_plot || _plot->scales() == 0) return pt;
 		APoint p;
@@ -63,6 +80,28 @@ public:
 			dst[i].x = xs ? xs->position(src[i].x) : src[i].x; 
 			dst[i].y = ys ? ys->position(src[i].y) : src[i].y;
 		}
+	}
+	
+	void setQueryText(const char *txt, int level = 0) {
+		if (level == 0) {
+			if (query_string)
+				free(query_string);
+			query_string = NULL;
+			if (txt)
+				query_string = strdup(txt);
+		} else if (level == 1) {
+			if (ext_query_string)
+				free(ext_query_string);
+			ext_query_string = NULL;
+			if (txt)
+				ext_query_string = strdup(txt);
+		}
+	}
+	
+	const char *queryText(int level = 0) {
+		if (level == 0) return query_string;
+		if (level == 1) return ext_query_string;
+		return NULL;
 	}
 };
 
@@ -96,6 +135,22 @@ public:
 		if (rect.y <= d2 && rect.y + rect.height >= d2) return true;
 		// if neither side was hit then the only way it can be an intersection is if each virtual intersection point is on the other side
 		return ((d1 < rect.y && d2 > rect.y + rect.height) || (d1 > rect.y && d2 < rect.y + rect.height));
+	}
+	
+	virtual bool containsPoint(APoint pt) {
+		APoint _s1 = transformPoint(_p1), _s2 = transformPoint(_p2);
+		double ll = (_s1.x - _s2.x) * (_s1.x - _s2.x) + (_s1.y - _s2.y) * (_s1.y - _s2.y);
+		if (ll < 1.0) return ARectContains(AMkRect(_s1.x - 1.0, _s1.y - 1.0, 2.0, 2.0), pt);
+		AFloat lx = (_s1.x < _s2.x) ? _s1.x : _s2.x;
+		AFloat ly = (_s1.y < _s2.y) ? _s1.y : _s2.y;
+		int sig = 1;
+		AFloat w = _s1.x - _s2.x; if (w < 0) { w = -w; sig = -sig; }
+		AFloat h = _s1.y - _s2.y; if (h < 0) { h = -h; sig = -sig; }
+		if (!ARectContains(AMkRect(lx - 1.0, ly - 1.0, w + 2.0, h + 2.0), pt)) return 0;
+		if (_s1.x == _s2.x || _s1.y == _s2.y) return 1;
+		AFloat ppy = (pt.x - lx) / w * h;
+		ppy = (sig == -1) ? ly + h - ppy : ly + ppy;
+		return (pt.y >= ppy - 1.0 && pt.y <= ppy + 1.0);
 	}
 };
 

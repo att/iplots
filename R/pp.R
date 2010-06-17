@@ -9,6 +9,8 @@ fill <- function(x, ...) UseMethod("fill")
 "fill<-" <- function(x, value, ...) UseMethod("fill<-")
 hidden <- function(x, ...) UseMethod("hidden")
 "hidden<-" <- function(x, value, ...) UseMethod("hidden<-")
+query <- function(x, ...) UseMethod("query")
+"query<-" <- function(x, value, ...) UseMethod("query<-")
 
 ilines <- function(x, ...) UseMethod("ilines")
 iabline <- function(a, ...) UseMethod("iabline")
@@ -115,10 +117,17 @@ hidden.primitive <- function(x, ...)
 `hidden<-.primitive` <- function(x, value, ...)
   .Call("A_VPSetHidden", x, as.logical(value))
 
+query.primitive <- function(x, ...)
+  .Call("A_VPGetQuery", x)
+
+`query<-.primitive` <- function(x, value, ...)
+  .Call("A_VPSetQuery", x, value)
+
 `$.primitive` <- function(x, name) {
   if (name == "plot") return(.po(.Call("A_VPPlot", x)))
   if (name == "color" || name == "col") return(color(x))
   if (name == "fill") return(fill(x))
+  if (name == "query") return(query(x))
   if (name == "hidden") return(hidden(x))
   if (name == "callback" || name == "onChange") return (.Call("A_VPGetCallback", x))
   NULL
@@ -128,6 +137,7 @@ hidden.primitive <- function(x, ...)
   if (name == "color" || name == "col") color(x) <- value else
   if (name == "fill") fill(x) <- value else
   if (name == "hidden") hidden(x) <- value else
+  if (name == "query") query(x) <- value else
   if (name == "callback" || name == "onChange") .Call("A_VPSetCallback", x, value) else
   stop("no writable property", name)
   x
@@ -150,6 +160,14 @@ iabline.default <- function(a, b, ..., plot=.Last.plot) {
 ilines.default <- function(x, y, col, ..., plot=.Last.plot) {
   p <- iPolygon(x, y)
   if (!missing(col)) p$color <- col
+  add(plot, p)
+  invisible(p)
+}
+
+ipolygon.default <- function(x, y, border, col = NA, ..., plot=.Last.plot) {
+  p <- iPolygon(x, y)
+  if (!missing(border)) color(p, redraw=FALSE) <- border
+  if (all(!is.na(col))) fill(p, redraw=FALSE) <- col
   add(plot, p)
   invisible(p)
 }

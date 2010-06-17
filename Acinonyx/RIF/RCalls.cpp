@@ -61,7 +61,9 @@ extern "C" {
 	SEXP A_VPGetCallback(SEXP vp);
 	SEXP A_VPSetHidden(SEXP vp, SEXP hf);
 	SEXP A_VPGetHidden(SEXP vp);
-
+	SEXP A_VPSetQuery(SEXP vp, SEXP txt);
+	SEXP A_VPGetQuery(SEXP vp);
+	
 	SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp);
 
 	SEXP A_VisualSetFrame(SEXP sPlot, SEXP sFrame);
@@ -653,6 +655,31 @@ SEXP A_VPGetCallback(SEXP vp)
 	ARCallbackPrimitive *p = (ARCallbackPrimitive*) SEXP2A(vp);
 	if (!p) Rf_error("invalid object (NULL)");
 	return p->value();
+}
+
+SEXP A_VPSetQuery(SEXP vp, SEXP txt) {
+	AScaledPrimitive *p = (AScaledPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	if (txt == R_NilValue || (TYPEOF(txt) == STRSXP && LENGTH(txt) == 0)) {
+		p->setQueryText(NULL, 0);
+		p->setQueryText(NULL, 1);
+	} else if (TYPEOF(txt) == STRSXP) {
+		p->setQueryText(CHAR(STRING_ELT(txt, 0)), 0);
+		if (LENGTH(txt) > 1)
+			p->setQueryText(CHAR(STRING_ELT(txt, 1)), 1);
+	} else Rf_error("invalid query string");
+	return vp;
+}
+
+SEXP A_VPGetQuery(SEXP vp) {
+	AScaledPrimitive *p = (AScaledPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	const char *q0 = p->queryText(0), *q1 = p->queryText(1);
+	SEXP r = PROTECT(Rf_allocVector(STRSXP, q0 ? (q1 ? 2 : 1) : 0));
+	if (q0) SET_STRING_ELT(r, 0, Rf_mkChar(q0));
+	if (q0 && q1) SET_STRING_ELT(r, 1, Rf_mkChar(q1));
+	UNPROTECT(1);
+	return r;
 }
 
 SEXP A_VPSetHidden(SEXP vp, SEXP hf)
