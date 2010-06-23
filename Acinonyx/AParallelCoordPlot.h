@@ -146,13 +146,15 @@ public:
 			color(AMkColor(0.0,0.0,0.0,ptAlpha));
 			vsize_t j = 0, n = _data[0]->length();
 			while (j < n) {
-				lineBegin();
-				for (vsize_t ci = 0; ci < coords; ci++) {
-					AFloat xpos = _scales[0]->discreteCenter(ci);
-					if (ptGrid[ci])
-						lineTo(xpos, ptGrid[ci][j]);
+				if (!marker->isHidden(j)) {
+					lineBegin();
+					for (vsize_t ci = 0; ci < coords; ci++) {
+						AFloat xpos = _scales[0]->discreteCenter(ci);
+						if (ptGrid[ci])
+							lineTo(xpos, ptGrid[ci][j]);
+					}
+					lineEnd();
 				}
-				lineEnd();
 				j++;
 			}
 		
@@ -160,7 +162,7 @@ public:
 			color(AMkColor(1.0, 0.0, 0.0, 1.0));
 			j = 0, n = _data[0]->length();
 			while (j < n) {
-				if (marker->isSelected(j)) {
+				if (!marker->isHidden(j) && (marker->isSelected(j))) {
 					lineBegin();
 					for (vsize_t ci = 0; ci < coords; ci++) {
 						AFloat xpos = _scales[0]->discreteCenter(ci);
