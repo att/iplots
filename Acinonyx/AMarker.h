@@ -90,6 +90,22 @@ public:
 		weChanged();
 	};
 
+	void hide(vsize_t index) {
+		if (index < _len && M_OUT(_data[index]) == 0) {
+			_data[index] |= M_OUT_BIT;
+			_changed = true;
+		}
+		weChanged();
+	};
+	
+	void show(vsize_t index) {
+		if (index < _len && M_OUT(_data[index])) {
+			_data[index] &= ~M_OUT_BIT;
+			_changed = true;
+		}
+		weChanged();
+	};
+
 	void selectXOR(vsize_t index) {
 		if (index < _len)
 			_data[index] ^= M_MARK_BIT;
