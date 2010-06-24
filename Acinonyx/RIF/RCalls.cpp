@@ -18,6 +18,7 @@
 #include "AHistogram.h"
 #include "ATimeSeriesPlot.h"
 #include "ARVector.h"
+#include "AColorMap.h"
 
 // R API to Acinonyx
 extern "C" {
@@ -30,7 +31,9 @@ extern "C" {
 	SEXP A_MarkerCreate(SEXP len);
 	SEXP A_MarkerAdd(SEXP m, SEXP o);
 	SEXP A_MarkerSelected(SEXP m);
+	SEXP A_MarkerValues(SEXP m);
 	SEXP A_MarkerSelect(SEXP m, SEXP sel);
+	SEXP A_MarkerSetValues(SEXP sM, SEXP sel);
 	SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun);
 
 	SEXP A_WindowCreate(SEXP w, SEXP pos);
@@ -138,6 +141,8 @@ extern "C" {
 
 static bool inside_Rapp = false;
 
+static AColorMap *defaultColorMap;
+
 SEXP A_Init() {
 #ifdef HAVE_AQUA
 	const char* rapp=getenv("R_GUI_APP_VERSION");
@@ -244,6 +249,10 @@ SEXP A_ReleaseObject(SEXP v) {
 
 SEXP A_MarkerCreate(SEXP len) {
 	AMarker *m = new AMarker(Rf_asInteger(len));
+	if (!defaultColorMap)
+		defaultColorMap = new ADefaultColorMap();
+	// Note: we never release the default color map. That is ok since it's supposed to live forever, but ...
+	m->setColorMap(defaultColorMap);
 	return A2SEXP(m);
 }
 
@@ -293,6 +302,34 @@ SEXP A_MarkerSelect(SEXP sM, SEXP sel)
 				m->deselect(-l[i]);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
+	return sM;
+}
+
+SEXP A_MarkerValues(SEXP sM)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	vsize_t n = m->length();
+	SEXP res = Rf_allocVector(INTSXP, n);
+	int *l = INTEGER(res);
+	for (vsize_t i = 0; i < n; i++)
+		l[i] = m->value(i);
+	return res;
+}
+
+SEXP A_MarkerSetValues(SEXP sM, SEXP sel)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	vsize_t n = m->length();
+	if (TYPEOF(sel) == INTSXP) {
+		m->begin();
+		int *l = INTEGER(sel);
+		vsize_t ll = LENGTH(sel);
+		for (vsize_t i = 0; i < ll && i < n; i++)
+			m->setValue(i, l[i]);
+		m->end();
+	} else Rf_error("value must be an integer vector");
 	return sM;
 }
 

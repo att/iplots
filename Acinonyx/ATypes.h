@@ -72,7 +72,8 @@ extern "C" {
 #define ARectContains(A,B) (((B).x >= (A).x) && ((B).x <= (A).x + (A).width) && ((B).y >= (A).y) && ((B).y <= (A).y + (A).height)) 
 #define ARectsIntersect(A,B) (!(((A).x + (A).width < (B).x) || ((A).x > (B).x + (B).width) || ((A).y + (A).height < (B).y) || ((A).y > (B).y + (B).height)))
 #define ARect4(X) (X).x, (X).y, (X).width, (X).height
-	
+#define AColorsAreEqual(A,B) (((A).r == (B).r) && ((A).g == (B).g) && ((A).b == (B).b) && ((A).a == (B).a))
+
 #define AEF_BUTTON1 0x001
 #define AEF_BUTTON2 0x002
 #define AEF_BUTTON3 0x004

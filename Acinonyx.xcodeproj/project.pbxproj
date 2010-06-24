@@ -65,6 +65,7 @@
 		688A31980FC16E7B00532F79 /* RCalls.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RCalls.cpp; sourceTree = "<group>"; };
 		689250C30F2A25CB00842A4B /* GLString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLString.h; sourceTree = "<group>"; };
 		689250C40F2A25CB00842A4B /* GLString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLString.m; sourceTree = "<group>"; };
+		68A1231511D3E09600306B88 /* AColorMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AColorMap.h; sourceTree = "<group>"; };
 		68A251960D7DE72800007CBD /* AScale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AScale.h; sourceTree = "<group>"; };
 		68A251970D7DE73300007CBD /* APlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APlot.h; sourceTree = "<group>"; };
 		68A251980D7DEE9700007CBD /* AVisualPrimitive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVisualPrimitive.h; sourceTree = "<group>"; };
@@ -265,6 +266,7 @@
 				682F02510FCACEFE00A2227E /* ABasicPrimitives.h */,
 				682DC9220FF26BAA00E8F17C /* ALinearProjection.h */,
 				68DED9C70FFD729C00C1DB43 /* AQuery.h */,
+				68A1231511D3E09600306B88 /* AColorMap.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";

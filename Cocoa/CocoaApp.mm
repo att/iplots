@@ -58,7 +58,10 @@ void ACocoa_Init() {
 	REngine *eng = REngine::mainEngine();
 	RObject *o = eng->parseAndEval("as.double({n<-1e5;  x<-rep(seq(1:(n/5)),5)})");
 //	RObject *o = eng->parseAndEval("as.double({n<-100;  x<-rep(seq(1:(n/5)),5)})");
+
 	AMarker *mark = new AMarker(o->length());
+	mark->setColorMap(new ADefaultColorMap());
+
 	ADataVector *vx = new ARDoubleVector(mark, o);
 	vx->setName("x");
 	o->release();

@@ -112,6 +112,19 @@ public:
 	virtual bool keyDown(AEvent e) {
 		switch (e.key) {
 			case KEY_S: spines = !spines; update(); redraw(); break;
+			case KEY_C:
+			{
+				AFactorVector *data = (AFactorVector*) _scales[0]->data();
+				vsize_t n = data->length();
+				const int *bi = data->asInts();
+				if (bi) {
+					marker->begin();
+					for (vsize_t i = 0; i < n; i++)
+						marker->setValue(i, bi[i] + COL_CB1 - 1);
+					marker->end();
+				}
+				update(); redraw(); break;
+			}
 			default:
 				return false;
 		}

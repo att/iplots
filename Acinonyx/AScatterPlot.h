@@ -166,29 +166,61 @@ public:
 		if (layer == LAYER_ROOT) {
 			clip(_frame);
 			glPointSize(ptSize);
-			color(AMkColor(0.0,0.0,0.0,ptAlpha));
-#ifndef PFA
-			glNewList(5, GL_COMPILE);
-			circle(0, 0, ptSize / 2.0);
-			glEndList();
-			glPushMatrix();
-#endif
+			AColor baseColor = AMkColor(0.0,0.0,0.0,ptAlpha);
+			color(baseColor);
+
 			AFloat *lx = _scales[0]->locations();
 			AFloat *ly = _scales[1]->locations();
-#ifdef PFA
-			points(lx, ly, _scales[0]->data()->length());
-#else
-			vsize_t n = _scales[0]->data()->length();
-			for (vsize_t i = 0; i < n; i++) {
-				glTranslated(lx[i], ly[i], 0.0);
-				glCallList(5);
-				glTranslated(-lx[i], -ly[i], 0.0);
-			}
+
+			if (marker && marker->maxValue()) {
+#ifndef PFA
+				glNewList(5, GL_COMPILE);
+				circle(0, 0, ptSize / 2.0);
+				glEndList();
+				glPushMatrix();
 #endif
+				AColorMap *cMap = marker->colorMap();
+				AFloat *lx = _scales[0]->locations();
+				AFloat *ly = _scales[1]->locations();
+				vsize_t n = _scales[0]->data()->length();
+				for (vsize_t i = 0; i < n; i++) {
+					mark_t mv = marker->value(i);
+					if (mv) {
+						AColor c = cMap->color(mv);
+						c.a = ptAlpha;
+						color(c);
+					} else
+						color(baseColor);
+#ifndef PFA
+					glTranslated(lx[i], ly[i], 0.0);
+					glCallList(5);
+					glTranslated(-lx[i], -ly[i], 0.0);
+#else
+					point(lx[i], ly[i]);
+#endif
+				}
+			} else {
+#ifndef PFA
+				glNewList(5, GL_COMPILE);
+				circle(0, 0, ptSize / 2.0);
+				glEndList();
+				glPushMatrix();
+#endif
+#ifdef PFA
+				points(lx, ly, _scales[0]->data()->length());
+#else
+				vsize_t n = _scales[0]->data()->length();
+				for (vsize_t i = 0; i < n; i++) {
+					glTranslated(lx[i], ly[i], 0.0);
+					glCallList(5);
+					glTranslated(-lx[i], -ly[i], 0.0);
+				}
+#endif
+			}
 			
 			//points(lx, ly, _scales[0]->data()->length());
 			if (marker) {
-				mark_t *ms = marker->rawMarks();
+				const mark_t *ms = marker->rawMarks();
 				vsize_t n = marker->length();
 				color(AMkColor(1.0,0.0,0.0,1.0));
 				for (vsize_t i = 0; i < n; i++)

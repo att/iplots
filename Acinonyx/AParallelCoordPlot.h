@@ -143,10 +143,21 @@ public:
 			}
 		
 			// draw lines
-			color(AMkColor(0.0,0.0,0.0,ptAlpha));
+			AColor baseColor = AMkColor(0.0,0.0,0.0,ptAlpha);
+			AColorMap *cMap = marker->colorMap();
+			color(baseColor);
+			bool lastWasBrushed = false;
 			vsize_t j = 0, n = _data[0]->length();
 			while (j < n) {
 				if (!marker->isHidden(j)) {
+					mark_t mv = marker->value(j);
+					if (mv) {
+						AColor c = cMap->color(mv);
+						c.a = ptAlpha;
+						color(c);
+						lastWasBrushed = true;
+					} else if (lastWasBrushed)
+						color(baseColor);
 					lineBegin();
 					for (vsize_t ci = 0; ci < coords; ci++) {
 						AFloat xpos = _scales[0]->discreteCenter(ci);
