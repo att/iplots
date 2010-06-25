@@ -179,18 +179,11 @@ public:
 				glEndList();
 				glPushMatrix();
 #endif
-				AColorMap *cMap = marker->colorMap();
 				AFloat *lx = _scales[0]->locations();
 				AFloat *ly = _scales[1]->locations();
 				vsize_t n = _scales[0]->data()->length();
-				for (vsize_t i = 0; i < n; i++) {
-					mark_t mv = marker->value(i);
-					if (mv) {
-						AColor c = cMap->color(mv);
-						c.a = ptAlpha;
-						color(c);
-					} else
-						color(baseColor);
+				for (vsize_t i = 0; i < n; i++) if (!marker->isHidden(i)) {
+					color(marker->color(i, ptAlpha));
 #ifndef PFA
 					glTranslated(lx[i], ly[i], 0.0);
 					glCallList(5);
@@ -206,11 +199,13 @@ public:
 				glEndList();
 				glPushMatrix();
 #endif
-#ifdef PFA
-				points(lx, ly, _scales[0]->data()->length());
-#else
 				vsize_t n = _scales[0]->data()->length();
-				for (vsize_t i = 0; i < n; i++) {
+#ifdef PFA
+				for (vsize_t i = 0; i < n; i++)
+					if (!marker->isHidden(i))
+						point(lx[i], ly[i]);
+#else
+				for (vsize_t i = 0; i < n; i++) if (!marker->isHidden(i)) {
 					glTranslated(lx[i], ly[i], 0.0);
 					glCallList(5);
 					glTranslated(-lx[i], -ly[i], 0.0);
@@ -224,7 +219,7 @@ public:
 				vsize_t n = marker->length();
 				color(AMkColor(1.0,0.0,0.0,1.0));
 				for (vsize_t i = 0; i < n; i++)
-					if (M_TRANS(ms[i])) {
+					if (!marker->isHidden(i) && M_TRANS(ms[i])) {
 #ifdef PFA
 						point(lx[i], ly[i]);
 #else

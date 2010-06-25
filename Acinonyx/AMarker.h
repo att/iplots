@@ -115,7 +115,9 @@ public:
 		AColor c = color(index);
 		if (alpha >= 1.0)
 			return c;
-		return !IsNilColor(c) ? AMkColor(c.r, c.g, c.b, alpha) : c;
+		if (c.a > 0.0)
+			c.a = alpha;
+		return c;
 	};
 	
 	void select(vsize_t index) {
