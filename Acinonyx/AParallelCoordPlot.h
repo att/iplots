@@ -156,8 +156,10 @@ public:
 						c.a = ptAlpha;
 						color(c);
 						lastWasBrushed = true;
-					} else if (lastWasBrushed)
+					} else if (lastWasBrushed) {
 						color(baseColor);
+						lastWasBrushed = false;
+					}
 					lineBegin();
 					for (vsize_t ci = 0; ci < coords; ci++) {
 						AFloat xpos = _scales[0]->discreteCenter(ci);
