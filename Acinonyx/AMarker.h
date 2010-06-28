@@ -32,12 +32,13 @@ typedef unsigned int mark_t;
 #define M_OUT(X) ((((mark_t)(X)) & 2) == 2)
 #define M_MARK(X) (((mark_t)(X)) >> 2)
 
-#define N_MarkerChanged 0x10
+#define N_TransientMarkerChanged 0x11
+#define N_PermanentMarkerChanged 0x10
 
 class AMarker : public ANotifierInterface, public APlainIntVector {
 protected:
 	bool _batch;
-	bool _changed;
+	bool _changed, _perm_changed;
 	AColorMap *color_map;
 	mark_t max_value;
 	
@@ -50,7 +51,7 @@ protected:
 				if ((mark_t) _data[i] > max_value)
 					max_value = (mark_t) _data[i];
 			// notify all dependents
-			sendNotification(this, N_MarkerChanged);
+			sendNotification(this, _perm_changed ? N_PermanentMarkerChanged : N_TransientMarkerChanged);
 			// re-set changed flag
 			_changed = false;
 		}
@@ -59,7 +60,7 @@ protected:
 public:
 	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false) {
 		_len = len;
-		_changed = false;
+		_perm_changed = _changed = false;
 		_data = (int*) calloc(sizeof(len), len);
 		color_map = 0;
 		AMEM(_data);
@@ -131,7 +132,7 @@ public:
 	void hide(vsize_t index) {
 		if (index < _len && M_OUT(_data[index]) == 0) {
 			_data[index] |= M_OUT_BIT;
-			_changed = true;
+			_perm_changed = _changed = true;
 		}
 		weChanged();
 	};
@@ -139,7 +140,7 @@ public:
 	void show(vsize_t index) {
 		if (index < _len && M_OUT(_data[index])) {
 			_data[index] &= ~M_OUT_BIT;
-			_changed = true;
+			_perm_changed = _changed = true;
 		}
 		weChanged();
 	};
@@ -189,7 +190,7 @@ public:
 			mark_t nm = M_MKMARK(value) | (_data[index] & M_BITMASK);
 			if (_data[index] != nm) {
 				_data[index] = nm;
-				_changed = true;
+				_perm_changed = _changed = true;
 			}
 		}
 		weChanged();

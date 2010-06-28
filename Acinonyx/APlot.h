@@ -186,14 +186,14 @@ public:
 	}
 	
 	virtual void draw(vsize_t layer) {
-		if (layer == LAYER_ROOT) {
+		if (layer == LAYER_ROOT || layer == LAYER_HILITE) {
 			// draw plot primitives
 			if (pps) {
 				vsize_t i = 0, n = pps->length();
 				while (i < n) {
 					AVisualPrimitive *o = (AVisualPrimitive*) pps->objectAt(i++);
 					// ALog("%s: draw", o->describe());
-					if (!o->hidden()) o->draw(*this);
+					if (!o->hidden()) o->draw(*this, layer);
 				}
 			}
 		}
@@ -205,7 +205,7 @@ public:
 				while (i < n) {
 					AVisualPrimitive *o = (AVisualPrimitive*) vps->objectAt(i++);
 					ALog("%s: draw", o->describe());
-					if (!o->hidden()) o->draw(*this);
+					if (!o->hidden()) o->draw(*this, layer);
 				}
 			}
 		}
@@ -292,10 +292,14 @@ public:
 				}
 			}		
 
-			if (nid == N_MarkerChanged) {
+			if (nid == N_TransientMarkerChanged) {
 				setRedrawLayer(LAYER_HILITE);
 				redraw();
+			} else if (nid == N_PermanentMarkerChanged) {
+				setRedrawLayer(LAYER_ROOT);
+				redraw();
 			}
+
 			AContainer::notification(source, nid);
 		}
 	}

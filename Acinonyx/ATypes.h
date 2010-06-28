@@ -14,9 +14,9 @@
 #define PFA 1
 
 #define LAYER_ROOT    0
-#define LAYER_HILITE  0
-#define LAYER_OBJECTS 1
-#define LAYER_TRANS   2 /* transient layer - topmost */
+#define LAYER_HILITE  1
+#define LAYER_OBJECTS 2
+#define LAYER_TRANS   3 /* transient layer - topmost */
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,8 +104,11 @@ extern "C" {
 #define KEY_S       1
 #define KEY_C       8
 #define KEY_0      29
+#define KEY_A		0
+#define KEY_H		4
 #define KEY_L      37
-  
+#define KEY_U	   20
+	
 /** This macro is used after memory allocation to check for out of memory issues */
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
 	

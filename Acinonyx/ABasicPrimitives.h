@@ -111,7 +111,7 @@ protected:
 public:
 	ALinePrimitive(APlot *plot, APoint p1, APoint p2) : AScaledPrimitive(plot), _p1(p1), _p2(p2) { OCLASS(ALinePrimitive) }
 
-	virtual void draw(ARenderer &renderer) {
+	virtual void draw(ARenderer &renderer, vsize_t layer) {
 		if (c.a > 0.0f) {
 			renderer.color(c);
 			APoint _s1 = transformPoint(_p1), _s2 = transformPoint(_p2);
@@ -160,7 +160,7 @@ protected:
 public:
 	ABarPrimitive(APlot *plot, ARect rect) : AScaledPrimitive(plot), _r(rect) { OCLASS(ABarPrimitive) }
 	
-	virtual void draw(ARenderer &renderer) {
+	virtual void draw(ARenderer &renderer, vsize_t layer) {
 		ARect _s;
 		APoint pt = transformPoint(AMkPoint(_r.x, _r.y));
 		_s.x = pt.x; _s.y = pt.y;
@@ -211,7 +211,7 @@ public:
 		DCLASS(APolygonPrimitive)
 	}
 	
-	virtual void draw(ARenderer &renderer) {
+	virtual void draw(ARenderer &renderer, vsize_t layer) {
 		transformPoints(_pt, _op, _pts);
 		if (f.a) {
 			renderer.color(f);
@@ -298,7 +298,7 @@ public:
 		DCLASS(ATextPrimitive)
 	}
 	
-	virtual void draw(ARenderer &renderer) {
+	virtual void draw(ARenderer &renderer, vsize_t layer) {
 		if (c.a) {
 			APoint _st = transformPoint(_pt);
 			renderer.color(c);

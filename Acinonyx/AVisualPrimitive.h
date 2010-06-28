@@ -43,7 +43,7 @@ public:
 	APlot *plot() { return _plot; }
 	void setPlot(APlot *aPlot) { _plot = aPlot; } // to be use inside APlot only!
 	
-	virtual void draw(ARenderer &renderer) = 0;
+	virtual void draw(ARenderer &renderer, vsize_t layer) = 0;
 	
 	virtual void update() { };
 	virtual void query(AQuery *query, int level) { }
