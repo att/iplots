@@ -56,7 +56,7 @@ void ACocoa_Init() {
 {
 	ALog("applicationDidFinishLaunching:");
 	REngine *eng = REngine::mainEngine();
-	RObject *o = eng->parseAndEval("as.double({n<-1e5;  x<-rep(seq(1:(n/5)),5)})");
+	RObject *o = eng->parseAndEval("as.double({n<-1e2;  x<-rep(seq(1:(n/5)),5)})");
 //	RObject *o = eng->parseAndEval("as.double({n<-100;  x<-rep(seq(1:(n/5)),5)})");
 
 	AMarker *mark = new AMarker(o->length());
@@ -77,7 +77,7 @@ void ACocoa_Init() {
 	
 	ARect aFrame = AMkRect(0, 0, 400, 300);
 	
-	AVisual *visual = new ATimeSeriesPlot(NULL, aFrame, 0, vx, vy);
+	AVisual *visual = new ATimeSeriesPlot(NULL, aFrame, 0, vx, vy, fv);
 	ACocoa_CreateWindow(visual, AMkPoint(50, 100));
 	visual->release();
 
@@ -96,10 +96,10 @@ void ACocoa_Init() {
 	ACocoa_CreateWindow(visual, AMkPoint(950, 100));
 	visual->release();
 	
-	visual = new AHistogram(NULL, aFrame, 0, vx);
-	ACocoa_CreateWindow(visual, AMkPoint(50, 600));
-	visual->release();
-	
+//	visual = new AHistogram(NULL, aFrame, 0, vx);
+//	ACocoa_CreateWindow(visual, AMkPoint(50, 600));
+//	visual->release();
+//	
 	fv->release();
 	vx->release();
 	vy->release();
