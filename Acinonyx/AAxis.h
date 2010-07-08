@@ -66,6 +66,7 @@ public:
 	void setNames(const char **name, vsize_t names) {
 		if (_name) free(_name);
 		_name = (char **) calloc(names, sizeof(char*));
+		AMEM(_name);
 		if (name)
 			for (vsize_t i = 0; i < names; i++)
 				if (name[i]) _name[i] = strdup(name[i]);

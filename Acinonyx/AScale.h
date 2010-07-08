@@ -133,6 +133,7 @@ public:
 		if (!_locations) {
 			nLoc = _data->length();
 			_locations = (AFloat*) malloc(sizeof(AFloat) * nLoc);
+			AMEM(_locations);
 			cacheDirty = true;
 		}
 		if (cacheDirty) {

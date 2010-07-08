@@ -23,8 +23,10 @@ protected:
 	vsize_t *perm;
 	
 	void initializePermutations() {
-		if (!perm)
+		if (!perm) {
 			perm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+			AMEM(perm);
+		}
 		for (vsize_t i = 0; i < n; i++) perm[i] = i;
 	}
 	
@@ -275,6 +277,7 @@ public:
 	virtual const double *asDoubles() {
 		if (!d_data) {
 			d_data = (double*) malloc(_len * sizeof(double));
+			AMEM(d_data);
 			for (int i=0; i<_len; i++) d_data[i] = (double)_data[i];
 		}
 		return d_data;
@@ -282,6 +285,7 @@ public:
 	virtual const float *asFloats() {
 		if (!f_data) {
 			f_data = (float*) malloc(_len * sizeof(float));
+			AMEM(f_data);
 			for (int i=0; i<_len; i++) f_data[i] = (float)_data[i];
 		}
 		return f_data;

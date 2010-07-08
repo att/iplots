@@ -103,11 +103,13 @@ public:
 		
 #ifdef DEBUG
 		unsigned char *foo = (unsigned char*) malloc(width * height * 4);
-		GLC(glGetTexImage(A_TEXTURE_TYPE, 0, GL_RGBA, GL_UNSIGNED_BYTE, foo));
-		printf("texture [");
-		for (vsize_t i = 0; i < 32; i++) printf("%02x%s", (int) foo[i + width * 40 + 40], ((i & 3) == 3) ? " " : "-");
-		printf("]\n");
-		free(foo);
+		if (foo) {
+			GLC(glGetTexImage(A_TEXTURE_TYPE, 0, GL_RGBA, GL_UNSIGNED_BYTE, foo));
+			printf("texture [");
+			for (vsize_t i = 0; i < 32; i++) printf("%02x%s", (int) foo[i + width * 40 + 40], ((i & 3) == 3) ? " " : "-");
+			printf("]\n");
+			free(foo);
+		}
 #endif
 #if ! A_EXACT_TEXTURE
 		glTexParameteri(A_TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

@@ -103,7 +103,9 @@ int main(int ac, char **av) {
 	AIntVector *iv = new AIntVector(mark, o->integers(), o->length(), true);
 	vsize_t ls = iv->range().length;
 	char ** levels = (char**) malloc(sizeof(char*) * ls);
+	AMEM(levels);
 	char *ln = (char*) malloc(2 * ls);
+	AMEM(ln);
 	for (vsize_t i = 0; i < ls; i++) { ln[i*2] = i + 'A'; ln[i*2+1] = 0; levels[i] = ln + (i*2); }
 	AFactorVector *fv = new AFactorVector(mark, iv->asInts(), iv->length(), (const char**) levels, ls);
 	iv->release();

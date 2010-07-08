@@ -29,6 +29,7 @@ public:
 	ABinning(ADataVector *data, vsize_t n_bins, double anchor_val, double binw_val, bool alloc_groups = false) : x(data), _bins(n_bins), _anchor(anchor_val), _binw(binw_val), _maxCt(0), _groups(alloc_groups ? ((vsize_t*)calloc(sizeof(vsize_t), data->length())) : NULL) {
 		_allocBins = _bins + 8;
 		_counts = (unsigned int *) calloc(sizeof(unsigned int), _allocBins);
+		AMEM(_counts);
 		if (x) x->retain();
 		updateCounts();
 		OCLASS(ABinning);
@@ -107,6 +108,7 @@ public:
 			marker->add(this);
 		}
 		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		AMEM(_scales);
 		_scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		_scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), AMkDataRange(0, bin->maxCount()));
 		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);

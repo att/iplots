@@ -22,6 +22,7 @@ protected:
 public:
 	AUnivarTable(vsize_t size, bool named=true) : _size(size), _names(NULL), _other(0), _max(0) {
 		_counts = (vsize_t*) calloc(_size, sizeof(vsize_t));
+		AMEM(_counts);
 		OCLASS(AUnivarTable)
 	}
 	
@@ -55,7 +56,9 @@ public:
 	char *name(vsize_t index) { return (_names && index < _size) ? _names[index] : 0; }
 	
 	void setName(vsize_t index, const char *name) {
-		if (!_names) _names = (char**) calloc(_size, sizeof(char*));
+		if (!_names)
+			_names = (char**) calloc(_size, sizeof(char*));
+		AMEM(_names);
 		if (index < _size) {
 			if (_names[index] && !strcmp(name, _names[index])) return;
 			if (_names[index]) free(_names[index]);
@@ -72,5 +75,47 @@ public:
 		} else _other++;
 	}
 };
+
+#if 0
+
+typedef struct cross_level {
+	struct cross_level *next;
+	AFactorVector *factor;
+	vsize_t n;
+	void *ptr;
+} cross_level_t;
+
+class ACrossTable : public Object {
+protected:
+	vsize_t n_factors;
+	cross_level_t *levels;
+	AFactorVector **factors;
+public:
+	ACrossTable(AObjectVector *factors) {
+		(factorVars = factors)->retain();
+		factors = (AFactorVector**) factors->asObjects();
+		n_factors = factors->length();
+		buildLevels();
+		OCLASS(ACrossTable)
+	}
+	
+	virtual void buildLevels() {};
+	
+	virtual vsize_t at(vsize_t i0, ...) {
+		return 0;
+	}
+};
+
+class ADenseCrossTable : public ACrossTable {
+public:
+	ADenseCrossTable(AObjectVector *factors) : ACrossTable(factors) {
+	}
+
+	virtual void buildLevels() {
+		
+	}	
+};
+
+#endif
 
 #endif

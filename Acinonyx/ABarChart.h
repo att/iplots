@@ -36,6 +36,7 @@ public:
 		}
 		bars = 0;
 		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		AMEM(_scales);
 		AUnivarTable *tab = x->table();
 		_scales[0] = new AScale(data = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), bars = x->levels());
 		_scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), tab->maxCount() + 1);

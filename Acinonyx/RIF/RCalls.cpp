@@ -693,6 +693,7 @@ SEXP A_BarCreate(SEXP pos) {
 SEXP A_PolygonCreate(SEXP sx, SEXP sy) {
 	double *x = REAL(sx),  *y = REAL(sy);
 	APoint *pt = (APoint*) malloc(sizeof(APoint) * LENGTH(sx));
+	AMEM(pt);
 	vsize_t n = LENGTH(sx);
 	for(vsize_t i = 0; i < n; i++)
 		pt[i] = AMkPoint(x[i], y[i]);
@@ -926,6 +927,7 @@ SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags)
 {
 	vsize_t n = LENGTH(vl);
 	ADataVector **dv = (ADataVector**) malloc(sizeof(ADataVector*) * n);
+	AMEM(dv);
 	for (vsize_t i = 0; i < n; i++)
 		dv[i] = (ADataVector*) SEXP2A(VECTOR_ELT(vl, i));
 	AParallelCoordPlot *pcp = new AParallelCoordPlot(NULL, visual_frame(rect), visual_flags(flags), n, dv);

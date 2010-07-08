@@ -44,6 +44,7 @@ public:
 		}
 
 		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		AMEM(_scales);
 		_scales[0] = new AScale(datax = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		_scales[1] = new AScale(datay = y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
 		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
@@ -72,6 +73,7 @@ public:
 	void setGroups(){
 		vsize_t i = 0, m = 0, npts = datax->length();
 		int *membership = (int*)malloc(npts * sizeof(int));
+		AMEM(membership);
 		double prev = datax->doubleAt(i);
 		while(i < npts){
 			if (datax->doubleAt(i) < prev)
@@ -82,12 +84,17 @@ public:
 		}
 		lines = m + 1;
 		groupCounts = (vsize_t*)calloc(lines, sizeof(vsize_t));
+		AMEM(groupCounts);
 		vsize_t* groupCounters = (vsize_t*)calloc(lines, sizeof(vsize_t));
+		AMEM(groupCounters);
 		for(i = 0; i < npts; i++)
 			groupCounts[membership[i]]++;
 		groupMems = (vsize_t**)malloc(lines * sizeof(vsize_t*));
-		for(i = 0; i < lines; i++)
+		AMEM(groupMems);
+		for(i = 0; i < lines; i++) {
 			groupMems[i] = (vsize_t*)malloc(groupCounts[i] * sizeof(vsize_t));
+			AMEM(groupMems[i]);
+		}
 		for(i = 0; i < npts; i++)
 			groupMems[membership[i]][groupCounters[membership[i]]++] = i;
 		free(groupCounters); groupCounters = NULL;

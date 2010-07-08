@@ -94,6 +94,7 @@ public:
 	virtual const double *asDoubles() {
 		if (!d_data) {
 			d_data = (double*) malloc(_len * sizeof(double));
+			AMEM(d_data);
 			for (int i=0; i<_len; i++) d_data[i] = (double)_data[i];
 		}
 		return d_data;
@@ -101,6 +102,7 @@ public:
 	virtual const int *asInts() {
 		if (!i_data) {
 			i_data = (int*) malloc(_len * sizeof(int));
+			AMEM(i_data);
 			for (int i=0; i<_len; i++) i_data[i] = (int)_data[i];
 		}
 		return i_data;
@@ -223,6 +225,7 @@ public:
 	virtual const double *asDoubles() {
 		if (!d_data) {
 			d_data = (double*) malloc(_len * sizeof(double));
+			AMEM(d_data);
 			for (int i=0; i<_len; i++) d_data[i] = (double)_data[i];
 		}
 		return d_data;
@@ -230,6 +233,7 @@ public:
 	virtual const float *asFloats() {
 		if (!f_data) {
 			f_data = (float*) malloc(_len * sizeof(float));
+			AMEM(f_data);
 			for (int i=0; i<_len; i++) f_data[i] = (float)_data[i];
 		}
 		return f_data;
@@ -280,6 +284,7 @@ public:
 	virtual const char **asStrings() {
 		if (!s_data) {
 			s_data = (char**) malloc(_len * sizeof(char*));
+			AMEM(s_data);
 			for (vsize_t i = 0; i < _len; i++)
 				s_data[i] = (_data[i] < 0 || _data[i] >= _levels)?NULL:_names[_data[i]];
 		}

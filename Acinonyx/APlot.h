@@ -61,6 +61,7 @@ public:
 
 	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), inQuery(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0) {
 		_scales = (AScale**) malloc(sizeof(AScale*)*2);
+		AMEM(_scales);
 		_scales[0] = xScale;
 		_scales[1] = yScale;
 		OCLASS(APlot)

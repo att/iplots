@@ -35,7 +35,7 @@ public:
 #pragma mark --- child list manipulation ---
 	void add(AVisual &obj) {
 		chList_t *n = (chList_t*) malloc(sizeof(chList_t));
-		// FIXME: assert(n!=0)
+		AMEM(n);
 		obj.retain();
 		n->o = &obj;
 		if (_window) {

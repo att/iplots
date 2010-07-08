@@ -40,8 +40,10 @@ public:
 	/* if colors_ is NULL and n_colors is not the vector is allocated */
 	AIndexColorMap(AColor *colors, vsize_t n_colors, bool copy=true) : colors_(0), n_colors_(0) {
 		colors_ = (colors && n_colors && copy) ? (AColor*) memdup(colors, sizeof(AColor) * n_colors) : 0;
-		if (!colors_ && n_colors)
+		if (!colors_ && n_colors) {
 			colors_ = (AColor*) calloc(sizeof(AColor), n_colors);
+			AMEM(colors_);
+		}
 		if (colors_) n_colors_ = n_colors;
 		OCLASS(AIndexColorMap)
 	}

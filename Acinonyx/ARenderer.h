@@ -49,6 +49,7 @@ static void tcbCombine(GLdouble coords[3],
 	GLdouble *vertex;
 	
 	vertex = (GLdouble *) malloc(3 * sizeof(GLdouble));
+	AMEM(vertex);
 	vertex[0] = coords[0];
 	vertex[1] = coords[1];
 	vertex[2] = coords[2];
@@ -298,6 +299,7 @@ public:
 		gluTessBeginPolygon(tess, NULL);
 		gluTessBeginContour(tess);
 		GLdouble *v3 = (GLdouble*) calloc(sizeof(GLdouble) * 3, n);
+		AMEM(v3);
 		for(vsize_t i = 0; i < n; i++) {
 			//GLdouble vc[3];
 			//vc[0] = pt[i].x; vc[1] = pt[i].y; vc[2] = 0.0;
