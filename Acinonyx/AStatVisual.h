@@ -189,16 +189,16 @@ public:
 		return _r;
 	}
 	
-	virtual void draw(ARenderer &renderer) {
+	virtual void draw(ARenderer &renderer, vsize_t layer) {
 		if (isHidden()) return;
 		ALog("%s: draw (visible=%d, selected=%d, hidden=%d) [%g,%g %g,%g]", describe(), visible, selected, hidden,
 			   _r.x, _r.y, _r.width, _r.height);
-		if (f.a) {
+		if (f.a && layer == LAYER_ROOT) {
 			renderer.color(f);
 			renderer.rect(_r);
 		}
 		if (visible) {
-			if (selected) {
+			if (layer == LAYER_HILITE && selected) {
 				renderer.color(hiliteColor);
 				AFloat prop = ((AFloat) selected) /  ((AFloat) visible);
 				switch (fillingDirection) {
@@ -213,7 +213,6 @@ public:
 			renderer.color(c);
 			renderer.rectO(_r);
 		}
-		
 	}
 	
 	virtual bool intersects(ARect rect) {
@@ -234,57 +233,77 @@ public:
 
 class APolyLineStatVisual : public AStatVisual {
 protected:
-	APointVector *_l;
+	AFloat *xs, *ys;
 	AFloat _ptSize;
+	vsize_t *groupMems;
+	vsize_t groupCount;
 	
 public:
-	APolyLineStatVisual(APlot *plot, APointVector *l, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true, bool releaseIDs=true) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _l(l) {
+	APolyLineStatVisual(APlot *plot, AFloat *x, AFloat *y, 	vsize_t *gMems, vsize_t gCount, AMarker *m, vsize_t *ids, vsize_t len, 
+						group_t group, const char* name, bool copy=true, bool releaseIDs=true) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs){
 		c = pointColor;
-		if (!(_l->isDataNull())) _l->retain();
+		xs = x;
+		ys = y;
+		groupCount = gCount;
+		groupMems = gMems;
+		_group_name = name;
 		OCLASS(APolyLineStatVisual);
 	}
 	
-	void setPolyLine(APointVector *l) {
-		if (_l == l) return;
-		if (!(_l->isDataNull())) _l->release();
-		_l = l;
-		_l->retain();
+	~APolyLineStatVisual() {
+		DCLASS(APolyLineStatVisual)
 	}
 	
-	APointVector* polyline() {
-		return _l;
+	void setPoints(AFloat *x, AFloat *y){
+		xs = x;
+		ys = y;
 	}
 	
 	void setDrawAttributes(AFloat ptSize, AFloat ptAlpha){
-		f.a = ptAlpha;
 		c.a = ptAlpha;
 		_ptSize = ptSize; 
 	}
 	
-	virtual void draw(ARenderer &renderer) {
+	virtual void draw(ARenderer &renderer, vsize_t layer) {
 		if (isHidden()) return;
 		ALog("%s: draw (visible=%d, selected=%d, hidden=%d) PolyLine!", describe(), visible, selected, hidden);
-		if (c.a) {
-			renderer.color(c);	//draw lines and points in the same color
-			glPointSize(_ptSize);
-			renderer.polyline(_l->asPoints(), _l->length());
-			renderer.points(_l->asPoints(), _l->length());
-		}
-		if (visible) {
-			if (selected) {
-				renderer.color(hiliteColor);
-				glPointSize(_ptSize);
-				renderer.polyline(_l->asPoints(), _l->length());
-				renderer.points(_l->asPoints(), _l->length());
+		glPointSize(_ptSize);
+		if (c.a && layer == LAYER_ROOT) {
+			//draw lines
+			for (vsize_t i=0; i<(groupCount-1); i++){
+				renderer.color(mark->color(groupMems[i], c.a));
+				if (!mark->isHidden(groupMems[i]) && !mark->isHidden(groupMems[i+1]))
+					renderer.line(xs[groupMems[i]], ys[groupMems[i]], xs[groupMems[i+1]], ys[groupMems[i+1]]);				
 			}
-		}		
+			//draw points
+			for (vsize_t i=0; i<groupCount; i++){
+				renderer.color(mark->color(groupMems[i], c.a));
+				if (!mark->isHidden(groupMems[i]))
+					renderer.point(xs[groupMems[i]], ys[groupMems[i]]);				
+			}
+		}
+		if (visible){
+			if (layer == LAYER_HILITE && selected){
+				renderer.color(hiliteColor);
+				//draw lines
+				for (vsize_t i=0; i<(groupCount-1); i++){
+					if (!mark->isHidden(groupMems[i]) && !mark->isHidden(groupMems[i+1]) &&
+						mark->isSelected(groupMems[i]) && mark->isSelected(groupMems[i+1]))
+						renderer.line(xs[groupMems[i]], ys[groupMems[i]], xs[groupMems[i+1]], ys[groupMems[i+1]]);					
+				}
+				//draw points
+				for (vsize_t i=0; i<groupCount; i++){
+					if (!mark->isHidden(groupMems[i]) && mark->isSelected(groupMems[i]))
+						renderer.point(xs[groupMems[i]], ys[groupMems[i]]);				
+				}
+			}
+		}
 	}
 
 	//checks if the selection rectangle contains a point on this polyline
 	virtual bool intersects(ARect rect) {
-		const APoint* pts = _l->asPoints();
-		for (vsize_t i = 0; i < _l->length(); i++)
-			if (ARectContains(rect, AMkPoint(pts[i].x, pts[i].y))){
+		for (vsize_t i = 0; i < n; i++)
+			if (((group_t)ids[i] == _group) && ARectContains(rect, AMkPoint(xs[i], ys[i]))){
 				return true;
 			}
 		return false;
@@ -292,13 +311,12 @@ public:
 	
 	//checks if this polyline contains the input point 
 	virtual bool containsPoint(APoint pt) {
-		const APoint* pts = _l->asPoints();
-		for (int i = 0; i < _l->length(); i++){
-			if (isNear(pt, pts[i]))
+		for (int i = 0; i < n; i++){
+			if (((group_t)ids[i] == _group) && isNear(pt, AMkPoint(xs[i], ys[i]))){
 				return true;
+			}
 		}
 		return false;
-		//return APolyLineContains(_l, pt);
 	}
 	bool isNear(APoint a, APoint b){
 		double dist = (a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y);
@@ -306,7 +324,7 @@ public:
 			return true;
 		return false;
 	}
-				
+		
 };
 
 #endif
