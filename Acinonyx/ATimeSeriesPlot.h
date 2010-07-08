@@ -21,9 +21,14 @@ protected:
 	AYAxis *ya;
 	vsize_t lines;
 	ADataVector *datax, *datay;
-	AIntVector *dataTS;
+	AIntVector *groupIDs;
+	vsize_t **groupMems;
+	vsize_t *groupCounts;
+	AFactorVector *groupNames;
+	
 public:
-	ATimeSeriesPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags) {
+	ATimeSeriesPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y, AFactorVector *names) : APlot(parent, frame, flags) {
+		groupNames = names;
 		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 		ptSize = 2.0;
 		ptAlpha = 0.7;
@@ -38,22 +43,6 @@ public:
 			marker->add(this);
 		}
 
-		vsize_t i = 0, m = 0, npts = x->length();
-		int *membership = (int*)malloc(npts * sizeof(int));
-		double prev = x->doubleAt(i);
-		while(i < npts){
-			if (x->doubleAt(i) < prev)
-				m++;
-			membership[i] =  m;
-
-			prev = x->doubleAt(i);
-			i++;
-		}
-		lines = m + 1;
-		
-		dataTS = new AIntVector(membership ,npts);
-		free(membership); membership = NULL;
-		
 		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
 		_scales[0] = new AScale(datax = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		_scales[1] = new AScale(datay = y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
@@ -62,6 +51,7 @@ public:
 		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, _scales[1]);
 		add(*ya);
 
+		setGroups();
 		createPrimitives();
 		// add home zoom entry
 		AZoomEntryBiVar *ze = new AZoomEntryBiVar(_scales[0]->dataRange(), _scales[1]->dataRange());
@@ -74,27 +64,38 @@ public:
 	virtual ~ATimeSeriesPlot() {
 		xa->release();
 		ya->release();
+		free(groupCounts); groupCounts = NULL;
+		free(groupMems); groupMems = NULL;
 		DCLASS(ATimeSeriesPlot)
 	}
 	
-	APointVector *createPolyLine(AFloat *lx, AFloat *ly, group_t group, vsize_t len){
-		vsize_t ng = 0;
-		APoint *pts =  (APoint*)malloc(len * sizeof(APoint));
-		const int* ms = dataTS->asInts();
-		for(int i = 0; i < len; i++){
-			if (ms[i] == (int)group){
-				pts[ng] = AMkPoint(lx[i], ly[i]);
-				ng++;
-			}
+	void setGroups(){
+		vsize_t i = 0, m = 0, npts = datax->length();
+		int *membership = (int*)malloc(npts * sizeof(int));
+		double prev = datax->doubleAt(i);
+		while(i < npts){
+			if (datax->doubleAt(i) < prev)
+				m++;
+			membership[i] =  m;
+			prev = datax->doubleAt(i);
+			i++;
 		}
-		APointVector *pvector = new APointVector(pts, ng);
-		free(pts); pts = NULL;
-		return pvector;
+		lines = m + 1;
+		groupCounts = (vsize_t*)calloc(lines, sizeof(vsize_t));
+		vsize_t* groupCounters = (vsize_t*)calloc(lines, sizeof(vsize_t));
+		for(i = 0; i < npts; i++)
+			groupCounts[membership[i]]++;
+		groupMems = (vsize_t**)malloc(lines * sizeof(vsize_t*));
+		for(i = 0; i < lines; i++)
+			groupMems[i] = (vsize_t*)malloc(groupCounts[i] * sizeof(vsize_t));
+		for(i = 0; i < npts; i++)
+			groupMems[membership[i]][groupCounters[membership[i]]++] = i;
+		free(groupCounters); groupCounters = NULL;
+		groupIDs = new AIntVector(membership ,npts);
+		free(membership); membership = NULL;
 	}
 	
 	void createPrimitives() {
-		AFloat *lx = _scales[0]->locations();
-		AFloat *ly = _scales[1]->locations();
 		vsize_t len = _scales[0]->data()->length();
 		if (pps && pps->length() != lines) {
 			pps->release();
@@ -104,11 +105,10 @@ public:
 			pps = new ASettableObjectVector(lines);
 		for(vsize_t i = 0; i < lines; i++) {
 			group_t group = (group_t) i;
-			APointVector *pts = createPolyLine(lx, ly, (group_t)i, len);
-			APolyLineStatVisual *pl = new APolyLineStatVisual(this, pts, marker, 
-															  (vsize_t*)dataTS->asInts(), len, group, false, false);
+			APolyLineStatVisual *pl = new APolyLineStatVisual(this, _scales[0]->locations(), _scales[1]->locations(), 
+															  groupMems[(vsize_t)group], groupCounts[(vsize_t)group],
+															  marker, (vsize_t*)groupIDs->asInts(), len, group, groupNames->stringAt(group), false, false);
 			pl->setDrawAttributes(ptSize, ptAlpha);
-			pts->release();	//we passed ownership to polylinestatvisual
 			((ASettableObjectVector*)pps)->replaceObjectAt(i, pl);
 			pl->release(); // we passed the ownership to pps
 		}
@@ -121,21 +121,44 @@ public:
 		if (!pps)
 			createPrimitives();
 		else {
-			AFloat *lx = _scales[0]->locations();
-			AFloat *ly = _scales[1]->locations();
 			vsize_t i = 0, lines = pps->length();
 			while (i < lines) {
 				APolyLineStatVisual *pl = (APolyLineStatVisual*) pps->objectAt(i);
-				APointVector* pts = createPolyLine(lx, ly, (group_t) i, _scales[0]->data()->length());
-				pl->setPolyLine(pts);
+				pl->setPoints(_scales[0]->locations(), _scales[1]->locations());
 				pl->setDrawAttributes(ptSize, ptAlpha);
-				pts->release();
 				i++;
 			}
 		}
 		APlot::update();
 	}
-	
+
+	//set mode so that all lines NOT selected are hidden
+	void setHidden(bool h) { 
+		vsize_t n = datax->length();
+		vsize_t scount =0;
+		for (vsize_t i = 0; i < n; i++) {
+			if (marker->isSelected(i))
+				scount++;
+			if (scount > 0) break;
+		}
+		if (h){
+			if (scount > 0){
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++) 
+					if (!marker->isSelected(i))
+						marker->hide(i);
+				marker->end();
+			}
+		}
+		else{
+			marker->begin();
+			for (vsize_t i = 0; i < n; i++) 
+				if (!marker->isSelected(i))
+					marker->show(i);
+			marker->end();
+		}
+	}
+
 	virtual bool performZoom(ARect where) {
 		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
 		if (where.width < 3.0 && where.height < 3.0) { // consider this a single click = zoom out
@@ -170,6 +193,9 @@ public:
 			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); update();redraw(); break;
 			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; setRedrawLayer(LAYER_ROOT); update();redraw(); }; break;
 			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); update(); redraw(); } break;
+			//toggle keys
+			case KEY_A: setHidden(false); redraw();  break;
+			case KEY_H: setHidden(true); redraw();  break;
 			default:
 				return false;
 		}
@@ -187,7 +213,41 @@ public:
 		APlot::queryOff();
 	}
 	
-
+	virtual void draw(vsize_t layer) {
+		if (layer == LAYER_TRANS) { // draw the orientation query if needed
+			if (_query->isHidden() && inQuery) {
+				clip(AMkRect(mLeft, mBottom, _frame.width - mRight - mLeft, _frame.height - mTop - mBottom));
+				APoint ql = AMkPoint(_query->frame().x, _query->frame().y);
+				char buf[64];
+				const char *v2;
+				strcpy(buf, _scales[0]->stringForDoubleValue(_scales[0]->value(ql.x)));
+				v2 = _scales[1]->stringForDoubleValue(_scales[1]->value(ql.y));
+				color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0.6);
+				ASize ts1 = bbox(buf), ts2 = bbox(v2);
+				if (ts1.width < ts2.width) ts1.width = ts2.width;
+				rect(AMkRect(ql.x, ql.y - 4.0, ts1.width + 6.0, ts2.height + ts1.height + 8.0));
+				color(0,0,0,0.7);
+				line(0.0, ql.y, _frame.width, ql.y);
+				line(ql.x, 0.0, ql.x, _frame.height);
+				color(1,1,1,0.7);
+				line(0.0+1, ql.y+1, _frame.width+1, ql.y+1);
+				line(ql.x+1, 0.0+1, ql.x+1, _frame.height+1);
+				//txtcolor(0,0,0.4);
+				AFloat xcoord = ql.x + 4.0;
+				AFloat ycoord = ql.y + 2.0;
+				if ((ql.x + 4.0 + ts1.width) > _frame.width)
+					xcoord = ql.x - 4.0 - ts1.width;
+				if ((ql.y + 2.0 + ts1.height + ts2.height) > _frame.height)
+					ycoord = ql.y - 2.0 - ts1.height - ts2.height;
+				text(xcoord, ycoord, buf, 0.0);
+				text(xcoord, ycoord + ts1.height, v2, 0.0);
+				clip(_frame);
+			}
+		}
+		//draw children - polyines!
+		APlot::draw(layer);
+	}
+	
 	virtual char *describe() {
 #ifdef ODEBUG
 		snprintf(desc_buf, 512, "<%p/%d %04x %s [%d]>", this, refcount, _objectSerial, _className, _classSize);
@@ -198,6 +258,8 @@ public:
 	}
 	
 	virtual const char *caption() {
+		if (_caption)
+			return _caption;
 		return value_printf("TimeSeries Plot of %s",
 							(datay->name()) ? datay->name() : "<tmp>");
 	}

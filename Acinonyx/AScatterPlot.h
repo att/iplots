@@ -24,7 +24,7 @@ public:
 		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 		ptSize = 5.0;
 		ptAlpha = 0.6;
-		// printf("AScatterPlot frame = (%f,%f - %f x %f)\n", _frame.x, _frame.y, _frame.width, _frame.height);
+		 printf("AScatterPlot frame = (%f,%f - %f x %f)\n", _frame.x, _frame.y, _frame.width, _frame.height);
 		nScales = 2;
 		marker = x->marker();
 		if (!marker) marker = y->marker();
@@ -157,8 +157,14 @@ public:
 				line(0.0+1, ql.y+1, _frame.width+1, ql.y+1);
 				line(ql.x+1, 0.0+1, ql.x+1, _frame.height+1);
 				//txtcolor(0,0,0.4);
-				text(ql.x + 4.0, ql.y + 2.0, buf, 0.0);
-				text(ql.x + 4.0, ql.y + 2.0 + ts1.height, v2, 0.0);
+				AFloat xcoord = ql.x + 4.0;
+				AFloat ycoord = ql.y + 2.0;
+				if ((ql.x + 4.0 + ts1.width) > _frame.width)
+					xcoord = ql.x - 4.0 - ts1.width;
+				if ((ql.y + 2.0 + ts1.height + ts2.height) > _frame.height)
+					ycoord = ql.y - 2.0 - ts1.height - ts2.height;
+				text(xcoord, ycoord, buf, 0.0);
+				text(xcoord, ycoord + ts1.height, v2, 0.0);
 				clip(_frame);
 			}
 		}
@@ -251,6 +257,8 @@ public:
 	}
 	
 	virtual const char *caption() {
+		if (_caption)
+			return _caption;
 		return value_printf("Scatterplot %s vs %s",
 					 (datay->name()) ? datay->name() : "<tmp>",
 					 (datax->name()) ? datax->name() : "<tmp>");
