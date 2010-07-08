@@ -253,7 +253,7 @@ public:
 					case fromRight: renderer.rect(r.x + (1.0 - prop) * r.width, r.y, r.x + r.width, r.y + r.height); break;
 				}
 			}
-			if (c.a) {
+			if (layer == LAYER_HILITE && c.a) {
 				renderer.color(c);
 				renderer.rectO(r);
 			}
