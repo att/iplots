@@ -120,7 +120,8 @@ public:
 				if (bi) {
 					marker->begin();
 					for (vsize_t i = 0; i < n; i++)
-						marker->setValue(i, bi[i] + COL_CB1 - 1);
+						if (!marker->isHidden(i))
+							marker->setValue(i, bi[i] + COL_CB1 - 1);
 					marker->end();
 				}
 				update(); redraw(); break;

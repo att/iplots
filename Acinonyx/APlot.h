@@ -422,6 +422,8 @@ public:
 	
 	virtual void setCaption(const char* caption){
 		_caption = caption;
+		if (_window)
+			_window->setTitle(caption);
 	}
 	
 	virtual const char *caption() {

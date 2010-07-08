@@ -170,10 +170,11 @@ public:
 				}
 				j++;
 			}
-		
+		}
+		if (layer == LAYER_HILITE) {
 			// draw selection
 			color(AMkColor(1.0, 0.0, 0.0, 1.0));
-			j = 0, n = _data[0]->length();
+			vsize_t j = 0, n = _data[0]->length();
 			while (j < n) {
 				if (!marker->isHidden(j) && (marker->isSelected(j))) {
 					lineBegin();

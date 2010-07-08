@@ -169,14 +169,14 @@ public:
 			}
 		}
 
+		AFloat *lx = _scales[0]->locations();
+		AFloat *ly = _scales[1]->locations();
+
 		if (layer == LAYER_ROOT) {
 			clip(_frame);
 			glPointSize(ptSize);
 			AColor baseColor = AMkColor(0.0,0.0,0.0,ptAlpha);
 			color(baseColor);
-
-			AFloat *lx = _scales[0]->locations();
-			AFloat *ly = _scales[1]->locations();
 
 			if (marker && marker->maxValue()) {
 #ifndef PFA
@@ -219,6 +219,14 @@ public:
 #endif
 			}
 			
+#ifndef PFA
+			glPopMatrix();
+#endif
+			clipOff();
+			color(AMkColor(backgroundColor.r,backgroundColor.g,backgroundColor.b,0.5));
+			rect(0.0,0.0,mLeft,mBottom);			
+		}
+		if (layer == LAYER_HILITE) {
 			//points(lx, ly, _scales[0]->data()->length());
 			if (marker) {
 				const mark_t *ms = marker->rawMarks();
@@ -235,12 +243,6 @@ public:
 #endif
 					}
 			}
-#ifndef PFA
-			glPopMatrix();
-#endif
-			clipOff();
-			color(AMkColor(backgroundColor.r,backgroundColor.g,backgroundColor.b,0.5));
-			rect(0.0,0.0,mLeft,mBottom);
 		}
 
 		// draw children - in our case axes etc.

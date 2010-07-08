@@ -316,6 +316,8 @@ public:
 
 	bool event(AEvent event);
 
+	virtual void setTitle(const char *txt) {};
+
 	virtual bool canClose() { return true; }
 	virtual void close() {};
 
