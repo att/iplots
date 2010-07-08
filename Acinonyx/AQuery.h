@@ -33,6 +33,8 @@ public:
 			redraw();
 		} else {
 			q_text = 0;
+			_frame.width = 0;
+			_frame.height = 0;
 			setHidden(true);
 		}
 	}
