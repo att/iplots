@@ -13,6 +13,7 @@
 #include "ANotfier.h"
 #include "AVector.h"
 #include "AColorMap.h"
+#include "ATable.h"
 
 // NOTE: if this is changed, then also the supercalss may have to be changed!
 #ifdef __cplusplus
@@ -41,24 +42,31 @@ protected:
 	bool _changed, _perm_changed;
 	AColorMap *color_map;
 	mark_t max_value;
+	AUnivarTable *value_table;
 	
 	// checks whether anything changed and performs caching and notification if the batch mode is off
 	void weChanged() {
 		if (_changed && !_batch) {
 			// re-compute the maximum value
-			max_value = 0;
-			for (vsize_t i = 0; i < _len; i++)
-				if ((mark_t) _data[i] > max_value)
-					max_value = (mark_t) _data[i];
+			if (_perm_changed) {
+				max_value = 0;
+				for (vsize_t i = 0; i < _len; i++)
+					if ((mark_t) _data[i] > max_value)
+						max_value = (mark_t) _data[i];
+				if (value_table) { // invalidate the value table
+					value_table->release();
+					value_table = 0;
+				}
+			}
 			// notify all dependents
 			sendNotification(this, _perm_changed ? N_PermanentMarkerChanged : N_TransientMarkerChanged);
 			// re-set changed flag
-			_changed = false;
+			_perm_changed = _changed = false;
 		}
 	}
 
 public:
-	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false) {
+	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false), value_table(0) {
 		_len = len;
 		_perm_changed = _changed = false;
 		_data = (int*) calloc(sizeof(len), len);
@@ -70,6 +78,7 @@ public:
 	virtual ~AMarker() {
 		if (_data) free(_data);
 		if (color_map) color_map->release();
+		if (value_table) value_table->release();
 		DCLASS(AMarker)
 	};
 	
@@ -198,6 +207,16 @@ public:
 	
 	mark_t maxValue() {
 		return max_value;
+	};
+	
+	AUnivarTable *valueTable() {
+		// we compute the table only on-demand and cache it
+		if (!value_table) {
+			value_table = new AUnivarTable(max_value + 1, false);
+			for (vsize_t i = 0; i < _len; i++)
+				value_table->add(M_MARK(_data[i]));
+		}
+		return value_table;
 	};
 	
 	// NOTE: we expose this so that fast iterators can be written. We may think about some solution that is fast but doesn't expose as much ...

@@ -35,11 +35,13 @@ protected:
 	// cached values - those are updated by update()
 	vsize_t selected, hidden, visible; 
 	mark_t minMark, maxMark;
+	// the subclasses can allocate a value table that will be updated automatiacally (if set the visual is assumed to be the owner). The inisital size can be arbitrary as it will be re-allocated to accomadate larger mark sets. It is NULL by default in which case it is ignored.
+	AUnivarTable *value_table;
 	int flags;
 	bool release_ids;
 
 public:
-	AStatVisual(APlot *plot, AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true, bool releaseIDs=true) : AVisualPrimitive(plot), mark(m), n(len), _group(group), _group_name(NULL), flags(0) {
+	AStatVisual(APlot *plot, AMarker *m, vsize_t *i, vsize_t len, group_t group=ANoGroup, bool copy=true, bool releaseIDs=true) : AVisualPrimitive(plot), mark(m), n(len), _group(group), _group_name(NULL), flags(0), value_table(0) {
 		if (mark) {
 			mark->retain();
 			mark->add(this);
@@ -60,6 +62,7 @@ public:
 	}
 	
 	bool isHidden() { return (flags & ASVF_HIDDEN) ? true : false; }
+
 	void setHidden(bool h) { flags &= ~ASVF_HIDDEN; if (h) flags |= ASVF_HIDDEN; }
 	
 	void setGroupName(const char *group_name) {
@@ -67,18 +70,28 @@ public:
 	}
 	
 	// this method is called upon highlighting change
-	// and it calculates selected, hidden and min/max marks
+	// and it calculates selected, hidden, min/max marks and the value table (if set)
 	virtual void update() {
 		selected = 0;
 		hidden = 0;
+		if (value_table) {
+			if (value_table->size() < mark->maxValue()) {
+				value_table->release();
+				value_table = new AUnivarTable(mark->maxValue(), false);
+			} else
+				value_table->reset();
+		}
 		if (_group == ANoGroup) { // direct indexing
 			if (n) minMark = maxMark = mark->value(ids[0]);
 			else minMark = maxMark = 0;
 			for (vsize_t i = 0; i < n; i++) {
 				if (mark->isHidden(ids[i])) hidden++;
 				else {
-					if (mark->isSelected(ids[i])) selected++;
 					mark_t v =  mark->value(ids[i]);
+					if (mark->isSelected(ids[i]))
+						selected++;
+					else if (v && value_table)
+						value_table->add(v);
 					if (v > maxMark) maxMark = v; else if (v < minMark) minMark = v;
 				}
 			}
@@ -88,14 +101,18 @@ public:
 			for (vsize_t i = 0; i < n; i++)
 				if ((group_t)ids[i] == _group) {
 					mark_t v =  mark->value(i);
-					if (mark->isHidden(i)) hidden++; else {
+					if (mark->isHidden(i)) hidden++;
+					else {
 						if (visible == 0)
 							minMark = maxMark = v;
 						else {
 							if (v > maxMark) maxMark = v; else if (v < minMark) minMark = v;
 						}
 						visible++;
-						if (mark->isSelected(i)) selected++;
+						if (mark->isSelected(i))
+							selected++;
+						else if (v && value_table)
+							value_table->add(v);
 					}
 				}
 		}
@@ -178,6 +195,7 @@ public:
 				   bool releaseIDs=true) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs), _r(r), fillingDirection(fillDir) {
 		f = barColor;
 		c = pointColor;
+		value_table = new AUnivarTable(32, false); // the size will be adjusetd by the superclass if needed
 		OCLASS(ABarStatVisual);
 	}
 	
@@ -192,26 +210,53 @@ public:
 	virtual void draw(ARenderer &renderer, vsize_t layer) {
 		if (isHidden()) return;
 		ALog("%s: draw (visible=%d, selected=%d, hidden=%d) [%g,%g %g,%g]", describe(), visible, selected, hidden,
-			   _r.x, _r.y, _r.width, _r.height);
-		if (f.a && layer == LAYER_ROOT) {
-			renderer.color(f);
-			renderer.rect(_r);
-		}
+		     _r.x, _r.y, _r.width, _r.height);
 		if (visible) {
+			ARect r = _r;
+			if (hidden) // re-compute the size taking the hidden amount into account
+				r.height *= ((AFloat) visible) / ((AFloat) (visible + hidden));
+			
+			if (f.a && layer == LAYER_ROOT) {
+				renderer.color(f);
+				renderer.rect(r);
+			}
+			
+			if (layer == LAYER_HILITE && mark->maxValue() > 0) { /* color brushing */
+				AColorMap *cmap = mark->colorMap();
+				AFloat progress = r.height * ((AFloat) selected) /  ((AFloat) visible), base = r.height / ((AFloat) visible);
+				
+				if (fillingDirection == fromLeft || fillingDirection == fromRight)
+					base = r.width / ((AFloat) visible);
+				
+				vsize_t n = value_table->size();
+				for (mark_t i = 1; i < n; i++) {
+					AFloat ch = base * (AFloat) value_table->count(i);
+					if (ch > 0.0) {
+						renderer.color(cmap->color(i));
+						switch (fillingDirection) {
+							case Up: renderer.rect(r.x, r.y + progress, r.x + r.width, r.y + progress + ch); break;
+							case Down: renderer.rect(r.x, r.y + r.height - progress - ch, r.x + r.width, r.y + r.height - progress); break;
+							case fromLeft: renderer.rect(r.x + progress, r.y, r.x + progress + ch, r.y + r.height); break;
+							case fromRight: renderer.rect(r.x + r.width - progress - ch, r.y, r.x + r.width - progress, r.y + r.height); break;
+						}
+						progress += ch;
+					}
+				}
+			}
 			if (layer == LAYER_HILITE && selected) {
 				renderer.color(hiliteColor);
 				AFloat prop = ((AFloat) selected) /  ((AFloat) visible);
 				switch (fillingDirection) {
-					case Up: renderer.rect(_r.x, _r.y, _r.x + _r.width, _r.y + prop * _r.height); break;
-					case Down: renderer.rect(_r.x, _r.y + (1.0 - prop) * _r.height, _r.x + _r.width, _r.y + _r.height); break;
-					case fromLeft: renderer.rect(_r.x, _r.y, _r.x + prop * _r.width, _r.y + _r.height); break;
-					case fromRight: renderer.rect(_r.x + (1.0 - prop) * _r.width, _r.y, _r.x + _r.width, _r.y + _r.height); break;
+					case Up: renderer.rect(r.x, r.y, r.x + r.width, r.y + prop * r.height); break;
+					case Down: renderer.rect(r.x, r.y + (1.0 - prop) * r.height, r.x + r.width, r.y + r.height); break;
+					case fromLeft: renderer.rect(r.x, r.y, r.x + prop * r.width, r.y + r.height); break;
+					case fromRight: renderer.rect(r.x + (1.0 - prop) * r.width, r.y, r.x + r.width, r.y + r.height); break;
 				}
 			}
-		}
-		if (c.a) {
-			renderer.color(c);
-			renderer.rectO(_r);
+			if (c.a) {
+				renderer.color(c);
+				renderer.rectO(r);
+			}
 		}
 	}
 	
