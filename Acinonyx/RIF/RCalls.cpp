@@ -33,6 +33,9 @@ extern "C" {
 	SEXP A_MarkerSelected(SEXP m);
 	SEXP A_MarkerValues(SEXP m);
 	SEXP A_MarkerSelect(SEXP m, SEXP sel);
+	SEXP A_MarkerHidden(SEXP sM);
+	SEXP A_MarkerHide(SEXP sM, SEXP sel);
+	SEXP A_MarkerShow(SEXP sM, SEXP sel);
 	SEXP A_MarkerSetValues(SEXP sM, SEXP sel);
 	SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun);
 
