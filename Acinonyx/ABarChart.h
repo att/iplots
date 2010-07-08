@@ -192,6 +192,8 @@ public:
 	}
 	
 	virtual const char *caption() {
+		if (_caption)
+			return _caption;
 		return value_printf("Barchart of %s", (data && data->name()) ? data->name() : "<tmp>");
 	}
 	

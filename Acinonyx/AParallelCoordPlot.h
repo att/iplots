@@ -254,6 +254,8 @@ public:
 	}
 
 	virtual const char *caption() {
+		if (_caption)
+			return _caption;
 		return "Parallel Coordinates Plot";
 	}	
 };

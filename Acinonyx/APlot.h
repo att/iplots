@@ -49,9 +49,10 @@ protected:
 	
 	/** general-purpose status variables - those may not be needed in general, but since most plots use them it makes sense to keep them here */
 	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
-
+	const char* _caption;		/**title for the container */
+	
 public:
-	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inQuery(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6) {
+	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inQuery(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6), _caption(NULL) {
 		_query = new AQuery(this);
 		_query->setHidden(true);
 		add(*_query);
@@ -136,6 +137,7 @@ public:
 	virtual void queryOff() {
 		bool needRedraw = !_query->isHidden();
 		_query->setHidden(true);
+		_query->setText(0);
 		inQuery = false;
 		if (needRedraw) redraw();
 	}
@@ -418,7 +420,13 @@ public:
 		}
 	}
 	
+	virtual void setCaption(const char* caption){
+		_caption = caption;
+	}
+	
 	virtual const char *caption() {
+		if (_caption)
+			return _caption;
 		return "generic plot";
 	}
 };

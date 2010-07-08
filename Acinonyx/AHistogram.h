@@ -211,6 +211,8 @@ public:
 	}
 	
 	virtual const char *caption() {
+		if (_caption)
+			return _caption;
 		return value_printf("Histogram of %s", (data && data->name()) ? data->name() : "<tmp>");
 	}
 	
