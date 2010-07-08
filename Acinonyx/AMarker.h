@@ -66,7 +66,7 @@ protected:
 	}
 
 public:
-	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false), value_table(0) {
+	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false), value_table(0), max_value(0) {
 		_len = len;
 		_perm_changed = _changed = false;
 		_data = (int*) calloc(sizeof(len), len);
