@@ -80,7 +80,8 @@ extern "C" {
 	SEXP A_PlotRemoveAllPrimitives(SEXP sPlot);
 	SEXP A_PlotScale(SEXP sPlot, SEXP sSNR);
 	SEXP A_PlotScales(SEXP sPlot);
-	SEXP A_PlotCaption(SEXP sPlot);
+	SEXP A_PlotSetCaption(SEXP sPlot, SEXP caption);
+	SEXP A_PlotGetCaption(SEXP sPlot);
 	SEXP A_PlotRedraw(SEXP sPlot, SEXP sRoot);
 	SEXP A_PlotValue(SEXP sPlot);
 	SEXP A_PlotSetValue(SEXP sPlot, SEXP sValue);
@@ -89,7 +90,7 @@ extern "C" {
 	SEXP A_PlotPrimaryMarker(SEXP sPlot);
 	
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect, SEXP flags);
-	SEXP A_TimePlot(SEXP x, SEXP y, SEXP rect, SEXP flags);
+	SEXP A_TimePlot(SEXP x, SEXP y, SEXP names, SEXP rect, SEXP flags);
 	SEXP A_BarPlot(SEXP x, SEXP rect, SEXP flags);
 	SEXP A_HistPlot(SEXP x, SEXP rect, SEXP flags);
 	SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags);
@@ -305,6 +306,78 @@ SEXP A_MarkerSelect(SEXP sM, SEXP sel)
 	return sM;
 }
 
+SEXP A_MarkerHidden(SEXP sM)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	vsize_t n = m->length();
+	SEXP res = Rf_allocVector(LGLSXP, n);
+	int *l = LOGICAL(res);
+	for (vsize_t i = 0; i < n; i++)
+		l[i] = m->isHidden(i) ? 1 : 0;
+	return res;
+}
+
+SEXP A_MarkerHide(SEXP sM, SEXP sel)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	vsize_t n = m->length();
+	if (TYPEOF(sel) == LGLSXP) { /* logical */
+		if (LENGTH(sel) != n)
+			Rf_error("length mismatch");
+		m->begin();
+		int *l = LOGICAL(sel);
+		for (vsize_t i = 0; i < n; i++)
+			if (l[i] == 1)
+				m->hide(i);
+			else if (l[i] == 0)
+				m->show(i);
+		m->end();
+	} else if (TYPEOF(sel) == INTSXP) {
+		m->begin();
+		int *l = INTEGER(sel);
+		vsize_t ll = LENGTH(sel);
+		for (vsize_t i = 0; i < ll; i++)
+			if (l[i] > 0)
+				m->hide(l[i] - 1);
+			else if (l[i] < 0)
+				m->show(-l[i]);
+		m->end();
+	} else Rf_error("invalid selection specification (must be integer or logical vector)");
+	return sM;
+}
+
+SEXP A_MarkerShow(SEXP sM, SEXP sel)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	vsize_t n = m->length();
+	if (TYPEOF(sel) == LGLSXP) { /* logical */
+		if (LENGTH(sel) != n)
+			Rf_error("length mismatch");
+		m->begin();
+		int *l = LOGICAL(sel);
+		for (vsize_t i = 0; i < n; i++)
+			if (l[i] == 1)
+				m->show(i);
+			else if (l[i] == 0)
+				m->hide(i);
+		m->end();
+	} else if (TYPEOF(sel) == INTSXP) {
+		m->begin();
+		int *l = INTEGER(sel);
+		vsize_t ll = LENGTH(sel);
+		for (vsize_t i = 0; i < ll; i++)
+			if (l[i] > 0)
+				m->show(l[i] - 1);
+			else if (l[i] < 0)
+				m->hide(-l[i]);
+		m->end();
+	} else Rf_error("invalid selection specification (must be integer or logical vector)");
+	return sM;
+}
+
 SEXP A_MarkerValues(SEXP sM)
 {
 	AMarker *m = (AMarker*) SEXP2A(sM);
@@ -482,7 +555,15 @@ SEXP A_PlotScales(SEXP sPlot)
 	return Rf_ScalarInteger(pl ? pl->scales() : 0);
 }
 
-SEXP A_PlotCaption(SEXP sPlot)
+SEXP A_PlotSetCaption(SEXP sPlot, SEXP caption)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (pl)
+		pl->setCaption(CHAR(STRING_ELT(caption, 0)));
+	return R_NilValue;
+}
+
+SEXP A_PlotGetCaption(SEXP sPlot)
 {
 	APlot *pl = (APlot*) SEXP2A(sPlot);
 	if (!pl) return Rf_mkString("<NULL>");
@@ -813,11 +894,13 @@ SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect, SEXP flags)
 	return A2SEXP(sp);
 }
 
-SEXP A_TimePlot(SEXP x, SEXP y, SEXP rect, SEXP flags)
+SEXP A_TimePlot(SEXP x, SEXP y, SEXP names, SEXP rect, SEXP flags)
 {
 	ADataVector *xv = (ADataVector*) SEXP2A(x);
 	ADataVector *yv = (ADataVector*) SEXP2A(y);
-	ATimeSeriesPlot *sp = new ATimeSeriesPlot(NULL, visual_frame(rect), visual_flags(flags), xv, yv);
+	ADataVector *fv = (ADataVector*) SEXP2A(names);
+	if (!fv->isFactor()) Rf_error("names must be a factor");
+	ATimeSeriesPlot *sp = new ATimeSeriesPlot(NULL, visual_frame(rect), visual_flags(flags), xv, yv, (AFactorVector*)fv);
 	return A2SEXP(sp);
 }
 
