@@ -96,8 +96,13 @@ static void HelpKeyDown(control w, int key)
 	Rprintf("keyDown, key=%d\n", key);
 #endif
 	switch (key) {
-		case 48 : key = KEY_0; break;
-		case 115: key = KEY_S; break;
+		case '0': key = KEY_0; break;
+		case 'a': key = KEY_A; break;
+		case 's': key = KEY_S; break;
+		case 'c': key = KEY_C; break;
+		case 'h': key = KEY_H; break;
+		case 'l': key = KEY_L; break;
+		case 'u': key = KEY_U; break;
 	}
 	win->event(AMkEvent(AE_KEY_DOWN, lastButtonState, key, AMkPoint(0.0, 0.0)));
 }
