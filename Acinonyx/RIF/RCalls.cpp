@@ -33,9 +33,8 @@ extern "C" {
 	SEXP A_MarkerSelected(SEXP m);
 	SEXP A_MarkerValues(SEXP m);
 	SEXP A_MarkerSelect(SEXP m, SEXP sel);
-	SEXP A_MarkerHidden(SEXP sM);
-	SEXP A_MarkerHide(SEXP sM, SEXP sel);
-	SEXP A_MarkerShow(SEXP sM, SEXP sel);
+	SEXP A_MarkerIsVisible(SEXP sM);
+	SEXP A_MarkerVisible(SEXP sM, SEXP sel);
 	SEXP A_MarkerSetValues(SEXP sM, SEXP sel);
 	SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun);
 
@@ -310,7 +309,7 @@ SEXP A_MarkerSelect(SEXP sM, SEXP sel)
 	return sM;
 }
 
-SEXP A_MarkerHidden(SEXP sM)
+SEXP A_MarkerIsVisible(SEXP sM)
 {
 	AMarker *m = (AMarker*) SEXP2A(sM);
 	if (!m) Rf_error("invalid marker (NULL)");
@@ -322,7 +321,7 @@ SEXP A_MarkerHidden(SEXP sM)
 	return res;
 }
 
-SEXP A_MarkerHide(SEXP sM, SEXP sel)
+SEXP A_MarkerVisible(SEXP sM, SEXP sel)
 {
 	AMarker *m = (AMarker*) SEXP2A(sM);
 	if (!m) Rf_error("invalid marker (NULL)");
@@ -343,32 +342,6 @@ SEXP A_MarkerHide(SEXP sM, SEXP sel)
 		for (vsize_t i = 0; i < ll; i++)
 			if (l[i] > 0)
 				m->hide(l[i] - 1);
-		m->end();
-	} else Rf_error("invalid selection specification (must be integer or logical vector)");
-	return sM;
-}
-
-SEXP A_MarkerShow(SEXP sM, SEXP sel)
-{
-	AMarker *m = (AMarker*) SEXP2A(sM);
-	if (!m) Rf_error("invalid marker (NULL)");
-	vsize_t n = m->length();
-	if (TYPEOF(sel) == LGLSXP) { /* logical */
-		if (LENGTH(sel) != n)
-			Rf_error("length mismatch");
-		m->begin();
-		int *l = LOGICAL(sel);
-		for (vsize_t i = 0; i < n; i++)
-			if (l[i] == 1)
-				m->show(i);
-		m->end();
-	} else if (TYPEOF(sel) == INTSXP) {
-		m->begin();
-		int *l = INTEGER(sel);
-		vsize_t ll = LENGTH(sel);
-		for (vsize_t i = 0; i < ll; i++)
-			if (l[i] > 0)
-				m->show(l[i] - 1);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
 	return sM;
