@@ -29,6 +29,8 @@ redraw <- function(x, ...) UseMethod("redraw")
 selected <- function(x, ...) UseMethod("selected")
 select <- function(x, ...) UseMethod("select")
 move <- function(x, ...) UseMethod("move")
+isvisible <- function(x, ...) UseMethod("isvisible")
+visible <- function(x, ...) UseMethod("visible")
 
 add <- function(x, ...) UseMethod("add")
 add.iPlot <- function(x, obj, ...) UseMethod("add.iPlot", obj)
@@ -89,12 +91,15 @@ iplot.default <- function(x, y, xname=deparse(substitute(x)), yname=deparse(subs
  .do.plot("A_ScatterPlot", "iScatterplot", window, frame, flags, vx, vy)
 }
 
-its.default <- function(x, y, xname=deparse(substitute(x)), yname=deparse(substitute(y)), ..., window, frame, flags) {
+its.default <- function(x, y, names, xname=deparse(substitute(x)), yname=deparse(substitute(y)), vname=deparse(substitute(names)), 
+	..., window, frame, flags) {
   if (!is.character(xname) || length(xname) != 1) stop("invalid xname argument - must be a character vector of length one")
   if (!is.character(yname) || length(yname) != 1) stop("invalid yname argument - must be a character vector of length one")
+  if (!is.character(vname) || length(vname) != 1) stop("invalid yname argument - must be a character vector of length one")
   vx = .var(x, xname)
   vy = .var(y, yname)
-  .do.plot("A_TimePlot", "iTimeSeriesPlot", window, frame, flags, vx, vy)
+  vnames = .var(names, vname)
+  .do.plot("A_TimePlot", "iTimeSeriesPlot", window, frame, flags, vx, vy, vnames)
 }
 
 ibar.factor <- function(x, xname=deparse(substitute(x)), ..., window, frame, flags) {
@@ -146,6 +151,8 @@ redraw.iVisual <- function(x, ...)
     return(c(x$ylim.low, x$ylim.hi))
   if (name == "frame")
     return(.Call("A_PlotGetFrame", x))
+	if (name == "caption")
+    return(.Call("A_PlotGetCaption", x))
   d <- .Call("A_PlotDoubleProperty", x, name)
   if (!is.null(d) && !all(is.na(d))) return(if (name %in% c("spines")) (d > 0.5) else d)
   o <- .Call("A_PlotValue", x)
@@ -172,6 +179,12 @@ redraw.iVisual <- function(x, ...)
     .Call("A_PlotSetFrame", x, as.double(value))
     return(x)
   }
+	if (name == "caption"){
+		if (length(value) < 1)
+			stop("invalid title string")
+		.Call("A_PlotSetCaption", x, as.character(value))
+		return(x)
+	}
   if (.Call("A_PlotSetDoubleProperty", x, name, value)) return(x)
   o <- .Call("A_PlotValue", x)
   o[[name]] <- value
@@ -240,6 +253,24 @@ select.iPlot <- function(x, which) {
   invisible(.Call("A_MarkerSelect", m, which))
 }
 
+iset.isvisible<- function() {
+	if (is.null(.ipe$m)) stop("no active iSet");
+	.Call("A_MarkerIsVisible", m)
+}  
+
+iset.visible <- function(what) {
+	if (is.null(.ipe$m)) stop("no active iSet");
+	if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
+	invisible(.Call("A_MarkerVisible", m, which))
+}
+
+visible.iPlot <- function(x, which) {
+	m <- x$marker
+	if (is.null(m)) stop("plot has no primary marker")
+	if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
+	invisible(.Call("A_MarkerVisible", m, which))
+}
+
 idev <- function(width=640, height=480, ps=12, bg=0, canvas=0, dpi=90, window, flags) {
   flags <- if (missing(flags)) 0L else .flags(flags)
   dev <- .External("RAcinonyxDevice", width, height, ps, bg, canvas, dpi, flags)
@@ -257,5 +288,5 @@ CONS <- function(head, tail=NULL) .Call("A_CONS", head, tail)
 
 print.iObject <- function(x, ...) { cat(.Call("A_Describe", x),"\n"); x }
 print.primitive <- function(x, ...) { cat("iPlot primitive",.Call("A_Describe", x),"\n"); x }
-print.iPlot <- function(x, ...) { cat(.Call("A_PlotCaption", x), " (", .Call("A_Describe", x), ")\n", sep=''); x }
+print.iPlot <- function(x, ...) { cat(.Call("A_PlotGetCaption", x), " (", .Call("A_Describe", x), ")\n", sep=''); x }
 print.iWindow <- function(x, ...) { cat("iPlots window", .Call("A_Describe", x), "\n"); x }
