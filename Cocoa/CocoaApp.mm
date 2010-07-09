@@ -61,6 +61,7 @@ void ACocoa_Init() {
 
 	AMarker *mark = new AMarker(o->length());
 	mark->setColorMap(new ADefaultColorMap());
+	mark->enableUndo(16);
 
 	ADataVector *vx = new ARDoubleVector(mark, o);
 	vx->setName("x");

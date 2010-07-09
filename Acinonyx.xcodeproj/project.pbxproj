@@ -71,6 +71,7 @@
 		68A251980D7DEE9700007CBD /* AVisualPrimitive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVisualPrimitive.h; sourceTree = "<group>"; };
 		68A251990D7DF2BA00007CBD /* AAxis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AAxis.h; sourceTree = "<group>"; };
 		68A2519A0D7DF62600007CBD /* AScatterPlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AScatterPlot.h; sourceTree = "<group>"; };
+		68B2569E11E7CAEB00975EE5 /* AIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIndex.h; sourceTree = "<group>"; };
 		68BF1BC10D79C43A0095B772 /* CocoaApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaApp.h; sourceTree = "<group>"; };
 		68BF1BC20D79C43A0095B772 /* CocoaApp.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CocoaApp.mm; sourceTree = "<group>"; };
 		68BF1BC30D79C43A0095B772 /* CocoaView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaView.h; sourceTree = "<group>"; };
@@ -269,6 +270,7 @@
 				68DED9C70FFD729C00C1DB43 /* AQuery.h */,
 				68A1231511D3E09600306B88 /* AColorMap.h */,
 				68D71E5311E62A9200E20FC0 /* ATable.h */,
+				68B2569E11E7CAEB00975EE5 /* AIndex.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";

@@ -111,6 +111,7 @@ public:
 	}
 	
 	virtual bool keyDown(AEvent e) {
+		if (APlot::keyDown(e)) return true;
 		switch (e.key) {
 			case KEY_S: spines = !spines; update(); redraw(); break;
 			case KEY_C:

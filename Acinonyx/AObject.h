@@ -42,6 +42,8 @@ public:
 #endif
 
 public:
+	int tag_;
+
 	AObject() : refcount(1) 
 #ifdef AUTORELEASE_SUPPORT
 	, arpp(0)

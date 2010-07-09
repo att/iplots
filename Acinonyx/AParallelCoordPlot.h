@@ -241,7 +241,7 @@ public:
 	}
 	
 	virtual bool keyDown(AEvent e) {
-	  ALog("PCP keyDown: %d\n", e.key);
+		if (APlot::keyDown(e)) return true;
 		switch (e.key) {
 			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
 			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); redraw(); break;

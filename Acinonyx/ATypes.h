@@ -30,6 +30,8 @@ extern "C" {
 	
 	typedef unsigned int notifid_t; /**< notification ID type */ 
 
+	typedef unsigned char byte_t; /**< unsigend 8-bit type for general storage */
+	
 	typedef struct ARect_s { AFloat x,y,width,height; } ARect; /**< structure representing a rectangular region by progin and size */
 	typedef struct APoint_s { AFloat x,y; } APoint; /**< structure describing a point */
 	typedef struct ASize_s { AFloat width, height; } ASize; /**< structure describing size */
@@ -107,8 +109,9 @@ extern "C" {
 #define KEY_A		0
 #define KEY_H		4
 #define KEY_L      37
-#define KEY_U	   20
-	
+#define KEY_U	   32
+#define KEY_I	   34
+
 /** This macro is used after memory allocation to check for out of memory issues */
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
 	

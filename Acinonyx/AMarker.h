@@ -14,6 +14,8 @@
 #include "AVector.h"
 #include "AColorMap.h"
 #include "ATable.h"
+#include "AStack.h"
+#include "AIndex.h"
 
 // NOTE: if this is changed, then also the supercalss may have to be changed!
 #ifdef __cplusplus
@@ -36,6 +38,10 @@ typedef unsigned int mark_t;
 #define N_TransientMarkerChanged 0x11
 #define N_PermanentMarkerChanged 0x10
 
+#define TAG_UNDO_TRANS  1
+#define TAG_UNDO_OUT    2
+#define TAG_UNDO_VALUE  3
+
 class AMarker : public ANotifierInterface, public APlainIntVector {
 protected:
 	bool _batch;
@@ -43,10 +49,13 @@ protected:
 	AColorMap *color_map;
 	mark_t max_value;
 	AUnivarTable *value_table;
+	AForgetfulStack *undo_;
+	ADenseBitmap *lastTrans, *lastPerm;
 	
 	// checks whether anything changed and performs caching and notification if the batch mode is off
 	void weChanged() {
 		if (_changed && !_batch) {
+			ALog("%s: weChanged: %s", describe(), _perm_changed ? "permanent" : "transient");
 			// re-compute the maximum value
 			if (_perm_changed) {
 				max_value = 0;
@@ -57,7 +66,21 @@ protected:
 					value_table->release();
 					value_table = 0;
 				}
-			}
+				// currently we can't tell whether it's visibility or value - but we store only visibility
+				if (undo_) {
+					undo_->push(lastPerm);
+					lastPerm->release();
+					lastPerm  = new ADenseBitmap(_data, length(), M_OUT_BIT);
+					lastPerm->tag_  = TAG_UNDO_OUT;
+				}
+				// FIXME: we don't know whether transient selection changed as well or not, so we assume it did not .. not good .. We should maybe store the whole set instead ..				
+			} else
+				if (undo_) {
+					undo_->push(lastTrans);
+					lastTrans->release();
+					lastTrans = new ADenseBitmap(_data, length(), M_MARK_BIT);
+					lastTrans->tag_ = TAG_UNDO_TRANS;
+				}
 			// notify all dependents
 			sendNotification(this, _perm_changed ? N_PermanentMarkerChanged : N_TransientMarkerChanged);
 			// re-set changed flag
@@ -66,7 +89,7 @@ protected:
 	}
 
 public:
-	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false), value_table(0), max_value(0) {
+	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false), value_table(0), max_value(0), undo_(0) {
 		_len = len;
 		_perm_changed = _changed = false;
 		_data = (int*) calloc(sizeof(len), len);
@@ -79,8 +102,44 @@ public:
 		if (_data) free(_data);
 		if (color_map) color_map->release();
 		if (value_table) value_table->release();
+		if (undo_) {
+			lastTrans->release();
+			lastPerm->release();
+			undo_->popAll();
+			undo_->release();
+		}
 		DCLASS(AMarker)
 	};
+	
+	void enableUndo(vsize_t maxEntries = 8) {
+		if (undo_) return;
+		lastTrans = new ADenseBitmap(_data, length(), M_MARK_BIT);
+		lastTrans->tag_ = TAG_UNDO_TRANS;
+		lastPerm  = new ADenseBitmap(_data, length(), M_OUT_BIT);
+		lastPerm->tag_  = TAG_UNDO_OUT;
+		undo_ = new AForgetfulStack(maxEntries);
+		ALog("%s: enabled undo", describe());
+	}
+	
+	void undo() {
+		ALog("Marker undo: %s", undo_ ? undo_->describe() : "<undo is NULL>");
+		if (undo_ && !undo_->isEmpty()) {
+			ADenseBitmap *bm = (ADenseBitmap*) undo_->pop();
+			if (bm) {
+				if (bm->tag_ == TAG_UNDO_TRANS) { /* selection undo */
+					lastTrans->release();
+					lastTrans = bm;
+					bm->restore(_data, M_MARK_BIT);
+					sendNotification(this, N_TransientMarkerChanged);
+				} else if (bm->tag_ == TAG_UNDO_OUT) { /* visibility undo */
+					lastPerm->release();
+					lastPerm = bm;
+					bm->restore(_data, M_OUT_BIT);
+					sendNotification(this, N_PermanentMarkerChanged);
+				} else bm->release(); /* don't know what to do - just remove */
+			}
+		}
+	}
 	
 	void setColorMap(AColorMap *cm) {
 		if (color_map)

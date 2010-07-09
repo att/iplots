@@ -52,7 +52,7 @@ protected:
 	const char* _caption;		/**title for the container */
 	
 public:
-	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new AStack()), marker(0), inSelection(false), inQuery(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6), _caption(NULL) {
+	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new ABlockStack()), marker(0), inSelection(false), inQuery(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6), _caption(NULL) {
 		_query = new AQuery(this);
 		_query->setHidden(true);
 		add(*_query);
@@ -407,6 +407,56 @@ public:
 			queryAt(e.location, (e.flags & AEF_SHIFT) ? 1 : 0);
 		}
 		return false;
+	}
+	
+	virtual bool keyDown(AEvent e) {
+		ALog("%s: keyDown(key=%d)", describe(), e.key);
+		switch (e.key) {
+			case KEY_U: if (marker) marker->undo(); break;
+			case KEY_H: {
+				vsize_t i = 0, n = marker->length();
+				for (; i < n; i++) 
+					if (marker->isSelected(i)) break;
+				
+				if (i < n) {
+					marker->begin();
+					for (vsize_t i = 0; i < n; i++) 
+						if (!marker->isSelected(i))
+							marker->hide(i);
+					marker->end();
+				} else {
+					marker->begin();
+					for (vsize_t i = 0; i < n; i++)
+						marker->show(i);
+					marker->end();
+				}
+				break;
+			}
+			case KEY_I:
+			{
+				vsize_t n = marker->length();
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++)
+					if (marker->isSelected(i))
+						marker->deselect(i);
+					else 
+						marker->select(i);
+				marker->end();
+				break;
+			}
+			case KEY_A:
+			{
+				vsize_t n = marker->length();
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++)
+					marker->show(i);
+				marker->end();
+				break;
+			}
+			default:
+				return false;
+		}
+		return true;
 	}
 	
 	virtual bool performZoom(ARect where) {

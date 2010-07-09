@@ -139,33 +139,6 @@ public:
 		APlot::update();
 	}
 
-	//set mode so that all lines NOT selected are hidden
-	void setHidden(bool h) { 
-		vsize_t n = datax->length();
-		vsize_t scount =0;
-		for (vsize_t i = 0; i < n; i++) {
-			if (marker->isSelected(i))
-				scount++;
-			if (scount > 0) break;
-		}
-		if (h){
-			if (scount > 0){
-				marker->begin();
-				for (vsize_t i = 0; i < n; i++) 
-					if (!marker->isSelected(i))
-						marker->hide(i);
-				marker->end();
-			}
-		}
-		else{
-			marker->begin();
-			for (vsize_t i = 0; i < n; i++) 
-				if (!marker->isSelected(i))
-					marker->show(i);
-			marker->end();
-		}
-	}
-
 	virtual bool performZoom(ARect where) {
 		// printf("%s: perform selection: (%g,%g - %g,%g)\n", describe(), where.x, where.y, where.width, where.height);
 		if (where.width < 3.0 && where.height < 3.0) { // consider this a single click = zoom out
@@ -195,14 +168,13 @@ public:
 	}
 	
 	virtual bool keyDown(AEvent e) {
+		if (APlot::keyDown(e)) return true;
 		switch (e.key) {
 			case KEY_DOWN: if (ptSize > 1.0) { ptSize -= 1.0; setRedrawLayer(LAYER_ROOT); update(); redraw(); }; break;
 			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); update();redraw(); break;
 			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; setRedrawLayer(LAYER_ROOT); update();redraw(); }; break;
 			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); update(); redraw(); } break;
 			//toggle keys
-			case KEY_A: setHidden(false); redraw();  break;
-			case KEY_H: setHidden(true); redraw();  break;
 			default:
 				return false;
 		}
