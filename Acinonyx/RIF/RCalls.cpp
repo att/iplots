@@ -225,6 +225,7 @@ SEXP A_VarMark(SEXP v) {
 	ADataVector *dv = (ADataVector*) SEXP2A(v);
 	if (!dv) Rf_error("invalid variable (NULL)");
 	AMarker *mark = dv->marker();
+	if (mark) mark->retain();
 	return mark ? A2SEXP(mark) : R_NilValue;
 }
 
@@ -328,14 +329,12 @@ SEXP A_MarkerHide(SEXP sM, SEXP sel)
 	vsize_t n = m->length();
 	if (TYPEOF(sel) == LGLSXP) { /* logical */
 		if (LENGTH(sel) != n)
-			Rf_error("length mismatch");
+			Rf_error("length mismatch: ");
 		m->begin();
 		int *l = LOGICAL(sel);
 		for (vsize_t i = 0; i < n; i++)
 			if (l[i] == 1)
 				m->hide(i);
-			else if (l[i] == 0)
-				m->show(i);
 		m->end();
 	} else if (TYPEOF(sel) == INTSXP) {
 		m->begin();
@@ -344,8 +343,6 @@ SEXP A_MarkerHide(SEXP sM, SEXP sel)
 		for (vsize_t i = 0; i < ll; i++)
 			if (l[i] > 0)
 				m->hide(l[i] - 1);
-			else if (l[i] < 0)
-				m->show(-l[i]);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
 	return sM;
@@ -364,8 +361,6 @@ SEXP A_MarkerShow(SEXP sM, SEXP sel)
 		for (vsize_t i = 0; i < n; i++)
 			if (l[i] == 1)
 				m->show(i);
-			else if (l[i] == 0)
-				m->hide(i);
 		m->end();
 	} else if (TYPEOF(sel) == INTSXP) {
 		m->begin();
@@ -374,8 +369,6 @@ SEXP A_MarkerShow(SEXP sM, SEXP sel)
 		for (vsize_t i = 0; i < ll; i++)
 			if (l[i] > 0)
 				m->show(l[i] - 1);
-			else if (l[i] < 0)
-				m->hide(-l[i]);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
 	return sM;
@@ -547,7 +540,10 @@ SEXP A_PlotScale(SEXP sPlot, SEXP sSNR)
 	APlot *pl = (APlot*) SEXP2A(sPlot);
 	if (pl) {
 		AScale *s = pl->scale(Rf_asInteger(sSNR));
-		if (s) return A2SEXP(s);
+		if (s) {
+			s->retain();
+			return A2SEXP(s);
+		}
 	}
 	return R_NilValue;
 }
@@ -592,8 +588,10 @@ SEXP A_PlotPrimitives(SEXP sPlot)
 		AObjectVector *p = pl->primitives();
 		vsize_t n = p->length();
 		SEXP res = Rf_protect(Rf_allocVector(VECSXP, n));
-		for (vsize_t i = 0; i < n; i++)
+		for (vsize_t i = 0; i < n; i++) {
 			SET_VECTOR_ELT(res, i, A2SEXP(p->objectAt(i)));
+			if (p->objectAt(i)) p->objectAt(i)->retain();
+		}
 		Rf_unprotect(1);
 		return res;
 	}
@@ -639,6 +637,7 @@ SEXP A_PlotPrimaryMarker(SEXP sPlot)
 {
 	APlot *pl = (APlot*) SEXP2A(sPlot);
 	AMarker *m = pl ? pl->primaryMarker() : 0;
+	if (m) m->retain();
 	return m ? A2SEXP(m) : R_NilValue;
 }
 
