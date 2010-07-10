@@ -257,6 +257,7 @@ SEXP A_MarkerCreate(SEXP len) {
 		defaultColorMap = new ADefaultColorMap();
 	// Note: we never release the default color map. That is ok since it's supposed to live forever, but ...
 	m->setColorMap(defaultColorMap);
+	m->enableUndo(16);
 	return A2SEXP(m);
 }
 
