@@ -15,7 +15,7 @@ restore <- function() { if (exists(".last.ipe")).ipe <<- .last.ipe; invisible(.i
 
 .var <- function(x, name=deparse(substitute(x))) {
  if (is.null(.ipe$m)) .init.set(length(x))
- if (.ipe$len != length(x)) { .last.ipe <<- .ipe; reset() }
+ if (.ipe$len != length(x)) { .last.ipe <<- .ipe; reset(); .init.set(length(x)) }
  .Call("A_VarRegister", x, .ipe$m, name)
 }
 
