@@ -318,7 +318,7 @@ SEXP A_MarkerIsVisible(SEXP sM)
 	SEXP res = Rf_allocVector(LGLSXP, n);
 	int *l = LOGICAL(res);
 	for (vsize_t i = 0; i < n; i++)
-		l[i] = m->isHidden(i) ? 1 : 0;
+		l[i] = m->isHidden(i) ? 0 : 1;
 	return res;
 }
 
@@ -334,6 +334,8 @@ SEXP A_MarkerVisible(SEXP sM, SEXP sel)
 		int *l = LOGICAL(sel);
 		for (vsize_t i = 0; i < n; i++)
 			if (l[i] == 1)
+				m->show(i);
+			else if (l[i] == 0)
 				m->hide(i);
 		m->end();
 	} else if (TYPEOF(sel) == INTSXP) {
@@ -342,6 +344,8 @@ SEXP A_MarkerVisible(SEXP sM, SEXP sel)
 		vsize_t ll = LENGTH(sel);
 		for (vsize_t i = 0; i < ll; i++)
 			if (l[i] > 0)
+				m->show(l[i] - 1);
+			else if (l[i] < 0)
 				m->hide(l[i] - 1);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
