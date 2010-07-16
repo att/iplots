@@ -1,7 +1,7 @@
 .ipe <- new.env(TRUE, emptyenv())
 
 .marker <- function(obj) {
-  class(obj) <- "iMarker"
+  class(obj) <- c("iMarker", "iObject")
   obj
 }
 
@@ -14,7 +14,7 @@
 }
 
 .callback <- function(obj) {
-  class(obj) <- "iCallback"
+  class(obj) <- c("iCallback", "iObject")
   obj
 }
 
@@ -45,15 +45,19 @@ values <- function(x, ...) UseMethod("values")
 `values<-` <- function(x, ...) UseMethod("values<-")
 marker <- function(x, ...) UseMethod("marker")
 
+as.marker <- function(x, ...) UseMethod("as.marker")
+
 add <- function(x, ...) UseMethod("add")
 add.iPlot <- function(x, obj, ...) UseMethod("add.iPlot", obj)
 add.iContainer <- function(x, obj, ...) UseMethod("add.iContainer", obj)
 add.primitive <- function(x, obj, ...) UseMethod("add.primitive", obj)
 add.pairlist <- function(x, obj, ...) UseMethod("add.pairlist", obj)
+add.iMarker <- function(x, obj, ...) UseMethod("add.iMarker", obj)
 add.default <- function(x, obj, ...) UseMethod("add.default", obj)
 
 delete <- function(x, ...) UseMethod("delete")
 delete.iPlot <- function(x, obj, ...) UseMethod("delete.iPlot", obj)
+delete.iMarker <- function(x, obj, ...) UseMethod("delete.iMarker", obj)
 
 add.iContainer.iVisual <- function(x, obj, ...) {
   invisible(.Call("A_ContainerAdd", x, obj))
@@ -175,12 +179,15 @@ visible.iMarker <- function(x)
 }
 
 selected.iMarker <- function(x)
-  .Call("A_MarkerSelected", m)
+  .Call("A_MarkerSelected", x)
 
 select.iMarker <- function(x, which) {
   if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
   invisible(.Call("A_MarkerSelect", x, which))
 }
+
+length.iMarker <- function(x)
+  .Call("A_MarkerLength", x)
 
 values.iMarker <- function(x)
   .Call("A_MarkerValues", x)
@@ -194,6 +201,7 @@ values.iMarker <- function(x)
   if (name == "values") return(values(x))
   if (name == "selected") return(selected(x))
   if (name == "visible") return(visible(x))
+  if (name == "callbacks") return(.Call("A_MarkerCallbacks", x))
   NULL
 }
 
@@ -201,13 +209,25 @@ values.iMarker <- function(x)
   if (name == "values") return({values(x) <- value; x})
   if (name == "selected") return({selected(x) <- value; x})
   if (name == "visible") return({visible(x) <- value; x})
-  if (name == "onChange") return({ .callback(.Call("A_MarkerDependentCreate", x, value)); x })
+  if (name == "onChange") return({.Call("A_MarkerRemoveAll", x); if (!is.null(value)) .callback(.Call("A_MarkerDependentCreate", x, value)); x })
   x
 }
 
 names.iMarker <- function(x) c("values", "selected", "visible")
 
-## access to virutal fields in plot objects that have pass-by-reference semantics of the whole plot object
+add.iMarker.function <- function(x, FUN, ...)
+  .callback(.Call("A_MarkerDependentCreate", x, FUN))
+
+add.iMarker.iCallback <- function(x, callback, ...)
+  invisible(.Call("A_MarkerAdd", x, callback))
+
+delete.iMarker.iCallback <- function(x, callback, ...)
+  invisible(.Call("A_MarkerRemove", x, callback))
+
+as.marker.iMarker <- function(x, ...) x
+as.marker.iObject <- function(x, ...) { class(x) = c("iMarker", "iObject"); x }
+
+## access to virtual fields in plot objects that have pass-by-reference semantics of the whole plot object
 
 `$.iPlot` <- function(x, name) {
   if (name == "marker") return(marker(x))
@@ -372,3 +392,4 @@ print.primitive <- function(x, ...) { cat("iPlot primitive",.Call("A_Describe", 
 print.iPlot <- function(x, ...) { cat(.Call("A_PlotGetCaption", x), " (", .Call("A_Describe", x), ")\n", sep=''); x }
 print.iWindow <- function(x, ...) { cat("iPlots window", .Call("A_Describe", x), "\n"); x }
 print.iMarker <- function(x, ...) { cat("iPlots marker", .Call("A_Describe", x), "\n"); x }
+print.iCallback <- function(x, ...) { cat("iPlots callback", .Call("A_Describe", x), "\n"); x }

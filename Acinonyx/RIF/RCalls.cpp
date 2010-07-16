@@ -18,6 +18,7 @@
 #include "AHistogram.h"
 #include "ATimeSeriesPlot.h"
 #include "ARVector.h"
+#include "ARMarker.h"
 #include "AColorMap.h"
 
 // R API to Acinonyx
@@ -30,6 +31,8 @@ extern "C" {
 	
 	SEXP A_MarkerCreate(SEXP len);
 	SEXP A_MarkerAdd(SEXP m, SEXP o);
+	SEXP A_MarkerRemove(SEXP m, SEXP o);
+	SEXP A_MarkerRemoveAll(SEXP m);
 	SEXP A_MarkerSelected(SEXP m);
 	SEXP A_MarkerValues(SEXP m);
 	SEXP A_MarkerSelect(SEXP m, SEXP sel);
@@ -37,6 +40,8 @@ extern "C" {
 	SEXP A_MarkerSetVisible(SEXP sM, SEXP sel);
 	SEXP A_MarkerSetValues(SEXP sM, SEXP sel);
 	SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun);
+	SEXP A_MarkerCallbacks(SEXP sM);
+	SEXP A_MarkerLength(SEXP sM);
 
 	SEXP A_WindowCreate(SEXP w, SEXP pos);
 	SEXP A_WindowMoveAndResize(SEXP w, SEXP pos, SEXP size);
@@ -179,16 +184,32 @@ SEXP A_Init() {
 #define lcons Rf_lcons
 #endif
 
-void call_with_object(SEXP fun, AObject *o, const char *clazz) {
+static SEXP wrap_object(AObject *o, const char *clazz) {
+	if (!o) return R_NilValue;
 	SEXP sSelf = A2SEXP(o);
 	o->retain();
 	PROTECT(sSelf);
 	Rf_setAttrib(sSelf, R_ClassSymbol, Rf_mkString(clazz));
-	SEXP sCall = LCONS(fun, CONS(sSelf, R_NilValue));
+	UNPROTECT(1);
+	return sSelf;
+}
+
+void call_with_object(SEXP fun, AObject *o, const char *clazz) {
+	SEXP sCall = LCONS(fun, CONS(wrap_object(o, clazz), R_NilValue));
 	PROTECT(sCall);
 	Rf_applyClosure(sCall, fun, CDR(sCall), R_GlobalEnv, R_BaseEnv);
 	UNPROTECT(2);
 }
+
+void call_notification(SEXP fun, AObject *dep, AObject *src, int nid) {
+	SEXP sDep = PROTECT(wrap_object(dep, "iCallback"));
+	SEXP sSrc = PROTECT(wrap_object(src, "iObject"));
+	SEXP sCall = LCONS(fun, CONS(sDep, CONS(sSrc, CONS(Rf_ScalarInteger(nid), R_NilValue))));
+	PROTECT(sCall);
+	Rf_applyClosure(sCall, fun, CDR(sCall), R_GlobalEnv, R_BaseEnv);
+	UNPROTECT(3);
+}
+
 
 /** A_CONS is simply CONS - strangely enough R has completely hidden this useful feature at the R level AFAICT
  *  @param head the CAR part of the entry
@@ -263,7 +284,7 @@ SEXP A_NullPtr(SEXP ptr) {
 /*------------- AMarker --------------*/
 
 SEXP A_MarkerCreate(SEXP len) {
-	AMarker *m = new AMarker(Rf_asInteger(len));
+	AMarker *m = new ARMarker(Rf_asInteger(len));
 	if (!defaultColorMap)
 		defaultColorMap = new ADefaultColorMap();
 	// Note: we never release the default color map. That is ok since it's supposed to live forever, but ...
@@ -273,10 +294,35 @@ SEXP A_MarkerCreate(SEXP len) {
 }
 
 SEXP A_MarkerAdd(SEXP sM, SEXP sO) {
-	AMarker *m = (AMarker*) SEXP2A(sM);
-	AObject *o = SEXP2A(sO);
-	m->add(o);
+	ARMarker *m = (ARMarker*) SEXP2A(sM);
+	ARCallbackDependent *o = (ARCallbackDependent*) SEXP2A(sO);
+	m->addCallback(o);
 	return sM;
+}
+
+SEXP A_MarkerRemove(SEXP sM, SEXP sO)
+{
+	ARMarker *m = (ARMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	ARCallbackDependent *dep = (ARCallbackDependent*) SEXP2A(sO);
+	if (!dep) Rf_error("invalid dependent (NULL)");
+	m->removeCallback(dep);
+	return R_NilValue;
+}
+
+SEXP A_MarkerRemoveAll(SEXP sM)
+{
+	ARMarker *m = (ARMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	m->removeAllCallbacks();
+	return R_NilValue;
+}
+
+SEXP A_MarkerLength(SEXP sM)
+{
+	AMarker *m = (AMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	return Rf_ScalarInteger(m->length());
 }
 
 SEXP A_MarkerSelected(SEXP sM)
@@ -395,14 +441,28 @@ SEXP A_MarkerSetValues(SEXP sM, SEXP sel)
 	return sM;
 }
 
+
+SEXP A_MarkerCallbacks(SEXP sM)
+{
+	ARMarker *m = (ARMarker*) SEXP2A(sM);
+	if (!m) Rf_error("invalid marker (NULL)");
+	AObjectVector *cbs = m->callbacks();
+	if (!cbs) return R_NilValue;
+	vsize_t n = cbs->length();
+	SEXP res = PROTECT(Rf_allocVector(VECSXP, n));
+	for (vsize_t i = 0; i < n; i++)
+		SET_VECTOR_ELT(res, i, wrap_object(cbs->objectAt(i), "iCallback"));
+	UNPROTECT(1);
+	return res;
+}
+	
 SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun)
 {
-	AMarker *m = (AMarker*) SEXP2A(sM);
+	ARMarker *m = (ARMarker*) SEXP2A(sM);
 	if (!m) Rf_error("invalid marker (NULL)");
 	ARCallbackDependent *dep = new ARCallbackDependent(fun);
-	m->add(dep);
-	// dep->release(); // markers don't retain ...
-	return sM;
+	m->addCallback(dep);
+	return A2SEXP(dep);
 }
 
 static int visual_flags(SEXP sFlags) {

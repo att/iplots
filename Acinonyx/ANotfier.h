@@ -35,6 +35,11 @@ public:
 		_dependents->removeObject(obj);
 	}
 	
+	virtual void removeAll() {
+		ALog("%p: remove all", this);
+		_dependents->removeAll();
+	}
+	
 	virtual void sendNotification(AObject *source, notifid_t nid) {
 		vsize_t i = 0, n = _dependents->length();
 		while (i < n) {

@@ -33,7 +33,7 @@ public:
 	
 	virtual void notification(AObject *source, notifid_t nid) {
 		if (_value != R_NilValue)
-			call_with_object(_value, this, "dependent");// call _value(self) in R			
+			call_notification(_value, this, source, nid); // call _value(self, source, nid) in R
 	}
 };
 

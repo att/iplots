@@ -15,6 +15,7 @@
 
 extern "C" {
 	void call_with_object(SEXP fun, AObject *o, const char *clazz);
+	void call_notification(SEXP fun, AObject *dep, AObject *src, int nid);
 
 	SEXP A2SEXP(AObject *o);
 	AObject *SEXP2A(SEXP o);
