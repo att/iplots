@@ -31,6 +31,8 @@ select <- function(x, ...) UseMethod("select")
 move <- function(x, ...) UseMethod("move")
 isvisible <- function(x, ...) UseMethod("isvisible")
 visible <- function(x, ...) UseMethod("visible")
+markervalues <- function(x, ...) UseMethod("markervalues")
+setmarkervalues <- function(x, ...) UseMethod("setmarkervalues")
 
 add <- function(x, ...) UseMethod("add")
 add.iPlot <- function(x, obj, ...) UseMethod("add.iPlot", obj)
@@ -253,6 +255,12 @@ select.iPlot <- function(x, which) {
   invisible(.Call("A_MarkerSelect", m, which))
 }
 
+isvisible.iPlot <- function(x) {
+	m <- x$marker
+	if (is.null(m)) stop("plot has no primary marker")
+	.Call("A_MarkerIsVisible", m)
+}
+
 iset.isvisible<- function() {
 	if (is.null(.ipe$m)) stop("no active iSet");
 	.Call("A_MarkerIsVisible", m)
@@ -269,6 +277,29 @@ visible.iPlot <- function(x, which) {
 	if (is.null(m)) stop("plot has no primary marker")
 	if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
 	invisible(.Call("A_MarkerVisible", m, which))
+}
+
+iset.markervalues<- function() {
+	if (is.null(.ipe$m)) stop("no active iSet");
+	.Call("A_MarkerValues", m)
+}  
+
+iset.setmarkervalues<- function(which) {
+	if (is.null(.ipe$m)) stop("no active iSet");
+	.Call("A_MarkerSetValues", m, which)
+}  
+
+markervalues.iPlot <- function(x) {
+	m <- x$marker
+	if (is.null(m)) stop("plot has no primary marker")
+	.Call("A_MarkerValues", m)
+}
+
+setmarkervalues.iPlot <- function(x, which) {
+	m <- x$marker
+	if (is.null(m)) stop("plot has no primary marker")
+	if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
+	invisible(.Call("A_MarkerSetValues", m, which))
 }
 
 idev <- function(width=640, height=480, ps=12, bg=0, canvas=0, dpi=90, window, flags) {
