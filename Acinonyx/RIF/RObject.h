@@ -37,7 +37,7 @@ public:
 	RObject(SEXP rObj) : ptr(rObj) {
 		R_PreserveObject(rObj);
 #ifdef ODEBUG
-		printf("R %08x <- %08x (%d)\n", (int) this, (int) rObj, TYPEOF(rObj));
+		printf("R %08x <- %08x (%d)\n", PTR2INT(this), PTR2INT(rObj), TYPEOF(rObj));
 #endif
 		OCLASS(RObject);
 	}
@@ -45,7 +45,7 @@ public:
 	virtual ~RObject() {
 		R_ReleaseObject(ptr);
 #ifdef ODEBUG
-		printf("R %08x -> %08x\n", (int) this, (int) ptr);
+		printf("R %08x -> %08x\n", PTR2INT(this), PTR2INT(ptr));
 #endif
 		DCLASS(RObject)
 	}
