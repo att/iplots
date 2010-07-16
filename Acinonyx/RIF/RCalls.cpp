@@ -33,8 +33,8 @@ extern "C" {
 	SEXP A_MarkerSelected(SEXP m);
 	SEXP A_MarkerValues(SEXP m);
 	SEXP A_MarkerSelect(SEXP m, SEXP sel);
-	SEXP A_MarkerIsVisible(SEXP sM);
-	SEXP A_MarkerVisible(SEXP sM, SEXP sel);
+	SEXP A_MarkerVisible(SEXP sM);
+	SEXP A_MarkerSetVisible(SEXP sM, SEXP sel);
 	SEXP A_MarkerSetValues(SEXP sM, SEXP sel);
 	SEXP A_MarkerDependentCreate(SEXP sM, SEXP fun);
 
@@ -91,6 +91,9 @@ extern "C" {
 	SEXP A_PlotSetDoubleProperty(SEXP sPlot, SEXP pName, SEXP sValue);
 	SEXP A_PlotPrimaryMarker(SEXP sPlot);
 	
+	SEXP A_EqualPtrs(SEXP ptr1, SEXP ptr2);
+	SEXP A_NullPtr(SEXP ptr);
+
 	SEXP A_ScatterPlot(SEXP x, SEXP y, SEXP rect, SEXP flags);
 	SEXP A_TimePlot(SEXP x, SEXP y, SEXP names, SEXP rect, SEXP flags);
 	SEXP A_BarPlot(SEXP x, SEXP rect, SEXP flags);
@@ -248,6 +251,14 @@ SEXP A_ReleaseObject(SEXP v) {
 	return R_NilValue;
 }
 
+SEXP A_EqualPtrs(SEXP ptr1, SEXP ptr2) {
+	return Rf_ScalarLogical(SEXP2A(ptr1) == SEXP2A(ptr2));
+}
+
+SEXP A_NullPtr(SEXP ptr) {
+	return Rf_ScalarLogical(SEXP2A(ptr) == NULL);
+}
+
 
 /*------------- AMarker --------------*/
 
@@ -304,13 +315,13 @@ SEXP A_MarkerSelect(SEXP sM, SEXP sel)
 			if (l[i] > 0)
 				m->select(l[i] - 1);
 			else if (l[i] < 0)
-				m->deselect(-l[i]);
+				m->deselect(-l[i] - 1);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
 	return sM;
 }
 
-SEXP A_MarkerIsVisible(SEXP sM)
+SEXP A_MarkerVisible(SEXP sM)
 {
 	AMarker *m = (AMarker*) SEXP2A(sM);
 	if (!m) Rf_error("invalid marker (NULL)");
@@ -322,7 +333,7 @@ SEXP A_MarkerIsVisible(SEXP sM)
 	return res;
 }
 
-SEXP A_MarkerVisible(SEXP sM, SEXP sel)
+SEXP A_MarkerSetVisible(SEXP sM, SEXP sel)
 {
 	AMarker *m = (AMarker*) SEXP2A(sM);
 	if (!m) Rf_error("invalid marker (NULL)");
@@ -342,11 +353,15 @@ SEXP A_MarkerVisible(SEXP sM, SEXP sel)
 		m->begin();
 		int *l = INTEGER(sel);
 		vsize_t ll = LENGTH(sel);
+		if (ll && l[0] > 0)
+			m->hideAll();
+		else
+			m->showAll();
 		for (vsize_t i = 0; i < ll; i++)
 			if (l[i] > 0)
 				m->show(l[i] - 1);
 			else if (l[i] < 0)
-				m->hide(l[i] - 1);
+				m->hide(-l[i] - 1);
 		m->end();
 	} else Rf_error("invalid selection specification (must be integer or logical vector)");
 	return sM;

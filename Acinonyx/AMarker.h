@@ -213,6 +213,24 @@ public:
 		weChanged();
 	};
 
+	void hideAll() {
+		for (vsize_t index = 0; index < _len; index++)
+			if (!M_OUT(_data[index])) {
+				_data[index] |= M_OUT_BIT;
+				_perm_changed = _changed = true;
+			}
+		weChanged();
+	};
+	
+	void showAll() {
+		for (vsize_t index = 0; index < _len; index++)
+			if (M_OUT(_data[index])) {
+				_data[index] &= ~M_OUT_BIT;
+				_perm_changed = _changed = true;
+			}
+		weChanged();
+	};
+	
 	void selectXOR(vsize_t index) {
 		if (index < _len)
 			_data[index] ^= M_MARK_BIT;

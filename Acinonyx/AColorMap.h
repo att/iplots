@@ -84,7 +84,7 @@ public:
 
 static const unsigned char init_default_colors[] = {
 	/* fully saturated basic colors; first color is the default non-brushed color */
-	0,0,0, 0,0,0, 255,0,0, 0,205,0, 0,0,255, 0,255,255, 255,0,255, 255,255,0, 190,190,190, 128,0,0, 0,128,0, 0,0,128, 0,128,128, 128,0,128, 128,128,0,
+	0,0,0, 0,0,0, 255,0,0, 0,205,0, 0,0,255, 0,255,255, 255,0,255, 255,255,0, 190,190,190, 128,0,0, 0,128,0, 0,0,128, 0,128,128, 128,0,128, 128,128,0, 128,128,128,
 	/* CBset1 9 class */
 	0xef,0x76,0x77, 0x87,0xb2,0xd4, 0xff,0xb2,0x66, 0xc1,0x95,0xc8, 0x94,0xcf,0x92, 0xaf,0xaf,0x45, 0xca,0x9a,0x7e, 0xfa,0xb3,0xd9, 0xc2,0xc2,0xc2,
 	/* random darker extensions  -FIXME*/
