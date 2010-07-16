@@ -76,8 +76,9 @@ public:
 		AMEM(membership);
 		double prev = datax->doubleAt(i);
 		while(i < npts){
-			if (datax->doubleAt(i) < prev)
+			if (datax->doubleAt(i) < prev){
 				m++;
+			}
 			membership[i] =  m;
 			prev = datax->doubleAt(i);
 			i++;
@@ -87,7 +88,7 @@ public:
 		AMEM(groupCounts);
 		vsize_t* groupCounters = (vsize_t*)calloc(lines, sizeof(vsize_t));
 		AMEM(groupCounters);
-		for(i = 0; i < npts; i++)
+		for(i = 0, m = 0; i < npts; i++)
 			groupCounts[membership[i]]++;
 		groupMems = (vsize_t**)malloc(lines * sizeof(vsize_t*));
 		AMEM(groupMems);
@@ -112,9 +113,13 @@ public:
 			pps = new ASettableObjectVector(lines);
 		for(vsize_t i = 0; i < lines; i++) {
 			group_t group = (group_t) i;
+			vsize_t index=0;
+			for(vsize_t gi = 0; gi < group; gi++)
+				index += groupCounts[gi];
+			const char* groupName = groupNames->stringAt(index);
 			APolyLineStatVisual *pl = new APolyLineStatVisual(this, _scales[0]->locations(), _scales[1]->locations(), 
 															  groupMems[(vsize_t)group], groupCounts[(vsize_t)group],
-															  marker, (vsize_t*)groupIDs->asInts(), len, group, groupNames->stringAt(group), false, false);
+															  marker, (vsize_t*)groupIDs->asInts(), len, group, groupName, false, false);
 			pl->setDrawAttributes(ptSize, ptAlpha);
 			((ASettableObjectVector*)pps)->replaceObjectAt(i, pl);
 			pl->release(); // we passed the ownership to pps
