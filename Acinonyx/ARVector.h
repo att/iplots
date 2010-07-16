@@ -90,6 +90,12 @@ public:
 		}
 		OCLASS(ARFactorVector)
 	}
+	
+	// we need a special descructor because we did not copy the names so we have to get rid of them before the super-destructor
+	virtual ~ARFactorVector() {
+		if (_names)
+			memset(_names, 0, sizeof(*_names) * _levels);
+	}
 };
 
 #endif
