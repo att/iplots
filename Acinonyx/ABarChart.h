@@ -123,7 +123,7 @@ public:
 					marker->begin();
 					for (vsize_t i = 0; i < n; i++)
 						if (!marker->isHidden(i))
-							marker->setValue(i, bi[i] + COL_CB1 - 1);
+							marker->setValue(i, bi[i] + COL_CB1);
 					marker->end();
 				}
 				update(); redraw(); break;
