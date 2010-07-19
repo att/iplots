@@ -23,9 +23,10 @@ typedef struct chList {
 
 class AContainer : public AVisual {
 	chList_t *chRoot, *chTail;
+	bool passToAll;
 public:
 #pragma mark --- contructor ---
-	AContainer(AContainer *parent, ARect frame, unsigned int flags) : AVisual(parent, frame, flags|AVF_CONTAINER), chRoot(0), chTail(0) { OCLASS(AContainer) }
+	AContainer(AContainer *parent, ARect frame, unsigned int flags) : AVisual(parent, frame, flags|AVF_CONTAINER), chRoot(0), chTail(0), passToAll(true) { OCLASS(AContainer) }
 
 	virtual ~AContainer() {
 		removeAll();
@@ -128,10 +129,18 @@ public:
 
 	virtual bool event(AEvent event) {
 		chList_t *c = chRoot;
-		while (c) {
-			if (c->o->event(event)) return true;
-			c = c->next;
-		}
+		if (passToAll) { // event propagtion is either pass-to-all or stop after one child has acknowledged processing it
+			bool hitAny = false;
+			while (c) {
+				if (c->o->event(event)) hitAny = true;
+				c = c->next;
+			}
+			if (hitAny) return true;
+		} else
+			while (c) {
+				if (c->o->event(event)) return true;
+				c = c->next;
+			}
 		// if no children handled this, resort to local processing (dispatching to virtual methods)
 		return AVisual::event(event);
 	}
