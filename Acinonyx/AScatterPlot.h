@@ -87,7 +87,10 @@ public:
 	}
 	
 	virtual bool performSelection(ARect where, int type, bool batch = false) {
-		if (!marker) return false;
+		bool ps = APlot::performSelection(where, type, batch);
+		if (currentContext != SEL_CONTEXT_DEFAULT)
+			return ps;
+		if (!marker) return ps;
 		AFloat *lx = _scales[0]->locations();
 		AFloat *ly = _scales[1]->locations();
 		vsize_t nPts = _scales[0]->data()->length();

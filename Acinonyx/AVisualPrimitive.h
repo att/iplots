@@ -18,13 +18,20 @@ class APlot;
 
 #define FVP_HIDDEN 0x01
 
+typedef int sel_context_t; // selection context
+
+#define SEL_CONTEXT_NONE    (-1)
+#define SEL_CONTEXT_DEFAULT (0)
+
 class AVisualPrimitive : public AObject {
 protected:
 	AColor c, f;
 	APlot *_plot;
 	unsigned int flags;
+	// selection context - the default context is the regular selection context
+	sel_context_t selContext;
 public:
-	AVisualPrimitive(APlot *plot) : _plot(plot), flags(0) { c = AMkColor(0.0, 0.0, 0.0, 1.0); f = AMkColor(0.0, 0.0, 0.0, 0.0); OCLASS(AVisualPrimitive) }
+	AVisualPrimitive(APlot *plot) : _plot(plot), flags(0), selContext(SEL_CONTEXT_DEFAULT) { c = AMkColor(0.0, 0.0, 0.0, 1.0); f = AMkColor(0.0, 0.0, 0.0, 0.0); OCLASS(AVisualPrimitive) }
 	void drawColor(AFloat r, AFloat g, AFloat b, AFloat a) { c = AMkColor(r,g,b,a); }
 	void drawColor(AColor aColor) { c = aColor; }
 	AColor drawColor() { return c; }
@@ -50,6 +57,11 @@ public:
 	virtual bool containsPoint(APoint pt) { return false; }
 	virtual bool intersects(ARect rect) { return false; }
 	virtual bool select(AMarker *marker, int type) { return false; }	
+
+	sel_context_t context() { return selContext; }
+	void setContext(sel_context_t newCtx) { selContext = newCtx; }
+	
+	
 };
 
 #endif

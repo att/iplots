@@ -15,14 +15,38 @@
 #include "REngine.h"
 #include "RValueHolder.h"
 
+// visual primitive with update callback and (optional) selection callback
 class ARCallbackPrimitive : public AVisualPrimitive, public RValueHolder {
+protected:
+	RValueHolder *selectionCallback;
 public:
-	ARCallbackPrimitive(APlot *plot) : AVisualPrimitive(plot), RValueHolder(R_NilValue) { OCLASS(ARCallbackPrimitive) }
+	ARCallbackPrimitive(APlot *plot) : AVisualPrimitive(plot), RValueHolder(R_NilValue), selectionCallback(0) { OCLASS(ARCallbackPrimitive) }
+	
+	virtual ~ARCallbackPrimitive() {
+		if (selectionCallback)
+			delete selectionCallback;
+	}
 	
 	virtual void update() {
 		if (_value != R_NilValue) 
 			call_with_object(_value, this, "primitive");// call _value(self) in R
 		AVisualPrimitive::update();
+	}
+	
+	virtual bool select(AMarker *marker, int type) {
+		ALog("select on %s with selectionCallback %p", describe(), selectionCallback);
+		if (selectionCallback && selectionCallback->value() != R_NilValue)
+			call_with_object(selectionCallback->value(), this, "primitive");
+		return false;
+	}
+	
+	void setSelectionCallback(SEXP fun) {
+		if (selectionCallback)
+			delete selectionCallback;
+		if (fun == R_NilValue)
+			selectionCallback = 0;
+		else
+			selectionCallback = new RValueHolder(fun);
 	}
 };
 

@@ -129,6 +129,7 @@ query.primitive <- function(x, ...)
   if (name == "fill") return(fill(x))
   if (name == "query") return(query(x))
   if (name == "hidden") return(hidden(x))
+  if (name == "context") return(.Call("A_VPGetContext", x))
   if (name == "callback" || name == "onChange") return (.Call("A_VPGetCallback", x))
   NULL
 }
@@ -139,6 +140,8 @@ query.primitive <- function(x, ...)
   if (name == "hidden") hidden(x) <- value else
   if (name == "query") query(x) <- value else
   if (name == "callback" || name == "onChange") .Call("A_VPSetCallback", x, value) else
+  if (name == "context") .Call("A_VPSetContext", x, value) else
+  if (name == "onSelect") .Call("A_VPSetSelCallback", x, value) else
   stop("no writable property", name)
   x
 }

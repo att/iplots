@@ -51,15 +51,18 @@ protected:
 	AFloat mLeft, mTop, mBottom, mRight, ptSize, ptAlpha;
 	const char* _caption;		/**title for the container */
 	
+	sel_context_t lastContext; /**< last custom selection context */
+	sel_context_t currentContext; /**< current context to be used for selection */
+	
 public:
-	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new ABlockStack()), marker(0), inSelection(false), inQuery(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6), _caption(NULL) {
+	APlot(AContainer *parent, ARect frame, int flags) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(0), pps(NULL), _scales(NULL), vps(new AMutableObjectVector()), zoomStack(new ABlockStack()), marker(0), inSelection(false), inQuery(false), inZoom(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(5.0), ptAlpha(0.6), _caption(NULL), lastContext(SEL_CONTEXT_DEFAULT), currentContext(SEL_CONTEXT_DEFAULT) {
 		_query = new AQuery(this);
 		_query->setHidden(true);
 		add(*_query);
 		OCLASS(APlot)
 	}
 
-	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), inQuery(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0) {
+	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), inQuery(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0), lastContext(SEL_CONTEXT_DEFAULT), currentContext(SEL_CONTEXT_DEFAULT) {
 		_scales = (AScale**) malloc(sizeof(AScale*)*2);
 		AMEM(_scales);
 		_scales[0] = xScale;
@@ -236,6 +239,10 @@ public:
 		AContainer::draw(layer);
 	}
 
+	sel_context_t newContext() {
+		return ++lastContext;
+	}
+	
 	/** performs a selection based on a rectangle.
 	 *  @param where definition of the graphocal area selected
 	 *  @param type type of the selection (one of SEL_REPLACE, SEL_OR, SEL_AND, SEL_XOR and SEL_NOT)
@@ -256,7 +263,7 @@ public:
 			n = pps->length();
 			while (i < n) {
 				AVisualPrimitive *vp = (AVisualPrimitive*) pps->objectAt(i++);
-				if (!vp->hidden() && ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point))))
+				if (vp->context() == currentContext && !vp->hidden() && ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point))))
 					vp->select(marker, type);
 			}
 		}
@@ -264,7 +271,7 @@ public:
 		i = 0; n = vps->length();
 		while (i < n) {
 			AVisualPrimitive *vp = (AVisualPrimitive*) vps->objectAt(i++);
-			if (!vp->hidden() && ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point))))
+			if (vp->context() == currentContext && !vp->hidden() && ((!pointSelection && vp->intersects(where)) || (pointSelection && vp->containsPoint(point))))
 				vp->select(marker, type);
 		}
 		setRedrawLayer(LAYER_HILITE);
@@ -453,6 +460,14 @@ public:
 				marker->end();
 				break;
 			}
+			case KEY_X:
+				if (lastContext > 0) {
+					currentContext++;
+					if (currentContext > lastContext)
+						currentContext -= (lastContext + 1);
+					ALog("%s: set current context to %d (out of %d)", describe(), currentContext, lastContext);
+				}
+				break;
 			default:
 				return false;
 		}

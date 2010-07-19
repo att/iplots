@@ -73,6 +73,9 @@ extern "C" {
 	SEXP A_VPGetHidden(SEXP vp);
 	SEXP A_VPSetQuery(SEXP vp, SEXP txt);
 	SEXP A_VPGetQuery(SEXP vp);
+	SEXP A_VPGetContext(SEXP vp);
+	SEXP A_VPSetContext(SEXP vp, SEXP sctx);
+	SEXP A_VPSetSelCallback(SEXP vp, SEXP fun);
 	
 	SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp);
 
@@ -95,6 +98,7 @@ extern "C" {
 	SEXP A_PlotDoubleProperty(SEXP sPlot, SEXP pName);
 	SEXP A_PlotSetDoubleProperty(SEXP sPlot, SEXP pName, SEXP sValue);
 	SEXP A_PlotPrimaryMarker(SEXP sPlot);
+	SEXP A_PlotNewContext(SEXP sPlot);
 	
 	SEXP A_EqualPtrs(SEXP ptr1, SEXP ptr2);
 	SEXP A_NullPtr(SEXP ptr);
@@ -198,7 +202,7 @@ void call_with_object(SEXP fun, AObject *o, const char *clazz) {
 	SEXP sCall = LCONS(fun, CONS(wrap_object(o, clazz), R_NilValue));
 	PROTECT(sCall);
 	Rf_applyClosure(sCall, fun, CDR(sCall), R_GlobalEnv, R_BaseEnv);
-	UNPROTECT(2);
+	UNPROTECT(1);
 }
 
 void call_notification(SEXP fun, AObject *dep, AObject *src, int nid) {
@@ -694,6 +698,13 @@ SEXP A_PlotPrimaryMarker(SEXP sPlot)
 	return m ? A2SEXP(m) : R_NilValue;
 }
 
+SEXP A_PlotNewContext(SEXP sPlot)
+{
+	APlot *pl = (APlot*) SEXP2A(sPlot);
+	if (!pl) Rf_error("invalid (NULL) plot");
+	return Rf_ScalarInteger(pl->newContext());
+}
+
 
 /*------------- AScale --------------*/
 
@@ -801,6 +812,20 @@ SEXP A_VPGetColor(SEXP vp) {
 	return rc;
 }
 
+SEXP A_VPGetContext(SEXP vp) {
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	return Rf_ScalarInteger(p->context());
+}
+
+SEXP A_VPSetContext(SEXP vp, SEXP sctx) {
+	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	int ctx = Rf_asInteger(sctx);
+	p->setContext(ctx);
+	return vp;
+}
+
 SEXP A_VPPlot(SEXP vp)
 {
 	AVisualPrimitive *p = (AVisualPrimitive*) SEXP2A(vp);
@@ -823,6 +848,14 @@ SEXP A_VPSetCallback(SEXP vp, SEXP cb)
 	p->setValue(cb);
 	return vp;
 }
+
+SEXP A_VPSetSelCallback(SEXP vp, SEXP fun)
+{
+	ARCallbackPrimitive *p = (ARCallbackPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	p->setSelectionCallback(fun);
+	return vp;
+}	
 
 SEXP A_VPGetCallback(SEXP vp)
 {
