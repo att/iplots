@@ -18,13 +18,15 @@
 // visual primitive with update callback and (optional) selection callback
 class ARCallbackPrimitive : public AVisualPrimitive, public RValueHolder {
 protected:
-	RValueHolder *selectionCallback;
+	RValueHolder *selectionCallback, *valueList_;
 public:
-	ARCallbackPrimitive(APlot *plot) : AVisualPrimitive(plot), RValueHolder(R_NilValue), selectionCallback(0) { OCLASS(ARCallbackPrimitive) }
+	ARCallbackPrimitive(APlot *plot) : AVisualPrimitive(plot), RValueHolder(R_NilValue), selectionCallback(0), valueList_(0) { OCLASS(ARCallbackPrimitive) }
 	
 	virtual ~ARCallbackPrimitive() {
 		if (selectionCallback)
 			delete selectionCallback;
+		if (valueList_)
+			delete valueList_;
 	}
 	
 	virtual void update() {
@@ -47,6 +49,16 @@ public:
 			selectionCallback = 0;
 		else
 			selectionCallback = new RValueHolder(fun);
+	}
+	
+	SEXP valueList() {
+		return valueList_ ? valueList_->value() : R_NilValue;
+	}
+	
+	void setValueList(SEXP vl) {
+		if (valueList_)
+			delete valueList_;
+		valueList_ = (vl != R_NilValue) ? new RValueHolder(vl) : 0;
 	}
 };
 

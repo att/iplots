@@ -76,6 +76,8 @@ extern "C" {
 	SEXP A_VPGetContext(SEXP vp);
 	SEXP A_VPSetContext(SEXP vp, SEXP sctx);
 	SEXP A_VPSetSelCallback(SEXP vp, SEXP fun);
+	SEXP A_VPSetValue(SEXP vp, SEXP val);
+	SEXP A_VPGetValue(SEXP vp);
 	
 	SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp);
 
@@ -824,6 +826,21 @@ SEXP A_VPSetContext(SEXP vp, SEXP sctx) {
 	int ctx = Rf_asInteger(sctx);
 	p->setContext(ctx);
 	return vp;
+}
+
+SEXP A_VPSetValue(SEXP vp, SEXP val)
+{
+	ARCallbackPrimitive *p = (ARCallbackPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	p->setValueList(val);
+	return vp;
+}
+
+SEXP A_VPGetValue(SEXP vp)
+{
+	ARCallbackPrimitive *p = (ARCallbackPrimitive*) SEXP2A(vp);
+	if (!p) Rf_error("invalid object (NULL)");
+	return p->valueList();
 }
 
 SEXP A_VPPlot(SEXP vp)
