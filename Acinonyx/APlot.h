@@ -250,7 +250,7 @@ public:
 	 *  @return whether the selection was performed succesfully (true) or not (false). The latter can essentially happen only if there is no marker or no primitives. */
 	virtual bool performSelection(ARect where, int type, bool batch = false) {
 		if (!marker) return false;
-		if (!vps->length() && !pps && !pps->length()) return false;
+		if (!vps->length() && (!pps || !pps->length())) return false;
 		_prof(profReport("^performSelection %s", describe()))
 		if (!batch) marker->begin();
 		if (type == SEL_REPLACE)
