@@ -76,10 +76,15 @@ public:
 		DCLASS(AScale)
 	}
 	
+	///FIX ME: added by Anushka -- to set n for markervaluesglyph
+	void setN(vsize_t np){
+		n=np;
+	}
+	
 	void setPermutation(APermutation *p) {
 		if (perm) perm->release();
-		p = perm;
-		p->retain();
+		perm = p;
+		perm->retain();
 	}
 	
 	APermutation *permutation() { return perm; }
