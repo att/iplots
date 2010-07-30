@@ -14,6 +14,7 @@
 #import "AParallelCoordPlot.h"
 #import "ABarChart.h"
 #import "AHistogram.h"
+#import "AMarkerValuesPlot.h"
 
 #import "REngine.h"
 #import "ARVector.h"
@@ -57,7 +58,6 @@ void ACocoa_Init() {
 	ALog("applicationDidFinishLaunching:");
 	REngine *eng = REngine::mainEngine();
 	RObject *o = eng->parseAndEval("as.double({n<-1e2;  x<-rep(seq(1:(n/5)),5)})");
-//	RObject *o = eng->parseAndEval("as.double({n<-100;  x<-rep(seq(1:(n/5)),5)})");
 
 	AMarker *mark = new AMarker(o->length());
 	mark->setColorMap(new ADefaultColorMap());
@@ -97,7 +97,11 @@ void ACocoa_Init() {
 	ACocoa_CreateWindow(visual, AMkPoint(950, 100));
 	visual->release();
 	
-//	visual = new AHistogram(NULL, aFrame, 0, vx);
+	visual = new AMarkerValuesPlot(NULL, aFrame, 0, mark);
+	ACocoa_CreateWindow(visual, AMkPoint(450, 100));
+	visual->release();
+
+	//	visual = new AHistogram(NULL, aFrame, 0, vx);
 //	ACocoa_CreateWindow(visual, AMkPoint(50, 600));
 //	visual->release();
 //	

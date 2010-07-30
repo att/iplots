@@ -34,6 +34,7 @@ ibar <- function(x, ...) UseMethod("ibar")
 ipcp <- function(x, ...) UseMethod("ipcp")
 ihist <- function(x, ...) UseMethod("ihist")
 its <- function(x, ...) UseMethod("its")
+imvp <- function(x, ...) UseMethod("imvp")
 
 redraw <- function(x, ...) UseMethod("redraw")
 selected <- function(x, ...) UseMethod("selected")
@@ -46,6 +47,8 @@ values <- function(x, ...) UseMethod("values")
 marker <- function(x, ...) UseMethod("marker")
 
 as.marker <- function(x, ...) UseMethod("as.marker")
+
+primitives <-function(x,...) UseMethod("primitives")
 
 add <- function(x, ...) UseMethod("add")
 add.iPlot <- function(x, obj, ...) UseMethod("add.iPlot", obj)
@@ -127,6 +130,11 @@ ibar.factor <- function(x, xname=deparse(substitute(x)), ..., window, frame, fla
 
 ibar.default <- function(x, ...) stop("Sorry, bar charts for this data type are not yet defined.")
 
+imvp.default <- function(x, ..., window, frame, flags) {
+	.do.plot("A_MVPlot", "iMarkerValuesPlot", window, frame, flags, x)
+}
+
+
 ihist.default <- function(x, xname=deparse(substitute(x)), ..., window, frame, flags) {
   if (!is.character(xname) || length(xname) != 1) stop("invalid xname argument - must be a character vector of length one")
   vx = .var(x, xname)
@@ -164,6 +172,9 @@ redraw.iPlot <- function(x, entirely=FALSE, ...)
 
 redraw.iVisual <- function(x, ...)
   invisible(.Call("A_PlotRedraw", x))
+
+primitives.iPlot <- function(x, ...)
+invisible(.Call("A_PlotPrimitives", x))
 
 ### -- marker-related functions
 

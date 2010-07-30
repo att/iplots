@@ -99,19 +99,19 @@ public:
 			marker->deselectAll();
 		if (type == SEL_XOR) {
 			for (vsize_t i = 0; i < nPts; i++)
-				if (ARectContains(where, AMkPoint(lx[i], ly[i])))
+				if (ARectContains(where, AMkPoint(lx[i], ly[i])) && !marker->isHidden(i))
 					marker->selectXOR(i);
 		} else if (type == SEL_NOT) {
 			for (vsize_t i = 0; i < nPts; i++)
-				if (ARectContains(where, AMkPoint(lx[i], ly[i])))
+				if (ARectContains(where, AMkPoint(lx[i], ly[i])) && !marker->isHidden(i))
 					marker->deselect(i);
 		} else if (type == SEL_AND) {
 			for (vsize_t i = 0; i < nPts; i++)
-				if (!ARectContains(where, AMkPoint(lx[i], ly[i])))
+				if (!ARectContains(where, AMkPoint(lx[i], ly[i])) && !marker->isHidden(i))
 					marker->deselect(i);
 		} else {
 			for (vsize_t i = 0; i < nPts; i++)
-				if (ARectContains(where, AMkPoint(lx[i], ly[i])))
+				if (ARectContains(where, AMkPoint(lx[i], ly[i])) && !marker->isHidden(i))
 					marker->select(i);
 		}
 		if (!batch) marker->end();

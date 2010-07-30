@@ -468,6 +468,56 @@ public:
 					ALog("%s: set current context to %d (out of %d)", describe(), currentContext, lastContext);
 				}
 				break;
+			case KEY_1:
+			{
+				vsize_t n = marker->length();
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++)
+					if (marker->isSelected(i))
+						marker->setValue(i, 1 + COL_CB1);
+				marker->end();
+				break;
+			}
+			case KEY_2:
+			{
+				vsize_t n = marker->length();
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++)
+					if (marker->isSelected(i))
+						marker->setValue(i, 2 + COL_CB1);
+				marker->end();
+				break;
+			}
+			case KEY_3:
+			{
+				vsize_t n = marker->length();
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++)
+					if (marker->isSelected(i))
+						marker->setValue(i, 3 + COL_CB1);
+				marker->end();
+				break;
+			}
+			case KEY_4:
+			{
+				vsize_t n = marker->length();
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++)
+					if (marker->isSelected(i))
+						marker->setValue(i, 4 + COL_CB1);
+				marker->end();
+				break;
+			}
+			case KEY_5:
+			{
+				vsize_t n = marker->length();
+				marker->begin();
+				for (vsize_t i = 0; i < n; i++)
+					if (marker->isSelected(i))
+						marker->setValue(i, 5 + COL_CB1);
+				marker->end();
+				break;
+			}
 			default:
 				return false;
 		}

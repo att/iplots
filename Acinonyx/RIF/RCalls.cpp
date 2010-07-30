@@ -20,6 +20,7 @@
 #include "ARVector.h"
 #include "ARMarker.h"
 #include "AColorMap.h"
+#include "AMarkerValuesPlot.h"
 
 // R API to Acinonyx
 extern "C" {
@@ -110,6 +111,7 @@ extern "C" {
 	SEXP A_BarPlot(SEXP x, SEXP rect, SEXP flags);
 	SEXP A_HistPlot(SEXP x, SEXP rect, SEXP flags);
 	SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags);
+	SEXP A_MVPlot(SEXP x, SEXP rect, SEXP flags);
 }
 
 
@@ -1035,4 +1037,11 @@ SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags)
 	AParallelCoordPlot *pcp = new AParallelCoordPlot(NULL, visual_frame(rect), visual_flags(flags), n, dv);
 	free(dv);
 	return A2SEXP(pcp);
+}
+
+SEXP A_MVPlot(SEXP x, SEXP rect, SEXP flags)
+{
+	AMarker *xv = (AMarker*) SEXP2A(x);
+	AMarkerValuesPlot *sp = new AMarkerValuesPlot(NULL, visual_frame(rect), visual_flags(flags), (AMarker*) xv);
+	return A2SEXP(sp);
 }

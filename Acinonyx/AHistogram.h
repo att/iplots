@@ -146,7 +146,7 @@ public:
 				AFloat left = _scales[0]->position(dpos); dpos += bin->binWidth();
 				ARect r = AMkRect(left, bottom, _scales[0]->position(dpos) - left, _scales[1]->position(c) - bottom);
 				if (create) {
-					ABarStatVisual *b = new ABarStatVisual(this, r, Up, marker, bin->groups(), n, i, false, false);
+					ABarStatVisual *b = new ABarStatVisual(this, r, Up, marker, bin->groups(), n, i, false, false, false);
 					((ASettableObjectVector*)pps)->replaceObjectAt(i, b);
 					b->release(); // we passed the ownership to pps
 				} else ((ABarStatVisual*)((ASettableObjectVector*)pps)->objectAt(i))->setRect(r);
@@ -158,7 +158,7 @@ public:
 				AFloat left = _scales[0]->position(dpos); dpos += c;
 				ARect r = AMkRect(left, bottom, _scales[0]->position(dpos) - left, height);
 				if (create) {
-					ABarStatVisual *b = new ABarStatVisual(this, r, Up, marker, bin->groups(), n, i, false, false);
+					ABarStatVisual *b = new ABarStatVisual(this, r, Up, marker, bin->groups(), n, i, false, false, false);
 					((ASettableObjectVector*)pps)->replaceObjectAt(i, b);
 					b->release(); // we passed the ownership to pps
 				} else ((ABarStatVisual*)((ASettableObjectVector*)pps)->objectAt(i))->setRect(r);

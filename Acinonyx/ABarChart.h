@@ -20,12 +20,13 @@ protected:
 	AYAxis *ya;
 	vsize_t bars;
 	bool spines;
+	bool colors;
 	
 	vsize_t movingBar, movingBarTarget;
 	AFloat movingBarX, movingBarDelta;
 	
 public:
-	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(ANotFound), spines(false) {
+	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(ANotFound), spines(false), colors(false){
 		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 
 		nScales = 2;
@@ -79,7 +80,7 @@ public:
 			pps = new ASettableObjectVector(bars);
 		for(vsize_t i = 0; i < bars; i++) {
 			group_t group = (group_t) i;
-			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false, false);
+			ABarStatVisual *b = new ABarStatVisual(this, rectForBar(tab, group), Up, marker, (vsize_t*) data->asInts(), data->length(), group, false, false, false);
 			b->setGroupName(tab->name(i));
 			((ASettableObjectVector*)pps)->replaceObjectAt(i, b);
 			b->release(); // we passed the ownership to pps
@@ -116,15 +117,29 @@ public:
 			case KEY_S: spines = !spines; update(); redraw(); break;
 			case KEY_C:
 			{
-				AFactorVector *data = (AFactorVector*) _scales[0]->data();
-				vsize_t n = data->length();
-				const int *bi = data->asInts();
-				if (bi) {
+				colors = !colors;
+				if (colors){
+					AFactorVector *data = (AFactorVector*) _scales[0]->data();
+					vsize_t n = data->length();
+					const int *bi = data->asInts();
+					if (bi) {
+						vsize_t v = 1;
+						marker->begin();
+						for (vsize_t i = 0; i < n; i++)
+							if (!marker->isHidden(i)){
+								marker->setValue(i, bi[i] + COL_CB1);
+								v++;
+							}
+						marker->end();
+					}
+				}
+				else{
+					vsize_t n = _scales[0]->data()->length();
 					marker->begin();
 					for (vsize_t i = 0; i < n; i++)
 						if (!marker->isHidden(i))
-							marker->setValue(i, bi[i] + COL_CB1);
-					marker->end();
+							marker->setValue(i, 0);
+					marker->end();					
 				}
 				update(); redraw(); break;
 			}

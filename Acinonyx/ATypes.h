@@ -112,6 +112,11 @@ extern "C" {
 #define KEY_L      37
 #define KEY_U	   32
 #define KEY_I	   34
+#define KEY_1      18
+#define KEY_2      19
+#define KEY_3      20
+#define KEY_4      21
+#define KEY_5      23
 	
 /** This macro is used after memory allocation to check for out of memory issues */
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
