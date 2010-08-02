@@ -204,7 +204,7 @@ public:
 					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
-							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j] && !marker->isHidden(i))
+							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j] && !marker->isHidden(j))
 								marker->selectXOR(j);
 				}
 		} else if (type == SEL_NOT) {
@@ -213,7 +213,7 @@ public:
 					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
-							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j] && !marker->isHidden(i))
+							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j] && !marker->isHidden(j))
 								marker->deselect(j);
 				}
 		} else if (type == SEL_AND) {
@@ -223,7 +223,7 @@ public:
 					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
-							if (!(where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j]) && !marker->isHidden(i))
+							if (!(where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j]) && !marker->isHidden(j))
 								marker->deselect(j);
 				}
 		} else {
@@ -232,7 +232,7 @@ public:
 					AFloat xpos = _scales[0]->discreteCenter(i);
 					if ((xpos >= where.x) && (xpos <= where.x + where.width))
 						for(vsize_t j = 0; j < n; j++)
-							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j]  && !marker->isHidden(i))
+							if (where.y <= ptGrid[i][j] && where.y + where.height >= ptGrid[i][j]  && !marker->isHidden(j))
 								marker->select(j);
 				}
 		}

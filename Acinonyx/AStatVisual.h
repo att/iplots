@@ -124,37 +124,37 @@ public:
 			else minMark = maxMark = 0;
 			if (type == SEL_XOR) {
 				for (vsize_t i = 0; i < n; i++)
-					if (!marker->isHidden(i))
+					if (mark->isHidden(i) == showHidden)
 						marker->selectXOR(ids[i]);
 			} else if (type == SEL_NOT) {
 				for (vsize_t i = 0; i < n; i++)
-					if (!marker->isHidden(i))
+					if (mark->isHidden(i) == showHidden)
 						marker->deselect(ids[i]);
 			} else if (type == SEL_AND) {
 				for (vsize_t i = 0; i < n; i++)
-					if (!marker->isHidden(i))
+					if (mark->isHidden(i) == showHidden)
 						marker->deselect(ids[i]);
 			} else {
 				for (vsize_t i = 0; i < n; i++)
-					if (!marker->isHidden(i))
+					if (mark->isHidden(i) == showHidden)
 						marker->select(ids[i]);
 			}
 		} else { // group indexing
 			if (type == SEL_XOR) {
 				for (vsize_t i = 0; i < n; i++)
-					if ((group_t)ids[i] == _group && !marker->isHidden(i))
-							marker->selectXOR(i);
+					if ((group_t)ids[i] == _group && mark->isHidden(i) == showHidden)
+						marker->selectXOR(i);
 			} else if (type == SEL_NOT) {
 				for (vsize_t i = 0; i < n; i++)
-					if ((group_t)ids[i] == _group && !marker->isHidden(i))
+					if ((group_t)ids[i] == _group && mark->isHidden(i) == showHidden)
 						marker->deselect(i);
 			} else if (type == SEL_AND) {
 				for (vsize_t i = 0; i < n; i++)
-					if ((group_t)ids[i] == _group && !marker->isHidden(i))
+					if ((group_t)ids[i] == _group && mark->isHidden(i) == showHidden)
 						marker->deselect(i);
 			} else {
 				for (vsize_t i = 0; i < n; i++)
-					if ((group_t)ids[i] == _group && !marker->isHidden(i))
+					if ((group_t)ids[i] == _group && mark->isHidden(i) == showHidden)
 						marker->select(i);
 			}
 		}

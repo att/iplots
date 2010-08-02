@@ -65,10 +65,12 @@ public:
 		vsize_t levels = 1;		//starts at 1 because it includes hidden
 		hash_map<int, int> uniqueValues;
 		for(vsize_t i = 0; i < marker->length(); i++){
-			hash_map <int, int> :: const_iterator ui = uniqueValues.find((marker->value(i)+1));
-			if (ui == uniqueValues.end())	{
-				uniqueValues[(marker->value(i)+1)] = levels;
-				levels++;
+			if (!marker->isHidden(i)){
+				hash_map <int, int> :: const_iterator ui = uniqueValues.find((marker->value(i)+1));
+				if (ui == uniqueValues.end())	{
+					uniqueValues[(marker->value(i)+1)] = levels;
+					levels++;
+				}
 			}
 		}
 		//set the data - marker values, hidden

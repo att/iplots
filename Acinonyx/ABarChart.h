@@ -12,6 +12,9 @@
 
 #include "AStatVisual.h"
 #include "APlot.h"
+#include <ext/hash_map>
+
+using namespace __gnu_cxx;
 
 class ABarChart : public APlot {
 protected:
@@ -20,13 +23,12 @@ protected:
 	AYAxis *ya;
 	vsize_t bars;
 	bool spines;
-	bool colors;
-	
+
 	vsize_t movingBar, movingBarTarget;
 	AFloat movingBarX, movingBarDelta;
 	
 public:
-	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(ANotFound), spines(false), colors(false){
+	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(ANotFound), spines(false){
 		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 
 		nScales = 2;
@@ -117,29 +119,33 @@ public:
 			case KEY_S: spines = !spines; update(); redraw(); break;
 			case KEY_C:
 			{
-				colors = !colors;
-				if (colors){
-					AFactorVector *data = (AFactorVector*) _scales[0]->data();
-					vsize_t n = data->length();
-					const int *bi = data->asInts();
-					if (bi) {
-						vsize_t v = 1;
-						marker->begin();
-						for (vsize_t i = 0; i < n; i++)
-							if (!marker->isHidden(i)){
-								marker->setValue(i, bi[i] + COL_CB1);
+				AFactorVector *data = (AFactorVector*) _scales[0]->data();
+				vsize_t n = data->length();
+				const int *bi = data->asInts();
+				if (bi) {
+					vsize_t v = 0;
+					hash_map<int, int> uniqueValues;
+					for (vsize_t i = 0; i < n; i++){
+						if (!marker->isHidden(i)){
+							hash_map <int, int> :: const_iterator ui = uniqueValues.find(bi[i]);
+							if (ui == uniqueValues.end())	{
+								uniqueValues[bi[i]] = v;
 								v++;
 							}
-						marker->end();
+						}
+					}	
+					v = 0;
+					for (hash_map <int, int> :: const_iterator ui = uniqueValues.begin(), e = uniqueValues.end(); ui != e; ++ui){
+						uniqueValues[ui->first] = v + COL_CB1;
+						v++;
 					}
-				}
-				else{
-					vsize_t n = _scales[0]->data()->length();
 					marker->begin();
-					for (vsize_t i = 0; i < n; i++)
-						if (!marker->isHidden(i))
-							marker->setValue(i, 0);
-					marker->end();					
+					for (vsize_t i = 0; i < n; i++){
+						if (!marker->isHidden(i)){
+							marker->setValue(i, uniqueValues[bi[i]]);
+						}
+					}
+					marker->end();
 				}
 				update(); redraw(); break;
 			}
