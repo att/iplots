@@ -19,8 +19,9 @@ protected:
 	AXAxis *xa;
 	AYAxis *ya;
 	ADataVector *datax, *datay;
+	bool useLines;
 public:
-	AScatterPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags) {
+	AScatterPlot(AContainer *parent, ARect frame, int flags, ADataVector *x, ADataVector *y) : APlot(parent, frame, flags), useLines(false) {
 		mLeft = 20.0f; mTop = 10.0f; mBottom = 20.0f; mRight = 10.0f;
 		ptSize = 5.0;
 		ptAlpha = 0.6;
@@ -125,6 +126,7 @@ public:
 			case KEY_UP: ptSize += 1.0; setRedrawLayer(LAYER_ROOT); redraw(); break;
 			case KEY_LEFT: if (ptAlpha > 0.02) { ptAlpha -= (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha < 0.02) ptAlpha = 0.02; setRedrawLayer(LAYER_ROOT); redraw(); }; break;
 			case KEY_RIGHT: if (ptAlpha < 0.99) { ptAlpha += (ptAlpha < 0.2) ? 0.02 : 0.1; if (ptAlpha > 1.0) ptAlpha = 1.0; setRedrawLayer(LAYER_ROOT); redraw(); } break;
+			case KEY_L: useLines = !useLines; setRedrawLayer(LAYER_ROOT); redraw(); break;
 			default:
 				return false;
 		}
@@ -177,6 +179,19 @@ public:
 		AFloat *lx = _scales[0]->locations();
 		AFloat *ly = _scales[1]->locations();
 
+		AFloat expl = 0.0; // expected line distance
+		vsize_t n = _scales[0]->data()->length();
+		
+		if (useLines) {
+			vsize_t ii = 0;
+			// use the first strictly positive pair as a baseline
+			expl = lx[1] - lx[0];
+			while (expl <= 0.0 && ++ii < n - 1)
+				expl = lx[ii + 1] - lx[ii];
+			if (expl > 0.0)
+				expl *= 2.0; // add 100% safety margin
+		}
+				
 		if (layer == LAYER_ROOT) {
 			clip(_frame);
 			glPointSize(ptSize);
@@ -192,7 +207,6 @@ public:
 #endif
 				AFloat *lx = _scales[0]->locations();
 				AFloat *ly = _scales[1]->locations();
-				vsize_t n = _scales[0]->data()->length();
 				for (vsize_t i = 0; i < n; i++) if (!marker->isHidden(i)) {
 					color(marker->color(i, ptAlpha));
 #ifndef PFA
@@ -210,7 +224,6 @@ public:
 				glEndList();
 				glPushMatrix();
 #endif
-				vsize_t n = _scales[0]->data()->length();
 #ifdef PFA
 				for (vsize_t i = 0; i < n; i++)
 					if (!marker->isHidden(i))
@@ -227,6 +240,15 @@ public:
 #ifndef PFA
 			glPopMatrix();
 #endif
+			if (useLines && expl > 0.0) {
+				const mark_t *ms = marker->rawMarks();
+				for (vsize_t i = 0; i < n - 1; i++) {
+					AFloat delta = lx[i + 1] - lx[i];
+					if (delta > 0.0 && delta < expl && !M_OUT(ms[i]) && !M_OUT(ms[i + 1]))
+						line(lx[i], ly[i], lx[i + 1], ly[i + 1]);
+				}
+			}
+			
 			clipOff();
 			color(AMkColor(backgroundColor.r,backgroundColor.g,backgroundColor.b,0.5));
 			rect(0.0,0.0,mLeft,mBottom);			
@@ -247,6 +269,14 @@ public:
 						glTranslated(-lx[i], -ly[i], 0.0);
 #endif
 					}
+				
+				if (useLines && expl > 0.0)
+					for (vsize_t i = 0; i < n - 1; i++)
+						if (M_TRANS(ms[i]) && M_TRANS(ms[i + 1]) && !M_OUT(ms[i]) && !M_OUT(ms[i + 1])) {
+							AFloat delta = lx[i + 1] - lx[i];
+							if (delta > 0.0 && delta < expl)
+								line(lx[i], ly[i], lx[i + 1], ly[i + 1]);
+						}
 			}
 		}
 
