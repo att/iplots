@@ -196,7 +196,7 @@ protected:
 	direction_t fillingDirection;
 public:
 	ABarStatVisual(APlot *plot, ARect r, direction_t fillDir, AMarker *m, vsize_t *ids, vsize_t len, group_t group, bool copy=true,
-				   bool releaseIDs=true, bool sHidden) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs, new AUnivarTable(32, false)), _r(r), fillingDirection(fillDir) {
+				   bool releaseIDs=true, bool sHidden=false) : AStatVisual(plot, m, ids, len, group, copy, releaseIDs, new AUnivarTable(32, false)), _r(r), fillingDirection(fillDir) {
 		showHidden = sHidden;
 		f = barColor;
 		c = pointColor;
