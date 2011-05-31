@@ -176,11 +176,11 @@ public:
 						cr.x += movX + deltaW / 2; // only half the share of the width change
 				} else
 					cr.x = movX + cr.x / previousFrame.width * frame.width;
-				if (cf & AVF_FIX_TOP)
-					cr.y += movY + deltaH;
+				if (cf & AVF_FIX_BOTTOM)
+					cr.y += movY;
 				else if (cf & AVF_FIX_HEIGHT) {
-					if (cf & AVF_FIX_BOTTOM)
-						cr.y += movY;
+					if (cf & AVF_FIX_TOP)
+						cr.y += movY + deltaH;
 					else
 						cr.y += movY + deltaH / 2;
 				} else
@@ -196,7 +196,7 @@ public:
 				}
 				if ((cf & AVF_FIX_HEIGHT) == 0) { // change height only if it's not fixed
 					if (cf & AVF_FIX_BOTTOM)
-					cr.height += deltaH - ( cr.y - pr.y - movY );
+						cr.height += deltaH - ( cr.y - pr.y - movY );
 					else if (cf & AVF_FIX_TOP)
 						cr.height *= frame.height / previousFrame.height;
 					else

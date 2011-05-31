@@ -37,9 +37,9 @@ public:
 		AMEM(_scales);
 		_scales[0] = new AScale(datax = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		_scales[1] = new AScale(datay = y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());
-		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_FIX_LEFT, _scales[0]);
+		xa = new AXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_DEFAULT|AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_XSPRING, _scales[0]);
 		add(*xa);
-		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_FIX_LEFT|AVF_FIX_WIDTH, _scales[1]);
+		ya = new AYAxis(this, AMkRect(_frame.x, _frame.y + mBottom, mLeft, _frame.height - mBottom - mTop), AVF_DEFAULT|AVF_FIX_LEFT|AVF_FIX_WIDTH|AVF_YSPRING, _scales[1]);
 		add(*ya);
 		// add home zoom entry
 		AZoomEntryBiVar *ze = new AZoomEntryBiVar(_scales[0]->dataRange(), _scales[1]->dataRange());
