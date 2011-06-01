@@ -18,6 +18,8 @@ AColor pointColor      = { 0.0, 0.0, 0.0, 1.0 };
 AColor textColor       = { 0.0, 0.0, 0.0, 1.0 };
 AColor hiliteColor     = { 1.0, 0.0, 0.0, 1.0 };
 AColor barColor        = { 0.8, 0.8, 0.8, 1.0 };
+AColor widgetColor     = { 0.0, 0.0, 0.0, 0.5 };
+AColor widgetHoverColor= { 0.9, 0.9, 0.9, 0.5 };
 
 void *memdup(const void *buf, unsigned int len) {
 	void *v = malloc(len);
@@ -40,6 +42,8 @@ const char *value_printf(const char *fmt, ...) {
 	va_end(v);
 	return (const char*) value_buf;
 }
+
+unsigned int current_frame;
 
 #ifdef DEBUG
 void ALog(const char *fmt, ...) {

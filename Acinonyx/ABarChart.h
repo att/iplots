@@ -12,6 +12,7 @@
 
 #include "AStatVisual.h"
 #include "APlot.h"
+#include "ACueButton.h"
 #include <ext/hash_map>
 
 using namespace __gnu_cxx;
@@ -23,9 +24,11 @@ protected:
 	AYAxis *ya;
 	vsize_t bars;
 	bool spines;
-
+	
 	vsize_t movingBar, movingBarTarget;
 	AFloat movingBarX, movingBarDelta;
+	
+	ACueButton *buttonSpine, *buttonBrush;
 	
 public:
 	ABarChart(AContainer *parent, ARect frame, int flags, AFactorVector *x) : APlot(parent, frame, flags), movingBar(ANotFound), spines(false){
@@ -49,6 +52,23 @@ public:
 		add(*ya);
 		createPrimitives();
 		
+		ACueWidget *cb = new ACueWidget(this, AMkRect(frame.x, frame.y + frame.height - 17, frame.width, 17), AVF_DEFAULT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_XSPRING, true);
+		add(*cb);
+		cb->release();
+		buttonSpine = new ACueButton(cb, AMkRect(frame.x + 3, frame.y + frame.height - 3 - 14, 50, 14), AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Foo");
+		buttonSpine->setDelegate(this);
+		buttonSpine->setLabel(spines ? ">Bars" : ">Spines");
+		cb->add(*buttonSpine);
+		buttonSpine->release();
+
+		ARect f = buttonSpine->frame();
+		f.x += f.width + 10;
+		buttonBrush = new ACueButton(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Brush");
+		buttonBrush->setDelegate(this);
+		buttonBrush->click_action = "brush.by.group";
+		cb->add(*buttonBrush);
+		buttonBrush->release();
+
 		OCLASS(ABarChart)
 	}
 	
@@ -90,11 +110,26 @@ public:
 		}
 	}
 	
+	virtual void delegateAction(AWidget *source, const char *action, AObject *aux) {
+		if (source == buttonSpine) {
+			spines = !spines;
+			update();
+			redraw();
+		} else if (action && !strcmp(action, "brush.by.group")) {
+			brushByGroup();
+		} else if (action && !strcmp(action, "brush.clear")) {
+			buttonBrush->click_action = "brush.by.group";
+			buttonBrush->setLabel("Brush");
+			marker->clearValues();
+		}
+	}
+	
 	void update() {
 		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
 
 		ya->setHidden(spines);
+		buttonSpine->setLabel(spines ? ">Bars" : ">Spines");
 		
 		if (!pps)
 			createPrimitives();
@@ -114,42 +149,46 @@ public:
 		APlot::update();
 	}
 	
+	void brushByGroup() {
+		AFactorVector *data = (AFactorVector*) _scales[0]->data();
+		vsize_t n = data->length();
+		const int *bi = data->asInts();
+		if (bi) {
+			vsize_t v = 0;
+			hash_map<int, int> uniqueValues;
+			for (vsize_t i = 0; i < n; i++){
+				if (!marker->isHidden(i)){
+					hash_map <int, int> :: const_iterator ui = uniqueValues.find(bi[i]);
+					if (ui == uniqueValues.end())	{
+						uniqueValues[bi[i]] = v;
+						v++;
+						}
+				}
+			}	
+			v = 0;
+			for (hash_map <int, int> :: const_iterator ui = uniqueValues.begin(), e = uniqueValues.end(); ui != e; ++ui){
+				uniqueValues[ui->first] = v + COL_CB1;
+				v++;
+			}
+			marker->begin();
+			for (vsize_t i = 0; i < n; i++){
+				if (!marker->isHidden(i)){
+					marker->setValue(i, uniqueValues[bi[i]]);
+				}
+			}
+			marker->end();
+		}
+		buttonBrush->click_action = "brush.clear";
+		buttonBrush->setLabel("Clear");
+
+		update(); redraw();
+	}
+
 	virtual bool keyDown(AEvent e) {
 		if (APlot::keyDown(e)) return true;
 		switch (e.key) {
 			case KEY_S: spines = !spines; update(); redraw(); break;
-			case KEY_C:
-			{
-				AFactorVector *data = (AFactorVector*) _scales[0]->data();
-				vsize_t n = data->length();
-				const int *bi = data->asInts();
-				if (bi) {
-					vsize_t v = 0;
-					hash_map<int, int> uniqueValues;
-					for (vsize_t i = 0; i < n; i++){
-						if (!marker->isHidden(i)){
-							hash_map <int, int> :: const_iterator ui = uniqueValues.find(bi[i]);
-							if (ui == uniqueValues.end())	{
-								uniqueValues[bi[i]] = v;
-								v++;
-							}
-						}
-					}	
-					v = 0;
-					for (hash_map <int, int> :: const_iterator ui = uniqueValues.begin(), e = uniqueValues.end(); ui != e; ++ui){
-						uniqueValues[ui->first] = v + COL_CB1;
-						v++;
-					}
-					marker->begin();
-					for (vsize_t i = 0; i < n; i++){
-						if (!marker->isHidden(i)){
-							marker->setValue(i, uniqueValues[bi[i]]);
-						}
-					}
-					marker->end();
-				}
-				update(); redraw(); break;
-			}
+			case KEY_C: brushByGroup(); break;
 			default:
 				return false;
 		}

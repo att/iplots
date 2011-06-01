@@ -16,6 +16,7 @@
 #define LAYER_ROOT    0
 #define LAYER_HILITE  1
 #define LAYER_OBJECTS 2
+#define LAYER_WIDGETS 3 /* widgets layer (currently we fold trans and widgets since we use currently cue-widgets but it may change...) */
 #define LAYER_TRANS   3 /* transient layer - topmost */
 
 #ifdef __cplusplus

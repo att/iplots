@@ -34,7 +34,7 @@ class AContainer;
 /* hide/show */
 #define AVF_HIDDEN     0x20000
 
-/* events (not clear how to handle children's request?) */
+/* events (children may want to request those via requestFlags()) // NOTE: currently ignored? */
 #define AVFE_MOUSE_MOVE 0x100000
 #define AVFE_MOUSE_DRAG 0x200000
 
@@ -59,7 +59,17 @@ public:
 
 	AContainer *parent() { return _parent; }
 	unsigned int flags() { return _flags; }
-		
+
+	// child requests propagation of given flags up the parent chain - currently only AVFE_MOUSE_DRAG and AVFE_MOUSE_MOVE are allowed
+	void requestFlags(unsigned int mask) {
+		mask &= AVFE_MOUSE_DRAG | AVFE_MOUSE_MOVE;
+		if (mask) {
+			_flags |= mask;
+			if (_parent)
+				((AVisual*)_parent)->requestFlags(mask);
+		}
+	}
+	
 	bool isContainer() { return (_flags & AVF_CONTAINER) ? true : false; }
 	bool isHidden() { return (_flags & AVF_HIDDEN) ? true : false ; }
 

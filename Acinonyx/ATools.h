@@ -16,9 +16,11 @@
 
 #include "ATypes.h"
 
-extern AColor backgroundColor, pointColor, hiliteColor, barColor, textColor;
+extern AColor backgroundColor, pointColor, hiliteColor, barColor, textColor, widgetColor, widgetHoverColor;
 
 extern long profilerTime, startupTime;
+
+extern unsigned int current_frame;
 
 #ifdef __cplusplus
 extern "C" {

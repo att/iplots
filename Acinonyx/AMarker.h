@@ -282,6 +282,19 @@ public:
 		weChanged();
 	};
 	
+	void clearValues() {
+		vsize_t index = 0;
+		while (index < _len) {
+			if (_data[index] & (~M_BITMASK)) break;
+			index++;
+		}
+		if (index == _len) return; // nothing changed
+		_perm_changed = _changed = true;
+		while (index < _len)
+			_data[index++] &= M_BITMASK;
+		weChanged();			
+	}
+	
 	mark_t maxValue() {
 		return max_value;
 	};

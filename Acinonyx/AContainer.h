@@ -22,6 +22,7 @@ typedef struct chList {
 } chList_t;
 
 class AContainer : public AVisual {
+protected:
 	chList_t *chRoot, *chTail;
 	bool passToAll;
 public:
@@ -82,6 +83,16 @@ public:
 		chList_t *c = chRoot;
 		while (c && c->o != obj) c = c->next;
 		return c?true:false;
+	}
+	
+	AVisual *childByTag(int tag) {
+		chList_t *c = chRoot;
+		while (c) {
+			if (c->o && c->o->tag_ == tag)
+				return c->o;
+			c = c->next;
+		}
+		return NULL;		
 	}
 	
 	// similar to isChild but checks recursively in container children

@@ -49,7 +49,7 @@ public:
 public:
 	int tag_;
 
-	AObject() : refcount(1) 
+	AObject() : refcount(1), tag_(0) 
 #ifdef AUTORELEASE_SUPPORT
 	, arpp(0)
 #endif

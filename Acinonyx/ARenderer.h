@@ -62,6 +62,8 @@ static void tcbCombine(GLdouble coords[3],
 	*dataOut = vertex;
 }
 
+static const AFloat sin_table8[] = {0,0.2225209,0.4338837,0.6234898,0.7818315,0.9009689,0.9749279,1};
+
 class ARenderer : public AObject {
 protected:
 	ARect _frame; // in window coords
@@ -113,6 +115,10 @@ public:
 		glColor4fv(f);
 	}*/
 	
+	AColor txtcolor() {
+		return _window ? _window->textColor() : AMkColor(0,0,0,1);
+	}
+	
 	void txtcolor(AColor c) {
 		if (_window) _window->setTextColor(c);
 	}
@@ -140,6 +146,47 @@ public:
 
 	void rect(ARect aRect) { rect(aRect.x, aRect.y, aRect.x + aRect.width, aRect.y + aRect.height); }
 
+	void roundRect(ARect aRect, AFloat cornerx = 5.0, AFloat cornery = -1.0) { roundRect(aRect.x, aRect.y, aRect.x + aRect.width, aRect.y + aRect.height, cornerx, cornery); }
+	void roundRectO(ARect aRect, AFloat cornerx = 5.0, AFloat cornery = -1.0) { roundRectO(aRect.x, aRect.y, aRect.x + aRect.width, aRect.y + aRect.height, cornerx, cornery); }
+
+	void roundRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, AFloat cornerx = 5.0, AFloat cornery = -1.0) {
+		if (cornery < 0.0) cornery = cornerx;
+		GLfloat dx = x2 - x1; if (dx < 0) dx = -dx;
+		GLfloat dy = y2 - y1; if (dy < 0) dy = -dy;
+		if (cornerx > dx / 2.0) cornerx = dx / 2.0;
+		if (cornery > dy / 2.0) cornery = dy / 2.0;
+		if (cornerx < 1.0 && cornery < 1.0)
+			rect(x1, y1, x2, y2);
+		else {
+			int i = 0;
+			glBegin(GL_POLYGON);
+			for (i = 0; i < 8; i++) glVertex2f(x1 + cornerx - cornerx * sin_table8[i], y1 + cornery - cornery * sin_table8[7 - i]); // bottom left
+			for (i = 0; i < 8; i++) glVertex2f(x1 + cornerx - cornerx * sin_table8[7 - i], y2 - cornery + cornery * sin_table8[i]); // top left
+			for (i = 0; i < 8; i++) glVertex2f(x2 - cornerx + cornerx * sin_table8[i], y2 - cornery + cornery * sin_table8[7 - i]); // top right
+			for (i = 0; i < 8; i++) glVertex2f(x2 - cornerx + cornerx * sin_table8[7 - i], y1 + cornery - cornery * sin_table8[i]); // bottom right
+			glEnd();
+		}
+	}
+
+	void roundRectO(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, AFloat cornerx = 5.0, AFloat cornery = -1.0) {
+		if (cornery < 0.0) cornery = cornerx;
+		GLfloat dx = x2 - x1; if (dx < 0) dx = -dx;
+		GLfloat dy = y2 - y1; if (dy < 0) dy = -dy;
+		if (cornerx > dx / 2.0) cornerx = dx / 2.0;
+		if (cornery > dy / 2.0) cornery = dy / 2.0;
+		if (cornerx < 1.0 && cornery < 1.0)
+			rectO(x1, y1, x2, y2);
+		else {
+			int i = 0;
+			glBegin(GL_LINE_LOOP);
+			for (i = 0; i < 8; i++) glVertex2f(x1 + cornerx - cornerx * sin_table8[i], y1 + cornery - cornery * sin_table8[7 - i]); // bottom left
+			for (i = 0; i < 8; i++) glVertex2f(x1 + cornerx - cornerx * sin_table8[7 - i], y2 - cornery + cornery * sin_table8[i]); // top left
+			for (i = 0; i < 8; i++) glVertex2f(x2 - cornerx + cornerx * sin_table8[i], y2 - cornery + cornery * sin_table8[7 - i]); // top right
+			for (i = 0; i < 8; i++) glVertex2f(x2 - cornerx + cornerx * sin_table8[7 - i], y1 + cornery - cornery * sin_table8[i]); // bottom right
+			glEnd();
+		}
+	}
+	
 	void rectO(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
 		glBegin(GL_LINE_LOOP);
 		rectV(x1, y1, x2, y2);

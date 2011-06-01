@@ -34,6 +34,9 @@ public:
 	virtual ADataRange range(vsize_t coord) { return AUndefDataRange; };
 };
 
+// FIXME: we are currently only using widgets for delegation, but in principle it could be any superclass
+class AWidget;
+
 /** APlot is the base of all visual representing statistical plots. It provides scales, handling of visual primitives, storage for plot primitives (statistical primitives), zoom, query and selection. */
 class APlot : public AContainer, public RValueHolder {
 protected:
@@ -400,6 +403,8 @@ public:
 	virtual bool mouseMove(AEvent e) {
 		// ALog("%s: mouseMove (flags=%02x, x=%g, y=%g)", describe(), e.flags, e.location.x, e.location.y);
 		
+		if (AContainer::mouseMove(e)) return true;
+		
 		if (inQuery) {
 			if (e.flags & AEF_CTRL) {
 				queryAt(e.location, (e.flags & AEF_SHIFT) ? 1 : 0);
@@ -534,6 +539,11 @@ public:
 			AContainer::moveAndResize(frame);
 			update();
 		}
+	}
+	
+	virtual void delegateAction(AWidget *source, const char *action, AObject *aux) {
+		ALog("%s: delegateAction '%s'", describe(), action);
+		ALog("   from %s", source ? ((AObject*)source)->describe() : "<unknown!>");
 	}
 	
 	virtual void setCaption(const char* caption){

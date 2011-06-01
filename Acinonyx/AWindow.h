@@ -198,6 +198,7 @@ public:
 	
 	/** this method is called to setup the OpenGL environemnt on a redraw. */
 	void begin() {
+		current_frame++;
 		profStart()
 		if (_layers == 0) {
 			if (first_gl)
