@@ -12,7 +12,8 @@
 
 #include "AStatVisual.h"
 #include "APlot.h"
-#include "ACueButton.h"
+#include "ACueMenu.h"
+#include "ACueHotButton.h"
 
 class ABarChart : public APlot {
 protected:
@@ -49,23 +50,54 @@ public:
 		add(*ya);
 		createPrimitives();
 		
-		ACueWidget *cb = new ACueWidget(this, AMkRect(frame.x, frame.y + frame.height - 17, frame.width, 17), AVF_DEFAULT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_XSPRING, true);
+		//------- top menu -------
+		ACueWidget *cb = new ACueWidget(this, AMkRect(frame.x, frame.y + frame.height - 10, frame.width, 10), AVF_DEFAULT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_LEFT | AVF_FIX_WIDTH, true);
 		add(*cb);
 		cb->release();
-		buttonSpine = new ACueButton(cb, AMkRect(frame.x + 3, frame.y + frame.height - 3 - 14, 50, 14), AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Foo");
+		
+		ACueButton *b = new ACueButton(cb, AMkRect(frame.x + 3, frame.y + frame.height - 3 - 14, 40, 14), AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Undo");
+		b->setDelegate(this);
+		b->click_action = "undo";
+		cb->add(*b);
+		b->release();
+		ARect f = b->frame();
+
+		f.x += f.width + 6;
+		f.width += 10;
+
+		buttonSpine = new ACueButton(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "");
 		buttonSpine->setDelegate(this);
 		buttonSpine->setLabel(spines ? ">Bars" : ">Spines");
 		cb->add(*buttonSpine);
 		buttonSpine->release();
 
-		ARect f = buttonSpine->frame();
-		f.x += f.width + 10;
+		f.x += f.width + 6;
 		buttonBrush = new ACueButton(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Brush");
 		buttonBrush->setDelegate(this);
 		buttonBrush->click_action = "brush.by.group";
 		cb->add(*buttonBrush);
 		buttonBrush->release();
 
+		f.x += f.width + 6;
+		f.width += 4;
+		b = new ACueHotButton(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Sort by ...");
+		cb->add(*b);
+		
+		//f.y -= f.height;
+		f.height = 1.0;
+		f.width += 50;
+		ACueMenu *m = new ACueMenu(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH);
+		m->setRoundCorners(8.0);
+		m->setDelegate(this);
+		m->addItem("size","sort.by.size");
+		m->addItem("highlighting","sory.by.hilite");
+		m->addItem("name, lexicograph.","sort.by.name");
+		m->addItem("name, numerically","sort.by.number");
+		m->addItem("level id","sort.by.id");
+		b->add(*m);
+		m->release();
+		b->release();
+		
 		OCLASS(ABarChart)
 	}
 	
@@ -112,13 +144,17 @@ public:
 			spines = !spines;
 			update();
 			redraw();
+			return;
 		} else if (action && !strcmp(action, "brush.by.group")) {
 			brushByGroup();
+			return;
 		} else if (action && !strcmp(action, "brush.clear")) {
 			buttonBrush->click_action = "brush.by.group";
 			buttonBrush->setLabel("Brush");
 			marker->clearValues();
+			return;
 		}
+		APlot::delegateAction(source, action, aux);
 	}
 	
 	void update() {

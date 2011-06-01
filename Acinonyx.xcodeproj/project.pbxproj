@@ -88,6 +88,12 @@
 		68C25C9C0D7B5E3F0065C27A /* AVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVector.h; sourceTree = "<group>"; };
 		68C25C9D0D7B68190065C27A /* ATools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATools.h; sourceTree = "<group>"; };
 		68C25C9E0D7B68190065C27A /* ATools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ATools.c; sourceTree = "<group>"; };
+		68C3D7271395301000C3852F /* ACueWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACueWidget.h; sourceTree = "<group>"; };
+		68C3D72C139536F400C3852F /* AWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWidget.h; sourceTree = "<group>"; };
+		68C3D73D1395395F00C3852F /* ACueButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACueButton.h; sourceTree = "<group>"; };
+		68C3DAF61396B79F00C3852F /* ACueBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACueBox.h; sourceTree = "<group>"; };
+		68C3DAF91396B93F00C3852F /* ACueMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACueMenu.h; sourceTree = "<group>"; };
+		68C3DBC51396D9FB00C3852F /* ACueHotButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACueHotButton.h; sourceTree = "<group>"; };
 		68D71E5311E62A9200E20FC0 /* ATable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATable.h; sourceTree = "<group>"; };
 		68DED9C70FFD729C00C1DB43 /* AQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AQuery.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -243,6 +249,7 @@
 		68BF1C220D79CD440095B772 /* Acinonyx */ = {
 			isa = PBXGroup;
 			children = (
+				68C3D71D13952F8900C3852F /* Widgets */,
 				688A321E0FC1AFF100532F79 /* GLUT */,
 				687CA53A0FB447DA00D249DB /* StatVis */,
 				687CA1440FAF0F1100D249DB /* Plots */,
@@ -279,6 +286,19 @@
 			path = Acinonyx;
 			sourceTree = "<group>";
 		};
+		68C3D71D13952F8900C3852F /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				68C3D7271395301000C3852F /* ACueWidget.h */,
+				68C3DAF61396B79F00C3852F /* ACueBox.h */,
+				68C3D73D1395395F00C3852F /* ACueButton.h */,
+				68C3DBC51396D9FB00C3852F /* ACueHotButton.h */,
+				68C3DAF91396B93F00C3852F /* ACueMenu.h */,
+				68C3D72C139536F400C3852F /* AWidget.h */,
+			);
+			name = Widgets;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -307,7 +327,14 @@
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Acinonyx" */;
 			compatibilityVersion = "Xcode 3.0";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Acinonyx */;
 			projectDirPath = "";
 			projectRoot = "";

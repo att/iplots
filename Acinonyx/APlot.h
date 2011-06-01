@@ -544,6 +544,10 @@ public:
 	virtual void delegateAction(AWidget *source, const char *action, AObject *aux) {
 		ALog("%s: delegateAction '%s'", describe(), action);
 		ALog("   from %s", source ? ((AObject*)source)->describe() : "<unknown!>");
+		if (action && !strcmp(action, "undo")) {
+			if (marker) marker->undo();
+			return;
+		}
 	}
 	
 	virtual void setCaption(const char* caption){

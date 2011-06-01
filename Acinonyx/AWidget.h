@@ -22,6 +22,14 @@ protected:
 	bool mouse_locked;      // if this flag is set, then moving the mouse outside doesn't trigger dismissal
 	bool mouse_down_inside; // true if the last mouseDown even was inside the widget
 	bool hovering;          // true if the mouse is currently hovering over the widget
+
+	virtual void setHovering(bool what) {
+		if (hovering != what) {
+			hovering = what;
+			redrawWidget();
+		}
+	}
+
 public:
 	const char *click_action;
 #pragma mark --- contructor ---
@@ -39,25 +47,35 @@ public:
 	
 #pragma mark --- mouse handling ---
 	virtual bool mouseEnter(AEvent event) {
-		hovering = true;
-		redrawWidget();
+		setHovering(true);
 		return false;
 	}
 
 	virtual bool mouseLeave(AEvent event) {
-		hovering = false;
-		redrawWidget();
+		setHovering(false);
 		return false;
+	}
+
+	virtual void setHidden(bool hf) {
+		if (hf && !isHidden()) {
+			// when hiding, we need to remove hovering status
+			if (hovering) setHovering(false);
+		} else if (!hf && isHidden()) {
+			// when showing, we have to check the mouse status
+			if (mouse_inside) setHovering(true);
+		}
+		AContainer::setHidden(hf);
 	}
 
 	virtual bool mouseMove(AEvent event) {
 		// ALog("mouseMove: %g,%g -> %g,%g-%g,%g", event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height);
+		if (isHidden()) return false;
 		if (!mouse_inside && containsPoint(event.location)) {
 			mouse_inside = true;
-			return mouseEnter(event);
+			if (!isHidden()) return mouseEnter(event);
 		} else if (mouse_inside && !containsPoint(event.location)) {
 			mouse_inside = false;
-			return mouseLeave(event);
+			if (!isHidden()) return mouseLeave(event);
 		}
 		return false;
 	}
@@ -71,17 +89,30 @@ public:
 	
 	virtual bool mouseDown(AEvent event) {
 		// ALog("%s mouseDown: %g,%g [%g,%g-%g,%g]", describe(), event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height);
-		if ((mouse_down_inside = containsPoint(event.location))) return true;
-		return false;
+		if ((mouse_down_inside = containsPoint(event.location)))
+			if (!isHidden()) return true;
+		return AContainer::mouseDown(event);
 	}
 	
 	virtual bool mouseUp(AEvent event) {
 		// ALog("%s mouseUp: %g,%g [%g,%g-%g,%g]", describe(), event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height);
 		if (containsPoint(event.location) && mouse_down_inside) {
 			mouse_down_inside = false;
-			return clicked(event);
+			if (!isHidden()) return clicked(event);
 		}
 		mouse_down_inside = false;
+		return AContainer::mouseUp(event);
+	}	
+	
+	bool inHoveringMode(bool askChildren=true, bool excludeSelf=false) {
+		ALog("%s inHoveringMode [hover=%s]", describe(), hovering ? "yes" : "no");
+		if (!askChildren || (hovering && !excludeSelf)) return hovering;
+		chList_t *c = chRoot;
+		while (c) {
+			AWidget *child = static_cast <AWidget*> (c->o);
+			if (child && child->inHoveringMode(askChildren)) return true;
+			c = c->next;
+		}
 		return false;
 	}
 	

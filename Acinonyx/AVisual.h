@@ -83,8 +83,8 @@ public:
 	virtual void query(AQuery *query, int level) {
 	}
 	
-	void setHidden(bool hf) {
-		// FIXME: we sould do a redraw or something ...
+	virtual void setHidden(bool hf) {
+		// FIXME: we should do a redraw or something ...
 		if (hf && (_flags & AVF_HIDDEN) == 0)
 			_flags |= AVF_HIDDEN;
 		if (!hf && (_flags & AVF_HIDDEN))
@@ -115,6 +115,7 @@ public:
 	
 	// NOTE: setFrame inherited from ARenderer is non-virtual, defined in window coordinates and specific for rendering
 	virtual void moveAndResize(ARect frame) { setFrame(frame); }
+	virtual void move(APoint where) { ARect f = _frame; f.x = where.x; f.y = where.y; setFrame(f); }
 };
 
 #endif
