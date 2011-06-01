@@ -13,9 +13,6 @@
 #include "AStatVisual.h"
 #include "APlot.h"
 #include "ACueButton.h"
-#include <ext/hash_map>
-
-using namespace __gnu_cxx;
 
 class ABarChart : public APlot {
 protected:
@@ -151,33 +148,38 @@ public:
 	
 	void brushByGroup() {
 		AFactorVector *data = (AFactorVector*) _scales[0]->data();
+		vsize_t l = data->levels();
+		AUnivarTable *tab = new AUnivarTable(l);
 		vsize_t n = data->length();
 		const int *bi = data->asInts();
-		if (bi) {
-			vsize_t v = 0;
-			hash_map<int, int> uniqueValues;
-			for (vsize_t i = 0; i < n; i++){
-				if (!marker->isHidden(i)){
-					hash_map <int, int> :: const_iterator ui = uniqueValues.find(bi[i]);
-					if (ui == uniqueValues.end())	{
-						uniqueValues[bi[i]] = v;
-						v++;
-						}
-				}
-			}	
-			v = 0;
-			for (hash_map <int, int> :: const_iterator ui = uniqueValues.begin(), e = uniqueValues.end(); ui != e; ++ui){
-				uniqueValues[ui->first] = v + COL_CB1;
-				v++;
+		for (vsize_t i = 0; i < n; i++)
+			if (!marker->isHidden(i))
+				tab->add((vsize_t) bi[i]);
+		APermutation *perm = _scales[0]->permutation();
+		vsize_t nonzero = 0;
+		vsize_t *b_map = (vsize_t*)calloc(sizeof(vsize_t), l);
+		AMEM(b_map);
+		for (vsize_t i = 0; i < l; i++) {
+			vsize_t level = perm->permutationAt(i); 
+			if (tab->count(level) > 0) {
+				nonzero++;
+				b_map[level] = nonzero;
 			}
-			marker->begin();
-			for (vsize_t i = 0; i < n; i++){
-				if (!marker->isHidden(i)){
-					marker->setValue(i, uniqueValues[bi[i]]);
-				}
-			}
-			marker->end();
 		}
+		vsize_t color_base = COL_CB1;
+		if (nonzero > 10) {
+			color_base = COL_HCL;
+			for (vsize_t i = 0; i < l; i++)
+				b_map[i] = b_map[i] * COL_NHCL / (l + 1);
+		}
+		marker->begin();
+		for (vsize_t i = 0; i < n; i++)
+			if (!marker->isHidden(i)) // FIXME: whould be alse re-set invisibles?
+				marker->setValue(i, color_base + b_map[bi[i]]);
+		marker->end();
+		free(b_map);
+		tab->release();
+
 		buttonBrush->click_action = "brush.clear";
 		buttonBrush->setLabel("Clear");
 
