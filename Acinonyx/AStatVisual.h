@@ -72,6 +72,11 @@ public:
 		_group_name = group_name;
 	}
 	
+	vsize_t countSelected() { return selected; }
+	vsize_t countHidden() { return hidden; }
+	vsize_t countVisible() { return visible; }
+	group_t getGroup() { return _group; }
+	
 	// this method is called upon highlighting change
 	// and it calculates selected, hidden, min/max marks and the value table (if set)
 	void markerChanged() {

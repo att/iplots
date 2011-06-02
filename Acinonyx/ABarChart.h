@@ -90,7 +90,7 @@ public:
 		m->setRoundCorners(8.0);
 		m->setDelegate(this);
 		m->addItem("size","sort.by.size");
-		m->addItem("highlighting","sory.by.hilite");
+		m->addItem("highlighting","sort.by.hilite");
 		m->addItem("name, lexicograph.","sort.by.name");
 		m->addItem("name, numerically","sort.by.number");
 		m->addItem("level id","sort.by.id");
@@ -167,6 +167,26 @@ public:
 			p->orderAccordingToVSizes(tab->counts());
 			update();
 			redraw();
+		} else if (AIsAction(action, "sort.by.hilite")) {
+			if (pps) {
+				APermutation *p = _scales[0]->permutation();
+				vsize_t n = p->size();
+				vsize_t *sel = (vsize_t*) calloc(sizeof(vsize_t), n);
+				vsize_t bars = pps->length();
+				for (vsize_t i = 0; i < bars; i++) {
+					ABarStatVisual *bar = static_cast<ABarStatVisual*> (pps->objectAt(i));
+					group_t g = bar->getGroup();
+					if (g >= 0 && g < n) {
+						sel[g] = bar->countSelected();
+						if (spines && bar->countVisible())
+							sel[g] = (vsize_t) ((double) sel[g] / (double) bar->countVisible() * 2e9); // FIXME: we map proportions to 0..2e9 vsize_t which should mostly work, but is ad-hoc 
+					}
+				}
+				p->orderAccordingToVSizes(sel);
+				free(sel);
+				update();
+				redraw();
+			}
 		}
 	}
 	

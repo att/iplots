@@ -40,6 +40,10 @@ public:
 		if (perm) free(perm);
 	}
 	
+	vsize_t size() {
+		return n;
+	}
+	
 	vsize_t permutationOf(vsize_t index) {
 		if (!perm) return index;
 		return (index >= n) ? index : perm[index];
