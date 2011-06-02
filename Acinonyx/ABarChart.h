@@ -51,7 +51,7 @@ public:
 		createPrimitives();
 		
 		//------- top menu -------
-		ACueWidget *cb = new ACueWidget(this, AMkRect(frame.x, frame.y + frame.height - 10, frame.width, 10), AVF_DEFAULT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_LEFT | AVF_FIX_WIDTH, true);
+		ACueWidget *cb = new ACueWidget(this, AMkRect(frame.x, frame.y + frame.height - 17, frame.width, 17), AVF_DEFAULT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_LEFT | AVF_FIX_WIDTH, true);
 		add(*cb);
 		cb->release();
 		
@@ -171,6 +171,12 @@ public:
 			APermutation *p = _scales[0]->permutation();
 			AFactorVector *data = (AFactorVector*) _scales[0]->data();
 			p->orderLexicographically(data->levelStrings());
+			update();
+			redraw();
+		} else if (AIsAction(action, "sort.by.number")) {
+			APermutation *p = _scales[0]->permutation();
+			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			p->orderNumerically(data->levelStrings());
 			update();
 			redraw();
 		} else if (AIsAction(action, "sort.by.hilite")) {

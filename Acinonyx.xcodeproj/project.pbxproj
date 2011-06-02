@@ -36,6 +36,7 @@
 		32CA4F630368D1EE00C91783 /* Acinonyx_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Acinonyx_Prefix.pch; sourceTree = "<group>"; };
 		6822964B0FFC0EFC00223DB8 /* AWin32Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AWin32Window.h; sourceTree = "<group>"; };
 		682296630FFC158100223DB8 /* AWin32Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AWin32Window.cpp; sourceTree = "<group>"; };
+		6824240A1398098A006AE748 /* APermutation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APermutation.h; sourceTree = "<group>"; };
 		68249C630FC1C2FD009EAA6B /* AGLUTWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AGLUTWindow.cpp; sourceTree = "<group>"; };
 		68249C640FC1C2FD009EAA6B /* AGLUTWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AGLUTWindow.h; sourceTree = "<group>"; };
 		682DC6030FF1403F00E8F17C /* AHistogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHistogram.h; sourceTree = "<group>"; };
@@ -282,6 +283,7 @@
 				68D71E5311E62A9200E20FC0 /* ATable.h */,
 				68B2569E11E7CAEB00975EE5 /* AIndex.h */,
 				6873A2361397CC6A004AC532 /* ASort.h */,
+				6824240A1398098A006AE748 /* APermutation.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";
