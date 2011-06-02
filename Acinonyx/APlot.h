@@ -66,7 +66,7 @@ public:
 	}
 
 	APlot(AContainer *parent, ARect frame, int flags, AScale *xScale, AScale *yScale) : AContainer(parent, frame, flags), RValueHolder(Rf_allocVector(VECSXP, 0)), nScales(2), pps(NULL), vps(new AMutableObjectVector()), inSelection(false), inZoom(false), inQuery(false), mLeft(20.0), mTop(10.0), mBottom(20.0), mRight(10.0), ptSize(1.0), ptAlpha(1.0), lastContext(SEL_CONTEXT_DEFAULT), currentContext(SEL_CONTEXT_DEFAULT) {
-		_scales = (AScale**) malloc(sizeof(AScale*)*2);
+		_scales = (AScale**) AAlloc(sizeof(AScale*)*2);
 		AMEM(_scales);
 		_scales[0] = xScale;
 		_scales[1] = yScale;
@@ -76,7 +76,7 @@ public:
 	virtual ~APlot() {
 		if (_scales) {
 			for (int i = 0; i < nScales; i++) _scales[i]->release();
-			free(_scales);
+			AFree(_scales);
 		}
 		if (zoomStack) zoomStack->release();
 		if (vps) vps->release();

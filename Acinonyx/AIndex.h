@@ -22,7 +22,7 @@ public:
 	ADenseBitmap(bmsrc_t *src, vsize_t n, bmsrc_t mask = 1) : vlen(n) {
 		vsize_t bf_len = n >> 3, i = 0;
 		if (n & 7) bf_len++;
-		bits = (byte_t*) malloc(bf_len);
+		bits = (byte_t*) AAlloc(bf_len);
 		AMEM(bits);
 		byte_t cv = 0, *here = bits;
 		for (; i < n; i++) {
@@ -43,7 +43,7 @@ public:
 	}
 	
 	virtual ~ADenseBitmap() {
-		free(bits);
+		AFree(bits);
 		DCLASS(ADenseBitmap)
 	}
 	

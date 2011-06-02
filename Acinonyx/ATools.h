@@ -28,8 +28,6 @@ extern "C" {
 
 const char *value_printf(const char *fmt, ...);
 
-void *memdup(const void *buf, unsigned int len);
-
 	/*-- profiling support --*/
 #ifdef PROFILE
 #define profStart() profilerTime=time_ms();
@@ -43,8 +41,10 @@ void *memdup(const void *buf, unsigned int len);
 
 #ifdef DEBUG
 	void ALog(const char *fmt, ...);
+	void AError(const char *fmt, ...);
 #else
 #define ALog(X, ...)
+#define AError(X, ...)
 #endif
 	
 #ifdef __cplusplus

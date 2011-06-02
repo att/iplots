@@ -24,7 +24,7 @@ public:
 	}
 	
 	void setText(const char *txt) {
-		if (q_text) free(q_text);
+		if (q_text) AFree(q_text);
 		if (txt) {
 			q_text = strdup(txt);
 			text_bbox = bbox(txt);
@@ -42,7 +42,7 @@ public:
 	/** resets the query by removing all content. This method should be called when building up a new query. Implicitly it sets the status of the query to hidden, but it doesn't cause a redraw. */
 	void reset() {
 		setHidden(true);
-		if (q_text) { free(q_text); q_text = 0; }
+		if (q_text) { AFree(q_text); q_text = 0; }
 	}
 	
 	/** move the query to a given point. The point is adjusted based on its size if it would not fit in the window. This method causes a redraw.

@@ -128,8 +128,39 @@ public:
 #endif
 		return desc_buf;
 	}
-	
+
+	char *_ptr_describe() {
+#ifdef ODEBUG
+		snprintf(desc_buf, 512, "<%p/%d %04x %s [%d]>", this, refcount, _objectSerial, _className, _classSize);
+#else
+		snprintf(desc_buf, 512, "<AObject %p>", this);
+#endif
+		return desc_buf;
+	}
 };
+
+
+extern "C" void* A_memdup(const void *ptr, vsize_t len, AObject *owner);
+#ifdef ODEBUG
+extern "C" void* A_alloc(vsize_t size, vsize_t elt_size, AObject *owner);
+extern "C" void* A_calloc(vsize_t size, vsize_t elt_size, AObject *owner);
+extern "C" void* A_realloc(void *ptr, vsize_t size, AObject *owner);
+extern "C" void A_free(void *ptr);
+extern "C" void A_transfer(void *ptr, AObject *ptr);
+#else
+#define A_alloc(X, Y, O) malloc(((vsize_t)(X)) * ((vsize_t)(Y)))
+#define A_calloc(X, Y, O) calloc(X, Y)
+#define A_free(X) free(X)
+#define A_transfer(X, O)
+#define A_realloc(X, S, O) realloc(X, S)
+#endif
+
+#define AAlloc(X) A_alloc(X, 1, this)
+#define AZAlloc(X, Y) A_calloc(X, Y, this)
+#define AFree(X) A_free(X)
+#define AMemTransferOwnership(X, O) A_transfer(X, O)
+#define ARealloc(X, Y) A_realloc(X, Y, this)
+#define memdup(X, L) A_memdup(X, L, this)
 
 // Sentinel is the only class outside the AObject hierarchy and its sole purpose is
 // to allow automatic cleanup of locally created objects. It assumes ownership of an object

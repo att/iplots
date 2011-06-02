@@ -45,7 +45,7 @@ public:
 		OCLASS(ADataVector);
 	};
 	virtual ~ADataVector() {
-		if (_name) free(_name);
+		if (_name) AFree(_name);
 		//if (_marker) AObject_release(_marker);
 		if (_marker) _marker->release();
 		DCLASS(ADataVector);
@@ -53,7 +53,7 @@ public:
 	
 	AMarker *marker() { return _marker; }
 	const char *name() { return _name; }
-	void setName(const char *newName) { if (_name) free(_name); _name = strdup(newName); }
+	void setName(const char *newName) { if (_name) AFree(_name); _name = strdup(newName); }
 };
 
 class AFloatVector : public ADataVector {
@@ -73,9 +73,9 @@ public:
 	}
 	
 	virtual ~AFloatVector() {
-		if (owned) free(_data);
-		if (d_data) free(d_data);
-		if (i_data) free(i_data);
+		if (owned) AFree(_data);
+		if (d_data) AFree(d_data);
+		if (i_data) AFree(i_data);
 		DCLASS(AFloatVector)
 	}
 	
@@ -93,7 +93,7 @@ public:
 	virtual const float *asFloats() { return _data; }
 	virtual const double *asDoubles() {
 		if (!d_data) {
-			d_data = (double*) malloc(_len * sizeof(double));
+			d_data = (double*) AAlloc(_len * sizeof(double));
 			AMEM(d_data);
 			for (int i=0; i<_len; i++) d_data[i] = (double)_data[i];
 		}
@@ -101,7 +101,7 @@ public:
 	}
 	virtual const int *asInts() {
 		if (!i_data) {
-			i_data = (int*) malloc(_len * sizeof(int));
+			i_data = (int*) AAlloc(_len * sizeof(int));
 			AMEM(i_data);
 			for (int i=0; i<_len; i++) i_data[i] = (int)_data[i];
 		}
@@ -132,9 +132,9 @@ public:
 		_data = copy?(double*)memdup(data, len * sizeof(double)):data; OCLASS(ADoubleVector)
 	}
 	virtual ~ADoubleVector() {
-		if (owned) free(_data);
-		if (f_data) free(f_data);
-		if (i_data) free(i_data);
+		if (owned) AFree(_data);
+		if (f_data) AFree(f_data);
+		if (i_data) AFree(i_data);
 		DCLASS(ADoubleVector)
 	}
 	
@@ -154,7 +154,7 @@ public:
 	
 	virtual const float *asFloats() {
 		if (!f_data) {
-			f_data = (float*) malloc(_len * sizeof(float));
+			f_data = (float*) AAlloc(_len * sizeof(float));
 			AMEM(f_data);
 			for (vsize_t i = 0; i < _len; i++)
 				f_data[i] = (float) _data[i];
@@ -164,7 +164,7 @@ public:
 	
 	virtual const int *asInts() {
 		if (!i_data) {
-			i_data = (int*) malloc(_len * sizeof(int));
+			i_data = (int*) AAlloc(_len * sizeof(int));
 			AMEM(i_data);
 			for (vsize_t i = 0; i < _len; i++)
 				i_data[i] = (int)_data[i];
@@ -215,16 +215,16 @@ public:
 	}
 	
 	virtual ~AIntVector() {
-		if (owned) free(_data);
-		if (d_data) free(d_data);
-		if (f_data) free(f_data);
+		if (owned) AFree(_data);
+		if (d_data) AFree(d_data);
+		if (f_data) AFree(f_data);
 		DCLASS(AIntVector)
 	}
 	
 	virtual const int *asInts() { return _data; }
 	virtual const double *asDoubles() {
 		if (!d_data) {
-			d_data = (double*) malloc(_len * sizeof(double));
+			d_data = (double*) AAlloc(_len * sizeof(double));
 			AMEM(d_data);
 			for (int i=0; i<_len; i++) d_data[i] = (double)_data[i];
 		}
@@ -232,7 +232,7 @@ public:
 	}
 	virtual const float *asFloats() {
 		if (!f_data) {
-			f_data = (float*) malloc(_len * sizeof(float));
+			f_data = (float*) AAlloc(_len * sizeof(float));
 			AMEM(f_data);
 			for (int i=0; i<_len; i++) f_data[i] = (float)_data[i];
 		}
@@ -274,8 +274,8 @@ public:
 	}
 	virtual ~AFactorVector() {
 		if (owned) {
-			for (int i = 0; i < _levels; i++) if (_names[i]) free(_names[i]);
-			free(_names);
+			for (int i = 0; i < _levels; i++) if (_names[i]) AFree(_names[i]);
+			AFree(_names);
 		}
 		if (perm) perm->release();
 		if (_tab) _tab->release();
@@ -283,7 +283,7 @@ public:
 	}
 	virtual const char **asStrings() {
 		if (!s_data) {
-			s_data = (char**) malloc(_len * sizeof(char*));
+			s_data = (char**) AAlloc(_len * sizeof(char*));
 			AMEM(s_data);
 			for (vsize_t i = 0; i < _len; i++)
 				s_data[i] = (_data[i] < 0 || _data[i] >= _levels)?NULL:_names[_data[i]];
@@ -334,7 +334,7 @@ public:
 	}
 	
 	virtual ~APointVector() {
-		if (owned) free(_data);
+		if (owned) AFree(_data);
 		DCLASS(APointVector)
 	}
 	

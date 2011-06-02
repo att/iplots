@@ -92,14 +92,14 @@ public:
 	AMarker(vsize_t len) : APlainIntVector(0, len, false), ANotifierInterface(false), value_table(0), max_value(0), undo_(0) {
 		_len = len;
 		_perm_changed = _changed = false;
-		_data = (int*) calloc(sizeof(len), len);
+		_data = (int*) AZAlloc(sizeof(len), len);
 		color_map = 0;
 		AMEM(_data);
 		OCLASS(AMarker)
 	};
 	
 	virtual ~AMarker() {
-		if (_data) free(_data);
+		if (_data) AFree(_data);
 		if (color_map) color_map->release();
 		if (value_table) value_table->release();
 		if (undo_) {

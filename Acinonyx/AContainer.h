@@ -36,7 +36,7 @@ public:
 	
 #pragma mark --- child list manipulation ---
 	virtual void add(AVisual &obj) {
-		chList_t *n = (chList_t*) malloc(sizeof(chList_t));
+		chList_t *n = (chList_t*) AAlloc(sizeof(chList_t));
 		AMEM(n);
 		obj.retain();
 		n->o = &obj;
@@ -59,7 +59,7 @@ public:
 			if (cp) {
 				cp->next = c->next;
 				if (chTail == c) chTail = cp;
-				free(c);
+				AFree(c);
 			} else {
 				chRoot = c->next;
 				if (chTail == c) chTail = 0;
@@ -73,7 +73,7 @@ public:
 		while (c) {
 			chList_t *n = c->next;
 			c->o->release();
-			free(c);
+			AFree(c);
 			c = n;
 		}
 		chRoot = chTail = 0;

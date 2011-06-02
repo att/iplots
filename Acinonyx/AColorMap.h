@@ -41,7 +41,7 @@ public:
 	AIndexColorMap(AColor *colors, vsize_t n_colors, bool copy=true) : colors_(0), n_colors_(0) {
 		colors_ = (colors && n_colors && copy) ? (AColor*) memdup(colors, sizeof(AColor) * n_colors) : 0;
 		if (!colors_ && n_colors) {
-			colors_ = (AColor*) calloc(sizeof(AColor), n_colors);
+			colors_ = (AColor*) AZAlloc(sizeof(AColor), n_colors);
 			AMEM(colors_);
 		}
 		if (colors_) n_colors_ = n_colors;
@@ -50,7 +50,7 @@ public:
 	
 	virtual ~AIndexColorMap() {
 		if (colors_)
-			free(colors_);
+			AFree(colors_);
 		DCLASS(AIndexColorMap)
 	}
 

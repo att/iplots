@@ -146,7 +146,7 @@ public:
 		}
 		
 		while (l->be && l->next) l=l->next;
-		if (l->be) { l->next = (w32chain_t*) calloc(1,sizeof(w32chain_t)); l = l->next; }
+		if (l->be) { l->next = (w32chain_t*) AZAlloc(1,sizeof(w32chain_t)); l = l->next; }
 		
 		l->be = be;	
 #else
@@ -241,7 +241,7 @@ public:
 	}
 	
 	virtual ~AWin32Window() {
-		if (font_name) free(font_name);
+		if (font_name) AFree(font_name);
 	}
 	
 	bool active() { return _active; }
@@ -416,7 +416,7 @@ public:
 			font_size = size;
 		}
 		if (name && strcmp(name, font_name)) {
-			free(font_name);
+			AFree(font_name);
 			font_name = strdup(name);
 			changed = true;
 		}

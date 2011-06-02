@@ -40,7 +40,7 @@ public:
 	ABlockStack(vsize_t increments = 128) {
 		default_capacity = increments;
 		if (default_capacity < 16) default_capacity = 16;
-		top = (AStackBlock_t*) malloc(sizeof(AStackBlock_t) + sizeof(AObject*) * default_capacity);
+		top = (AStackBlock_t*) AAlloc(sizeof(AStackBlock_t) + sizeof(AObject*) * default_capacity);
 		AMEM(top);
 		top->capacity = default_capacity;
 		top->length = 0;
@@ -50,14 +50,14 @@ public:
 	
 	virtual ~ABlockStack() {
 		popAll();
-		free(top);
+		AFree(top);
 		DCLASS(ABlockStack)
 	}
 
 	virtual void push(AObject* obj) {
 		if (!obj) return;
 		if (top->length >= top->capacity) {
-			AStackBlock_t *new_block = (AStackBlock_t*) malloc(sizeof(AStackBlock_t) + sizeof(AObject*) * default_capacity);
+			AStackBlock_t *new_block = (AStackBlock_t*) AAlloc(sizeof(AStackBlock_t) + sizeof(AObject*) * default_capacity);
 			AMEM(new_block);
 			new_block->capacity = default_capacity;
 			new_block->length = 0;
@@ -73,7 +73,7 @@ public:
 		if (top->length == 0 && top->prev) {
 			void *last = top;
 			top = top->prev;
-			free(last);
+			AFree(last);
 		}
 		return o;
 	}
@@ -86,7 +86,7 @@ public:
 			if (top->prev) {
 				void *last = top;
 				top = top->prev;
-				free(last);
+				AFree(last);
 			} else top->length = 0;				
 		}
 	}
@@ -129,14 +129,14 @@ public:
 	AForgetfulStack(vsize_t size) : size_(size) {
 		top_ = 0;
 		if (size_ < 1) size_ = 1;
-		stack = (AObject**) malloc(sizeof(AObject*) * size_);
+		stack = (AObject**) AAlloc(sizeof(AObject*) * size_);
 		AMEM(stack);
 		OCLASS(AForgetfulStack)
 	}
 	
 	virtual ~AForgetfulStack() {
 		popAll();
-		free(stack);
+		AFree(stack);
 		DCLASS(AForgetfulStack)
 	}
 	

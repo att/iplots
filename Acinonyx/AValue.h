@@ -36,7 +36,7 @@ public:
 	virtual ~AValue() {
 		switch (_type) {
 			case AVobj: if (v.o) v.o->release(); break;
-			case AVstr: if (v.s) free(v.s); break;
+			case AVstr: if (v.s) AFree(v.s); break;
 		}
 		DCLASS(AValue);
 	}

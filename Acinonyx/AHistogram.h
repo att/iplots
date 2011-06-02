@@ -26,9 +26,9 @@ protected:
 	vsize_t *_groups;
 	
 public:
-	ABinning(ADataVector *data, vsize_t n_bins, double anchor_val, double binw_val, bool alloc_groups = false) : x(data), _bins(n_bins), _anchor(anchor_val), _binw(binw_val), _maxCt(0), _groups(alloc_groups ? ((vsize_t*)calloc(sizeof(vsize_t), data->length())) : NULL) {
+	ABinning(ADataVector *data, vsize_t n_bins, double anchor_val, double binw_val, bool alloc_groups = false) : x(data), _bins(n_bins), _anchor(anchor_val), _binw(binw_val), _maxCt(0), _groups(alloc_groups ? ((vsize_t*)AZAlloc(sizeof(vsize_t), data->length())) : NULL) {
 		_allocBins = _bins + 8;
-		_counts = (unsigned int *) calloc(sizeof(unsigned int), _allocBins);
+		_counts = (unsigned int *) AZAlloc(sizeof(unsigned int), _allocBins);
 		AMEM(_counts);
 		if (x) x->retain();
 		updateCounts();
@@ -37,8 +37,8 @@ public:
 	
 	virtual ~ABinning() {
 		x->release();
-		free(_counts);
-		if (_groups) free(_groups);
+		AFree(_counts);
+		if (_groups) AFree(_groups);
 		DCLASS(ABinning)
 	}
 	
@@ -76,9 +76,9 @@ public:
 		_bins = n; 
 		if (_bins + 3 > _allocBins) {
 			_allocBins *= 2; if (_allocBins < _bins + 3) _allocBins = _bins + 8;
-			vsize_t *new_counts = (vsize_t*) realloc(_counts, _allocBins * sizeof(vsize_t));
+			vsize_t *new_counts = (vsize_t*) ARealloc(_counts, _allocBins * sizeof(vsize_t));
 			AMEM(new_counts);
-			ALog(" - realloc to %d for %d bins (%p)", _allocBins, _bins, new_counts);
+			ALog(" - ARealloc to %d for %d bins (%p)", _allocBins, _bins, new_counts);
 			_counts = new_counts;
 		}
 		updateCounts();
@@ -107,7 +107,7 @@ public:
 			marker->retain();
 			marker->add(this);
 		}
-		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		_scales = (AScale**) AAlloc(sizeof(AScale*) * nScales);
 		AMEM(_scales);
 		_scales[0] = new AScale(x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		_scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), AMkDataRange(0, bin->maxCount()));

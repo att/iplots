@@ -17,7 +17,7 @@ protected:
 	
 	void initializePermutations() {
 		if (!perm) {
-			perm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+			perm = (vsize_t*) AAlloc(sizeof(vsize_t) * n);
 			AMEM(perm);
 		}
 		for (vsize_t i = 0; i < n; i++) perm[i] = i;
@@ -29,7 +29,7 @@ public:
 	}
 	
 	virtual ~APermutation() {
-		if (perm) free(perm);
+		if (perm) AFree(perm);
 	}
 	
 	vsize_t size() {
@@ -75,34 +75,34 @@ public:
 	
 	void reset() {
 		if (!perm) return;
-		free(perm);
+		AFree(perm);
 		perm = NULL;
 	}
 	
 	void orderAccordingToVSizes(const vsize_t *array) {
 		if (!perm) initializePermutations();
-		vsize_t *iperm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+		vsize_t *iperm = (vsize_t*) AAlloc(sizeof(vsize_t) * n);
 		for (vsize_t i = 0; i < n; i++) iperm[perm[i]] = i;
 		quicksortVSizesPerm(array, perm, iperm, 0, n);
 		for (vsize_t i = 0; i < n; i++) perm[iperm[i]] = i;
-		free(iperm);
+		AFree(iperm);
 	}
 	
 	void orderLexicographically(const char **array) {
 		if (!perm) initializePermutations();
-		vsize_t *iperm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+		vsize_t *iperm = (vsize_t*) AAlloc(sizeof(vsize_t) * n);
 		for (vsize_t i = 0; i < n; i++) iperm[perm[i]] = i;
 		quicksortStringsPerm(array, perm, iperm, 0, n);
 		for (vsize_t i = 0; i < n; i++) perm[iperm[i]] = i;
-		free(iperm);
+		AFree(iperm);
 	}
 
 	void orderNumerically(const char **array) {
 		if (!perm) initializePermutations();
-		vsize_t *iperm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+		vsize_t *iperm = (vsize_t*) AAlloc(sizeof(vsize_t) * n);
 		for (vsize_t i = 0; i < n; i++) iperm[perm[i]] = i;
 		quicksortNumericStringsPerm(array, perm, iperm, 0, n);
 		for (vsize_t i = 0; i < n; i++) perm[iperm[i]] = i;
-		free(iperm);
+		AFree(iperm);
 	}
 };

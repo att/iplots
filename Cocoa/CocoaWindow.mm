@@ -29,7 +29,7 @@ public:
 
 	virtual ~ACocoaWindow() {
 		if (font) [font release];
-		if (font_name) free(font_name);
+		if (font_name) AFree(font_name);
 	}
 	
 	virtual void redraw() {
@@ -61,7 +61,7 @@ public:
 		}
 		if (name && !*name) name = default_font;
 		if (name && strcmp(name, font_name)) {
-			free(font_name);
+			AFree(font_name);
 			font_name = strdup(name);
 			changed = true;
 		}

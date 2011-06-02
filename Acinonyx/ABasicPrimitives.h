@@ -81,8 +81,8 @@ public:
 	AScaledPrimitive(APlot *plot) : ARCallbackPrimitive(plot), query_string(0), ext_query_string(0) { OCLASS(AScaledPrimitive) }
 
 	virtual ~AScaledPrimitive() {
-		if (query_string) free(query_string);
-		if (ext_query_string) free(ext_query_string);
+		if (query_string) AFree(query_string);
+		if (ext_query_string) AFree(ext_query_string);
 		DCLASS(AScaledPrimitive)
 	}
 	
@@ -121,13 +121,13 @@ public:
 	void setQueryText(const char *txt, int level = 0) {
 		if (level == 0) {
 			if (query_string)
-				free(query_string);
+				AFree(query_string);
 			query_string = NULL;
 			if (txt)
 				query_string = strdup(txt);
 		} else if (level == 1) {
 			if (ext_query_string)
-				free(ext_query_string);
+				AFree(ext_query_string);
 			ext_query_string = NULL;
 			if (txt)
 				ext_query_string = strdup(txt);
@@ -236,14 +236,15 @@ public:
 	APolygonPrimitive(APlot *plot, APoint *p, vsize_t pts, bool copy=true) : AScaledPrimitive(plot), _pts(pts) {
 		_op = copy ? (APoint*) memdup(p, pts * sizeof(APoint)) : p;
 		AMEM(_op);
-		_pt = (APoint*) malloc(pts * sizeof(APoint));
+		if (!copy) AMemTransferOwnership(_op, this);
+		_pt = (APoint*) AAlloc(pts * sizeof(APoint));
 		AMEM(_pt);
 		OCLASS(APolygonPrimitive)
 	}
 	
 	virtual ~APolygonPrimitive() {
-		free(_pt);
-		free(_op);
+		AFree(_pt);
+		AFree(_op);
 		DCLASS(APolygonPrimitive)
 	}
 	
@@ -261,10 +262,10 @@ public:
 	
 	void setPoints(double *x, double *y, vsize_t n) {
 		if (n > _pts) {
-			free(_pt); free(_op);
-			_op = (APoint*) malloc(sizeof (APoint) * n);
+			AFree(_pt); AFree(_op);
+			_op = (APoint*) AAlloc(sizeof (APoint) * n);
 			AMEM(_op);
-			_pt = (APoint*) malloc(sizeof (APoint) * n);
+			_pt = (APoint*) AAlloc(sizeof (APoint) * n);
 			AMEM(_pt);
 		}
 		_pts = n;
@@ -330,7 +331,7 @@ public:
 	}
 	
 	virtual ~ATextPrimitive() {
-		free(_text);
+		AFree(_text);
 		DCLASS(ATextPrimitive)
 	}
 	

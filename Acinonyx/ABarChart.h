@@ -39,7 +39,7 @@ public:
 			marker->add(this);
 		}
 		bars = 0;
-		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		_scales = (AScale**) AAlloc(sizeof(AScale*) * nScales);
 		AMEM(_scales);
 		AUnivarTable *tab = x->table();
 		_scales[0] = new AScale(data = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), bars = x->levels());
@@ -183,7 +183,7 @@ public:
 			if (pps) {
 				APermutation *p = _scales[0]->permutation();
 				vsize_t n = p->size();
-				vsize_t *sel = (vsize_t*) calloc(sizeof(vsize_t), n);
+				vsize_t *sel = (vsize_t*) AZAlloc(sizeof(vsize_t), n);
 				vsize_t bars = pps->length();
 				for (vsize_t i = 0; i < bars; i++) {
 					ABarStatVisual *bar = static_cast<ABarStatVisual*> (pps->objectAt(i));
@@ -195,7 +195,7 @@ public:
 					}
 				}
 				p->orderAccordingToVSizes(sel);
-				free(sel);
+				AFree(sel);
 				update();
 				redraw();
 			}
@@ -238,7 +238,7 @@ public:
 				tab->add((vsize_t) bi[i]);
 		APermutation *perm = _scales[0]->permutation();
 		vsize_t nonzero = 0;
-		vsize_t *b_map = (vsize_t*)calloc(sizeof(vsize_t), l);
+		vsize_t *b_map = (vsize_t*)AZAlloc(sizeof(vsize_t), l);
 		AMEM(b_map);
 		for (vsize_t i = 0; i < l; i++) {
 			vsize_t level = perm->permutationAt(i); 
@@ -258,7 +258,7 @@ public:
 			if (!marker->isHidden(i)) // FIXME: whould be alse re-set invisibles?
 				marker->setValue(i, color_base + b_map[bi[i]]);
 		marker->end();
-		free(b_map);
+		AFree(b_map);
 		tab->release();
 
 		buttonBrush->click_action = "brush.clear";

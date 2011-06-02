@@ -21,13 +21,13 @@ protected:
 	char **_names;
 public:
 	AUnivarTable(vsize_t size, bool named=true) : _size(size), _names(NULL), _other(0), _max(0) {
-		_counts = (vsize_t*) calloc(_size, sizeof(vsize_t));
+		_counts = (vsize_t*) AZAlloc(_size, sizeof(vsize_t));
 		AMEM(_counts);
 		OCLASS(AUnivarTable)
 	}
 	
 	virtual ~AUnivarTable() {
-		free(_counts);
+		AFree(_counts);
 		DCLASS(AUnivarTable);
 	}
 	
@@ -57,11 +57,11 @@ public:
 	
 	void setName(vsize_t index, const char *name) {
 		if (!_names)
-			_names = (char**) calloc(_size, sizeof(char*));
+			_names = (char**) AZAlloc(_size, sizeof(char*));
 		AMEM(_names);
 		if (index < _size) {
 			if (_names[index] && !strcmp(name, _names[index])) return;
-			if (_names[index]) free(_names[index]);
+			if (_names[index]) AFree(_names[index]);
 			_names[index] = strdup(name);
 		}
 	}

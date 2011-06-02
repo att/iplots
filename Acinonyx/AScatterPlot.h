@@ -33,7 +33,7 @@ public:
 			marker->retain();
 			marker->add(this);
 		}
-		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		_scales = (AScale**) AAlloc(sizeof(AScale*) * nScales);
 		AMEM(_scales);
 		_scales[0] = new AScale(datax = x, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), x->range());
 		_scales[1] = new AScale(datay = y, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), y->range());

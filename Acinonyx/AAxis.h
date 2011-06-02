@@ -57,15 +57,15 @@ public:
 	virtual ~ANamedAxis() {
 		if (_names)
 			for (vsize_t i = 0; i < _names; i++)
-				if (_name[i]) free(_name[i]);
+				if (_name[i]) AFree(_name[i]);
 		if (_name)
-			free(_name);
+			AFree(_name);
 	}
 	
 	/* it is allowed to use (NULL, n) to allocate names and then use setName */
 	void setNames(const char **name, vsize_t names) {
-		if (_name) free(_name);
-		_name = (char **) calloc(names, sizeof(char*));
+		if (_name) AFree(_name);
+		_name = (char **) A_calloc(names, sizeof(char*), NULL); // FIXME: we are not a valid AObject so we can't own the pointer ... // AZAlloc(names, sizeof(char*));
 		AMEM(_name);
 		if (name)
 			for (vsize_t i = 0; i < names; i++)
@@ -76,7 +76,7 @@ public:
 	/* name can be NULL. currently it only allows modification of already allocated names - names beyond allocated space will be silently dropped. */
 	void setName(vsize_t ix, const char *name) {
 		if (ix >= _names) return;
-		if (_name[ix]) free(_name[ix]);
+		if (_name[ix]) AFree(_name[ix]);
 		_name[ix] = name ? strdup(name) : 0;
 	}
 	

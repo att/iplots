@@ -52,7 +52,7 @@ public:
 		for (vsize_t ii = 0; ii < coordinates; ii++)
 			_data[ii]->retain();
 		
-		_scales = (AScale**) malloc(sizeof(AScale*) * nScales);
+		_scales = (AScale**) AAlloc(sizeof(AScale*) * nScales);
 		AMEM(_scales);
 		_scales[0] = new AScale(NULL, AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight), coords);
 		_scales[1] = new AScale(NULL, AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop), computeCommonScaleRange());
@@ -62,7 +62,7 @@ public:
 			i++;
 		}
 
-		ptGrid = (AFloat**) malloc(sizeof(AFloat*) * coords);
+		ptGrid = (AFloat**) AAlloc(sizeof(AFloat*) * coords);
 		AMEM(ptGrid);
 		
 		xa = new ADiscreteXAxis(this, AMkRect(_frame.x + mLeft, _frame.y, _frame.width - mLeft - mRight, mBottom), AVF_DEFAULT|AVF_FIX_BOTTOM|AVF_FIX_HEIGHT|AVF_XSPRING, _scales[0]);
@@ -87,8 +87,8 @@ public:
 		xa->release();
 		for (vsize_t i = 0; i < coords; i++)
 			_data[i]->release();
-		free(_data);
-		free(ptGrid);
+		AFree(_data);
+		AFree(ptGrid);
 
 		// ya->release();
 		// scales get released by APlot destructor

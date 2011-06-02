@@ -21,13 +21,6 @@ AColor barColor        = { 0.8, 0.8, 0.8, 1.0 };
 AColor widgetColor     = { 0.0, 0.0, 0.0, 0.5 };
 AColor widgetHoverColor= { 0.9, 0.9, 0.9, 0.5 };
 
-void *memdup(const void *buf, unsigned int len) {
-	void *v = malloc(len);
-	AMEM(v);
-	memcpy(v, buf, len);
-	return v;
-}
-
 /* FIXME: intitallize NA_xx values */
 /* declared in ATypes.h */
 double NA_double;
@@ -46,6 +39,16 @@ const char *value_printf(const char *fmt, ...) {
 unsigned int current_frame;
 
 #ifdef DEBUG
+
+void AError(const char *fmt, ...) {
+	va_list v;
+	va_start(v, fmt);
+	fprintf(stderr, "*** ERROR (set breakpoint on AError to trace)\n");
+	vfprintf(stderr, fmt, v);
+	va_end(v);
+	fprintf(stderr, "\n");	
+}
+
 void ALog(const char *fmt, ...) {
 #ifdef PROFILE
 	long npt = time_ms();

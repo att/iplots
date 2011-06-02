@@ -22,6 +22,9 @@
 #include "AColorMap.h"
 #include "AMarkerValuesPlot.h"
 
+// we could set this to a custom obejct that tracks R API allocations
+#define R_AllocationDomain NULL
+
 // R API to Acinonyx
 extern "C" {
 	SEXP A_Init();
@@ -759,7 +762,7 @@ SEXP A_BarCreate(SEXP pos) {
 
 SEXP A_PolygonCreate(SEXP sx, SEXP sy) {
 	double *x = REAL(sx),  *y = REAL(sy);
-	APoint *pt = (APoint*) malloc(sizeof(APoint) * LENGTH(sx));
+	APoint *pt = (APoint*) A_alloc(sizeof(APoint), LENGTH(sx), R_AllocationDomain);
 	AMEM(pt);
 	vsize_t n = LENGTH(sx);
 	for(vsize_t i = 0; i < n; i++)
@@ -1030,12 +1033,12 @@ SEXP A_HistPlot(SEXP x, SEXP rect, SEXP flags)
 SEXP A_PCPPlot(SEXP vl, SEXP rect, SEXP flags)
 {
 	vsize_t n = LENGTH(vl);
-	ADataVector **dv = (ADataVector**) malloc(sizeof(ADataVector*) * n);
+	ADataVector **dv = (ADataVector**) A_alloc(sizeof(ADataVector*), n, R_AllocationDomain);
 	AMEM(dv);
 	for (vsize_t i = 0; i < n; i++)
 		dv[i] = (ADataVector*) SEXP2A(VECTOR_ELT(vl, i));
 	AParallelCoordPlot *pcp = new AParallelCoordPlot(NULL, visual_frame(rect), visual_flags(flags), n, dv);
-	free(dv);
+	AFree(dv);
 	return A2SEXP(pcp);
 }
 

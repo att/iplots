@@ -23,14 +23,14 @@ public:
 	ACueButton(AContainer *parent, ARect frame, unsigned int flags, const char *label) : ACueWidget(parent, frame, flags), label_(strdup(label ? label : "")), centered_label(true) { OCLASS(ACueButton) }
 	
 	virtual ~ACueButton() {
-		free(label_);
+		AFree(label_);
 		DCLASS(ACueButton);
 	}
 	
 	const char *label() { return label_; }
 
 	void setLabel(const char *newLabel) {
-		free(label_);
+		AFree(label_);
 		label_ = strdup(newLabel ? newLabel : "");
 		redrawWidget();
 	}

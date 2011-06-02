@@ -27,12 +27,12 @@ public:
 			vars->retain();
 			n_coeff = vars->length();
 			if (n_coeff) {
-				coeff = (coeff_t*) calloc(sizeof(coeff_t), n_coeff);
+				coeff = (coeff_t*) AZAlloc(sizeof(coeff_t), n_coeff);
 				AMEM(coeff);
 				AVector *v = (AVector*) vars->objectAt(0);
 				if (v) {
 					_len = v->length();
-					_data = (double*) malloc(sizeof(double) * _len);
+					_data = (double*) AAlloc(sizeof(double) * _len);
 					AMEM(_data);
 				}
 			}
@@ -42,7 +42,7 @@ public:
 	}
 	
 	virtual ~ALinearProjection() {
-		if (coeff) free(coeff);
+		if (coeff) AFree(coeff);
 		if (vars) vars->release();
 		DCLASS(ALinearProjection)
 	}

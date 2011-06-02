@@ -19,7 +19,7 @@ static bool a_glut_init_f = false;
 static void a_glut_init() {
 	char *argv[] = { "Acinonyx", NULL };
 	int argc = 1;
-	gwin = (AGLUTWindow**) calloc(sizeof(AGLUTWindow*), gwin_max=512);
+	gwin = (AGLUTWindow**) AZAlloc(sizeof(AGLUTWindow*), gwin_max=512);
 	glutInit(&argc, argv);
 	a_glut_init_f = true;
 }
@@ -86,7 +86,7 @@ extern "C" {
 #include "AScatterPlot.h"
 
 int main(int ac, char **av) {
-	gwin = (AGLUTWindow**) calloc(sizeof(AGLUTWindow*), gwin_max=512);
+	gwin = (AGLUTWindow**) AZAlloc(sizeof(AGLUTWindow*), gwin_max=512);
 	glutInit(&ac, av);
 	a_glut_init_f = true;
 	
@@ -102,14 +102,14 @@ int main(int ac, char **av) {
 	o = eng->parseAndEval("as.integer(y - min(y))+1L");
 	AIntVector *iv = new AIntVector(mark, o->integers(), o->length(), true);
 	vsize_t ls = iv->range().length;
-	char ** levels = (char**) malloc(sizeof(char*) * ls);
+	char ** levels = (char**) AAlloc(sizeof(char*) * ls);
 	AMEM(levels);
-	char *ln = (char*) malloc(2 * ls);
+	char *ln = (char*) AAlloc(2 * ls);
 	AMEM(ln);
 	for (vsize_t i = 0; i < ls; i++) { ln[i*2] = i + 'A'; ln[i*2+1] = 0; levels[i] = ln + (i*2); }
 	AFactorVector *fv = new AFactorVector(mark, iv->asInts(), iv->length(), (const char**) levels, ls);
 	iv->release();
-	free(levels); // we cannot free ln
+	AFree(levels); // we cannot AFree ln
 	
 	ARect aFrame = AMkRect(0, 0, 400, 300);
 	AVisual *visual = new AScatterPlot(NULL, aFrame, 0, vx, vy);

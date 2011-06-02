@@ -42,13 +42,16 @@
 
 #define CIRCLE_STEPS 10
 
+// possibly set to a custom obejcts tracking static renderer allocation domain
+#define ARendererAllocationDomain NULL
+
 static void tcbCombine(GLdouble coords[3], 
 					   GLdouble *vertex_data[4],
 					   GLfloat weight[4], GLdouble **dataOut )
 {
 	GLdouble *vertex;
 	
-	vertex = (GLdouble *) malloc(3 * sizeof(GLdouble));
+	vertex = (GLdouble *) A_alloc(3, sizeof(GLdouble), ARendererAllocationDomain);
 	AMEM(vertex);
 	vertex[0] = coords[0];
 	vertex[1] = coords[1];
@@ -345,7 +348,7 @@ public:
 		gluTessNormal(tess, 0.0, 0.0, 1.0); /* tell tessellator that we have 2D data */
 		gluTessBeginPolygon(tess, NULL);
 		gluTessBeginContour(tess);
-		GLdouble *v3 = (GLdouble*) calloc(sizeof(GLdouble) * 3, n);
+		GLdouble *v3 = (GLdouble*) AZAlloc(sizeof(GLdouble) * 3, n);
 		AMEM(v3);
 		for(vsize_t i = 0; i < n; i++) {
 			//GLdouble vc[3];
@@ -357,7 +360,7 @@ public:
 		gluTessEndContour(tess);
 		gluTessEndPolygon(tess);
 		// we don't delete the tessellator since it's likely to be used on next redraw ... gluDeleteTess(tess);
-		free(v3);
+		AFree(v3);
 	}
 	
 	void polygon(const AFloat *x, const AFloat *y, int n) {

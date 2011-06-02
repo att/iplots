@@ -38,12 +38,12 @@ public:
 class ARDoubleVector : public ADoubleVector, public AContainsRObject {
 public:
 	ARDoubleVector(AMarker *m, SEXP data) : ADoubleVector(m, REAL(data), LENGTH(data), false), AContainsRObject(data) {
-		owned = false; // do not free the pointer since it's owned by R
+		owned = false; // do not AFree the pointer since it's owned by R
 		OCLASS(ARDoubleVector)
 	}
 
 	ARDoubleVector(AMarker *m, RObject *o) : ADoubleVector(m, REAL(o->value()), LENGTH(o->value()), false), AContainsRObject(o) {
-		owned = false; // do not free the pointer since it's owned by R
+		owned = false; // do not AFree the pointer since it's owned by R
 		OCLASS(ARDoubleVector)
 	}
 };
@@ -51,12 +51,12 @@ public:
 class ARTimeVector : public ATimeVector, public AContainsRObject {
 public:
 	ARTimeVector(AMarker *m, SEXP data) : ATimeVector(m, REAL(data), LENGTH(data), false), AContainsRObject(data) {
-		owned = false; // do not free the pointer since it's owned by R
+		owned = false; // do not AFree the pointer since it's owned by R
 		OCLASS(ARTimeVector)
 	}
 	
 	ARTimeVector(AMarker *m, RObject *o) : ATimeVector(m, REAL(o->value()), LENGTH(o->value()), false), AContainsRObject(o) {
-		owned = false; // do not free the pointer since it's owned by R
+		owned = false; // do not AFree the pointer since it's owned by R
 		OCLASS(ARTimeVector)
 	}
 };
@@ -64,12 +64,12 @@ public:
 class ARIntVector : public AIntVector, public AContainsRObject {
 public:
 	ARIntVector(AMarker *m, SEXP data) : AIntVector(m, INTEGER(data), LENGTH(data), false), AContainsRObject(data) {
-		owned = false; // do not free the pointer since it's owned by R
+		owned = false; // do not AFree the pointer since it's owned by R
 		OCLASS(ARIntVector)
 	}
 
 	ARIntVector(AMarker *m, RObject *o) : AIntVector(m, INTEGER(o->value()), LENGTH(o->value()), false), AContainsRObject(o) {
-		owned = false; // do not free the pointer since it's owned by R
+		owned = false; // do not AFree the pointer since it's owned by R
 		OCLASS(ARIntVector)
 	}
 };
@@ -78,12 +78,12 @@ class ARFactorVector : public AFactorVector, public AContainsRObject {
 public:
 	// we need to copy the data, because R factors are 1-based, but we are 0-based *sigh* - may need to rethink this ...
 	ARFactorVector(AMarker *m, SEXP data) : AFactorVector(m, INTEGER(data), LENGTH(data), NULL, 0, true), AContainsRObject(data) {
-		// owned = false; // do not free the pointer since it's owned by R
+		// owned = false; // do not AFree the pointer since it's owned by R
 		for (vsize_t i = 0; i < _len; i++) _data[i]--; // decrement all ...
 		SEXP sl = Rf_getAttrib(data, R_LevelsSymbol);
 		if (TYPEOF(sl) == STRSXP) {
 			_levels = LENGTH(sl);
-			_names = (char**) malloc(sizeof(char*) * _levels);
+			_names = (char**) AAlloc(sizeof(char*) * _levels);
 			AMEM(_names);
 			for (vsize_t i = 0; i < _levels; i++)
 				_names[i] = (char*) CHAR(STRING_ELT(sl, i));

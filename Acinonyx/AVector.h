@@ -69,7 +69,7 @@ public:
 				objects++;
 			va_end (varg);
 			_len = objects;
-			_data = (AObject**) malloc(_len * sizeof(AObject*));
+			_data = (AObject**) AAlloc(_len * sizeof(AObject*));
 			AMEM(_data);
 			va_start (varg, first);
 			unsigned int i = 0;
@@ -83,7 +83,7 @@ public:
 	virtual ~AObjectVector() {
 		if (_data) {
 			if (retainContents) for (vsize_t i = 0; i < _len; i++) if (_data[i]) _data[i]->release();
-			free(_data);
+			AFree(_data);
 		}
 		DCLASS(AObjectVector);
 	}
@@ -104,7 +104,7 @@ public:
 class ASettableObjectVector : public AObjectVector {
 public:
 	ASettableObjectVector(vsize_t size, bool retain=true) : AObjectVector(0, size, false, retain) {
-		_data = (AObject**) calloc(sizeof(AObject*), size);
+		_data = (AObject**) AZAlloc(sizeof(AObject*), size);
 		AMEM(_data);
 		OCLASS(ASettableObjectVector)
 	}
@@ -131,7 +131,7 @@ public:
 
 	AMutableObjectVector(vsize_t initSize = 16, bool retain=true) : AObjectVector(0, 0, false, retain) {
 		_alloc = (initSize < 16) ? 16 : initSize;
-		_data =  (AObject**) malloc(sizeof(AObject*) * _alloc);
+		_data =  (AObject**) AAlloc(sizeof(AObject*) * _alloc);
 		ALog("%s: init(_alloc=%d, _data=%p)", describe(), _alloc, _data);
 		AMEM(_data);
 		OCLASS(AMutableObjectVector);
@@ -139,7 +139,7 @@ public:
 	
 	virtual ~AMutableObjectVector() {
 		/* removeAll(); -- actually the superclass already does all this
-		 free(_data); */
+		 AFree(_data); */
 		DCLASS(AMutableObjectVector);
 	}
 	
@@ -152,10 +152,10 @@ public:
 		}
 		_alloc = newSize;
 		if (_alloc < 16) _alloc = 16; // 16 is the minimal size - we never use anything smaller
-		AObject **new_mem = (AObject**) realloc(_data, _alloc * sizeof(AObject*));
+		AObject **new_mem = (AObject**) ARealloc(_data, _alloc * sizeof(AObject*));
 		AMEM(new_mem);
 		_data = new_mem;
-		ALog("%s: realloc into %p (_alloc = %d, _len = %d)", describe(), _data, _alloc, _len);
+		ALog("%s: ARealloc into %p (_alloc = %d, _len = %d)", describe(), _data, _alloc, _len);
 	}
 	
 	virtual vsize_t addObject(AObject *obj) {
@@ -208,16 +208,16 @@ public:
 	}
 	
 	virtual ~APlainIntVector() {
-		if (owned) free(_data);
-		if (d_data) free(d_data);
-		if (f_data) free(f_data);
+		if (owned) AFree(_data);
+		if (d_data) AFree(d_data);
+		if (f_data) AFree(f_data);
 		DCLASS(APlainIntVector)
 	}
 	
 	virtual const int *asInts() { return _data; }
 	virtual const double *asDoubles() {
 		if (!d_data) {
-			d_data = (double*) malloc(_len * sizeof(double));
+			d_data = (double*) AAlloc(_len * sizeof(double));
 			AMEM(d_data);
 			for (int i=0; i<_len; i++) d_data[i] = (double)_data[i];
 		}
@@ -225,7 +225,7 @@ public:
 	}
 	virtual const float *asFloats() {
 		if (!f_data) {
-			f_data = (float*) malloc(_len * sizeof(float));
+			f_data = (float*) AAlloc(_len * sizeof(float));
 			AMEM(f_data);
 			for (int i=0; i<_len; i++) f_data[i] = (float)_data[i];
 		}

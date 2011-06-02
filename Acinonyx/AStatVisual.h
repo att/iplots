@@ -55,7 +55,7 @@ public:
 	}
 
 	virtual ~AStatVisual() {
-		if (release_ids && ids) free(ids);
+		if (release_ids && ids) AFree(ids);
 		if (value_table) value_table->release();
 		if (mark) {
 			mark->remove(this);
@@ -330,13 +330,13 @@ public:
 		groupCount = gCount;
 		groupMems = gMems;
 		_group_name = name;
-		pts = (APoint*) malloc(sizeof(APoint) * groupCount);
+		pts = (APoint*) AAlloc(sizeof(APoint) * groupCount);
 		setPoints(x, y);
 		OCLASS(APolyLineStatVisual);
 	}
 	
 	~APolyLineStatVisual() {
-		free(pts);
+		AFree(pts);
 		DCLASS(APolyLineStatVisual)
 	}
 	

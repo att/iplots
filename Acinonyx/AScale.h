@@ -133,11 +133,11 @@ public:
 	AFloat *locations() {
 		if (!_data) return NULL;
 		if (nLoc < _data->length()) {
-			free(_locations); _locations = NULL;
+			if (_locations) AFree(_locations); _locations = NULL;
 		}
 		if (!_locations) {
 			nLoc = _data->length();
-			_locations = (AFloat*) malloc(sizeof(AFloat) * nLoc);
+			_locations = (AFloat*) AAlloc(sizeof(AFloat) * nLoc);
 			AMEM(_locations);
 			cacheDirty = true;
 		}
