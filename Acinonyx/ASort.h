@@ -47,4 +47,29 @@ static void quicksortVSizesPerm(const vsize_t *array, const vsize_t *perm, vsize
 	quicksortVSizesPerm(array, perm, iperm, first + 1, len + iFrom - first - 1);
 }
 
+#define str_compare(A,B) strcmp((A)?(A):"", (B)?(B):"")
+
+static void quicksortStringsPerm(const char **array, const vsize_t *perm, vsize_t *iperm, vsize_t iFrom, vsize_t len) {
+	if (len < 2) return;
+	if (len == 2) {
+		int res = str_compare(array[iperm[iFrom]], array[iperm[iFrom + 1]]);
+		if (res > 0 || (res == 0 && perm[iperm[iFrom]] > perm[iperm[iFrom + 1]]))
+			swapVSize(iperm, iFrom, iFrom + 1);
+		return;
+	}
+	vsize_t pivot = iFrom + len / 2, ipivot = iperm[pivot];
+	const char* val = array[ipivot];
+	vsize_t pos = perm[ipivot];
+	vsize_t first = iFrom;
+	swapVSize(iperm, iFrom + len - 1, pivot);
+	for (vsize_t i = iFrom; i < iFrom + len - 1; i++) {
+		int res = str_compare(array[iperm[i]], val);
+		if (res < 0 || (res == 0 && perm[iperm[i]] < pos))
+			swapVSize(iperm, i, first++);
+	}
+	swapVSize(iperm, first, iFrom + len - 1);
+	quicksortStringsPerm(array, perm, iperm, iFrom, first - iFrom);
+	quicksortStringsPerm(array, perm, iperm, first + 1, len + iFrom - first - 1);
+}
+
 #endif

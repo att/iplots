@@ -167,6 +167,12 @@ public:
 			p->orderAccordingToVSizes(tab->counts());
 			update();
 			redraw();
+		} else if (AIsAction(action, "sort.by.name")) {
+			APermutation *p = _scales[0]->permutation();
+			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			p->orderLexicographically(data->levelStrings());
+			update();
+			redraw();
 		} else if (AIsAction(action, "sort.by.hilite")) {
 			if (pps) {
 				APermutation *p = _scales[0]->permutation();

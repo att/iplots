@@ -95,6 +95,15 @@ public:
 		for (vsize_t i = 0; i < n; i++) perm[iperm[i]] = i;
 		free(iperm);
 	}
+
+	void orderLexicographically(const char **array) {
+		if (!perm) initializePermutations();
+		vsize_t *iperm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+		for (vsize_t i = 0; i < n; i++) iperm[perm[i]] = i;
+		quicksortStringsPerm(array, perm, iperm, 0, n);
+		for (vsize_t i = 0; i < n; i++) perm[iperm[i]] = i;
+		free(iperm);
+	}
 };
 
 class AVector : public AObject {

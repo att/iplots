@@ -316,7 +316,7 @@ public:
 	}
 	
 	int levels() { return _levels; }
-	char **levelStrings() { return _names; }
+	const char **levelStrings() { return (const char**) _names; }
 };
 
 class APointVector : public ADataVector {
