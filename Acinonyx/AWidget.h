@@ -14,6 +14,10 @@
 #include "AVisual.h"
 #include "APlot.h" // for delegation
 
+#define AIsAction(X, name) ((X) == (name))
+// #define AIsAction(X, name) (name && !strcmp(X, name))
+
+
 class AWidget : public AContainer {
 protected:
 	APlot *delegate_;
@@ -82,20 +86,21 @@ public:
 
 	// this method is called when the widget is clicked on (as in both up and down clicks are inside; chain into mouseDown if you want to allow drag-click)
 	virtual bool clicked(AEvent event) {
+		ALog("%s clicked: %g,%g [%g,%g-%g,%g] -> %s", describe(), event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height, click_action ? click_action : "<no action>");
 		if (click_action)
 			delegateAction(click_action, NULL);
 		return false;
 	}
 	
 	virtual bool mouseDown(AEvent event) {
-		// ALog("%s mouseDown: %g,%g [%g,%g-%g,%g]", describe(), event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height);
+		ALog("%s mouseDown: %g,%g [%g,%g-%g,%g]", describe(), event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height);
 		if ((mouse_down_inside = containsPoint(event.location)))
 			if (!isHidden()) return true;
 		return AContainer::mouseDown(event);
 	}
 	
 	virtual bool mouseUp(AEvent event) {
-		// ALog("%s mouseUp: %g,%g [%g,%g-%g,%g]", describe(), event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height);
+		ALog("%s mouseUp: %g,%g [%g,%g-%g,%g]", describe(), event.location.x, event.location.y, _frame.x, _frame.y, _frame.width, _frame.height);
 		if (containsPoint(event.location) && mouse_down_inside) {
 			mouse_down_inside = false;
 			if (!isHidden()) return clicked(event);

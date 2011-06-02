@@ -44,6 +44,7 @@
 		682DCBB80FFAAA9E00E8F17C /* RGrDevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RGrDevice.cpp; sourceTree = "<group>"; };
 		682F02510FCACEFE00A2227E /* ABasicPrimitives.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ABasicPrimitives.h; sourceTree = "<group>"; };
 		682F031C0FCC2D2300A2227E /* ARVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARVector.h; sourceTree = "<group>"; };
+		6873A2361397CC6A004AC532 /* ASort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASort.h; sourceTree = "<group>"; };
 		687A31E30FAA6DF600EAF459 /* RObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RObject.h; sourceTree = "<group>"; };
 		687A31ED0FAA71D500EAF459 /* R.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = R.framework; path = /Library/Frameworks/R.framework; sourceTree = "<absolute>"; };
 		687CA1480FAF346B00D249DB /* ANotfier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANotfier.h; sourceTree = "<group>"; };
@@ -72,7 +73,6 @@
 		68A251990D7DF2BA00007CBD /* AAxis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AAxis.h; sourceTree = "<group>"; };
 		68A2519A0D7DF62600007CBD /* AScatterPlot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AScatterPlot.h; sourceTree = "<group>"; };
 		68B2569E11E7CAEB00975EE5 /* AIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIndex.h; sourceTree = "<group>"; };
-		68B89EB811F0E2960017FF4F /* ARMarker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARMarker.h; sourceTree = "<group>"; };
 		68B89ED011F0E8660017FF4F /* ARMarker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARMarker.h; sourceTree = "<group>"; };
 		68BF1BC10D79C43A0095B772 /* CocoaApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaApp.h; sourceTree = "<group>"; };
 		68BF1BC20D79C43A0095B772 /* CocoaApp.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CocoaApp.mm; sourceTree = "<group>"; };
@@ -152,7 +152,6 @@
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
-				68B89EB811F0E2960017FF4F /* ARMarker.h */,
 			);
 			name = Acinonyx;
 			sourceTree = "<group>";
@@ -282,6 +281,7 @@
 				68A1231511D3E09600306B88 /* AColorMap.h */,
 				68D71E5311E62A9200E20FC0 /* ATable.h */,
 				68B2569E11E7CAEB00975EE5 /* AIndex.h */,
+				6873A2361397CC6A004AC532 /* ASort.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";

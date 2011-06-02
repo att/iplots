@@ -140,21 +140,34 @@ public:
 	}
 	
 	virtual void delegateAction(AWidget *source, const char *action, AObject *aux) {
+		APlot::delegateAction(source, action, aux);
 		if (source == buttonSpine) {
 			spines = !spines;
 			update();
 			redraw();
 			return;
-		} else if (action && !strcmp(action, "brush.by.group")) {
+		} else if (AIsAction(action, "brush.by.group")) {
 			brushByGroup();
 			return;
-		} else if (action && !strcmp(action, "brush.clear")) {
+		} else if (AIsAction(action, "brush.clear")) {
 			buttonBrush->click_action = "brush.by.group";
 			buttonBrush->setLabel("Brush");
 			marker->clearValues();
 			return;
+		} else if (AIsAction(action, "sort.by.id")) {
+			_scales[0]->permutation()->reset();
+			// FIXME: this should not be needed since the permutation should notify, right?
+			update();
+			redraw();
+			return;
+		} else if (AIsAction(action, "sort.by.size")) {
+			APermutation *p = _scales[0]->permutation();
+			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			AUnivarTable *tab = data->table();
+			p->orderAccordingToVSizes(tab->counts());
+			update();
+			redraw();
 		}
-		APlot::delegateAction(source, action, aux);
 	}
 	
 	void update() {

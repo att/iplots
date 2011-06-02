@@ -13,6 +13,7 @@
 #include "AObject.h"
 #include "ATools.h"
 #include "AValue.h"
+#include "ASort.h"
 
 // FIXME: throw an exception or something more reasonable
 #define RNS { return NULL; }
@@ -52,7 +53,7 @@ public:
 		return index;
 	}
 	
-	vsize_t *permutations() { return perm; }
+	const vsize_t *permutations() { return (const vsize_t*) perm; }
 	
 	void swap(vsize_t a, vsize_t b) {
 		if (!perm) initializePermutations();
@@ -74,6 +75,21 @@ public:
 					perm[i]--;
 		}
 		perm[a] = ix;
+	}
+	
+	void reset() {
+		if (!perm) return;
+		free(perm);
+		perm = NULL;
+	}
+		
+	void orderAccordingToVSizes(const vsize_t *array) {
+		if (!perm) initializePermutations();
+		vsize_t *iperm = (vsize_t*) malloc(sizeof(vsize_t) * n);
+		for (vsize_t i = 0; i < n; i++) iperm[perm[i]] = i;
+		quicksortVSizesPerm(array, perm, iperm, 0, n);
+		for (vsize_t i = 0; i < n; i++) perm[iperm[i]] = i;
+		free(iperm);
 	}
 };
 
