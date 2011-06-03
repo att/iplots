@@ -13,6 +13,8 @@
 #include "AVisual.h"
 #include "AQuery.h"
 
+#define AAxisInterfaceAllocationDomain NULL
+
 class AAxis : public AVisual {
 protected:
 	AScale *_scale;
@@ -69,7 +71,7 @@ public:
 		AMEM(_name);
 		if (name)
 			for (vsize_t i = 0; i < names; i++)
-				if (name[i]) _name[i] = strdup(name[i]);
+				if (name[i]) _name[i] = A_strdup(name[i], AAxisInterfaceAllocationDomain);
 		_names = names;
 	}
 	
@@ -77,7 +79,7 @@ public:
 	void setName(vsize_t ix, const char *name) {
 		if (ix >= _names) return;
 		if (_name[ix]) AFree(_name[ix]);
-		_name[ix] = name ? strdup(name) : 0;
+		_name[ix] = name ? A_strdup(name, AAxisInterfaceAllocationDomain) : 0;
 	}
 	
 	const char *name(vsize_t ix) {

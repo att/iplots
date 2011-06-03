@@ -141,6 +141,7 @@ public:
 
 
 extern "C" void* A_memdup(const void *ptr, vsize_t len, AObject *owner);
+extern "C" char* A_strdup(const char *str, AObject *owner);
 #ifdef ODEBUG
 extern "C" void* A_alloc(vsize_t size, vsize_t elt_size, AObject *owner);
 extern "C" void* A_calloc(vsize_t size, vsize_t elt_size, AObject *owner);
@@ -161,6 +162,7 @@ extern "C" void A_transfer(void *ptr, AObject *ptr);
 #define AMemTransferOwnership(X, O) A_transfer(X, O)
 #define ARealloc(X, Y) A_realloc(X, Y, this)
 #define memdup(X, L) A_memdup(X, L, this)
+#define strdup(X) A_strdup(X, this)
 
 // Sentinel is the only class outside the AObject hierarchy and its sole purpose is
 // to allow automatic cleanup of locally created objects. It assumes ownership of an object

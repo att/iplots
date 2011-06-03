@@ -102,16 +102,34 @@ void A_transfer(void *ptr, AObject *obj) {
 
 void* A_memdup(const void *ptr, vsize_t len, AObject *owner) {
 	void *mem = A_alloc(len, 1, owner);
+	AMEM(mem);
 	memcpy(mem, ptr, len);
 	return mem;
+}
+
+char* A_strdup(const char *str, AObject *owner) {
+	vsize_t len = strlen(str);
+	char *ns = (char*) A_alloc(len + 1, 1, owner);
+	AMEM(ns);
+	strcpy(ns, str);
+	return ns;
 }
 
 #else
 
 void* A_memdup(const void *ptr, vsize_t len, AObject *owner) {
 	void *mem = malloc(len);
+	AMEM(mem);
 	memcpy(mem, ptr, len);
 	return mem;
+}
+
+char* A_strdup(const char *str, AObject *owner) {
+	vsize_t len = strlen(str);
+	char *ns = (char*) malloc(len + 1);
+	AMEM(ns);
+	strcpy(ns, str);
+	return ns;
 }
 
 #endif
