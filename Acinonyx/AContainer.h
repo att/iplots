@@ -27,7 +27,7 @@ protected:
 	bool passToAll;
 public:
 #pragma mark --- contructor ---
-	AContainer(AContainer *parent, ARect frame, unsigned int flags) : AVisual(parent, frame, flags|AVF_CONTAINER), chRoot(0), chTail(0), passToAll(true) { OCLASS(AContainer) }
+	AContainer(AContainer *parent, ARect frame, unsigned int flags = AVF_DEFAULT) : AVisual(parent, frame, flags|AVF_CONTAINER), chRoot(0), chTail(0), passToAll(true) { OCLASS(AContainer) }
 
 	virtual ~AContainer() {
 		removeAll();
@@ -196,40 +196,53 @@ public:
 			ARect cr = c->o->frame();
 			ARect pr = cr;
 			ALog("child frame %s: (%f, %f) (%f x %f) flags: %04x", c->o->describe(), cr.x, cr.y, cr.width, cr.height, cf);
+			cr.x += movX;
+			cr.y += movY;
+
 			if (cf & AVF_FIX_LEFT)
-				cr.x += movX;
+				/* nothing to do */;
 			else if (cf & AVF_FIX_WIDTH) {
 				if (cf & AVF_FIX_RIGHT)
-					cr.x += movX + deltaW; // full share in the left part
-				else
-					cr.x += movX + deltaW / 2; // only half the share of the width change
-			} else
-				cr.x = movX + cr.x / previousFrame.width * frame.width;
+					cr.x += deltaW; // full share in the left part
+				else // this is a rather pathological case: fixed width and no fixed side, so we interpret it at "fix the center"
+					// (x + w/2)*alpha - w/2 - x = (alpha - 1) * (x + w/2)
+					cr.x += (frame.width / previousFrame.width  - 1) * (pr.x + pr.width / 2.0);
+			} else /* no flags = move proportionally */
+				cr.x = movX + pr.x / previousFrame.width * frame.width;
+
 			if (cf & AVF_FIX_BOTTOM)
-				cr.y += movY;
+				/* nothing to do */;
 			else if (cf & AVF_FIX_HEIGHT) {
 				if (cf & AVF_FIX_TOP)
-					cr.y += movY + deltaH;
+					cr.y += deltaH;
 				else
-					cr.y += movY + deltaH / 2;
+					cr.y += (frame.height / previousFrame.height  - 1) * (pr.y + pr.height / 2.0);
 			} else
-				cr.y = movY + cr.y / previousFrame.height * frame.height;
+				cr.y = movY + pr.y / previousFrame.height * frame.height;
+
 			ALog("  step 1: %f, %f (from %f, %f)", cr.x, cr.y, pr.x, pr.y);
 			if ((cf & AVF_FIX_WIDTH) == 0) { // change width only if it's not fixed
-				if (cf & AVF_FIX_RIGHT)
-					cr.width += deltaW - ( cr.x - pr.x - movX ); // it's delta minus the part taken by previous x adjustment (disregarding movX)
-				else if (cf & AVF_FIX_LEFT)
+				if ((cf & AVF_FIX_RIGHT) && (cf & AVF_FIX_LEFT)) /* both fixed = all in the width */
+					cr.width += deltaW; 
+				else if (cf & AVF_FIX_LEFT) // otherwise proportional, but we have to take out the fixed amount (if fixed)
+					cr.width *= (frame.width - pr.x) / (previousFrame.width - pr.x);
+				else if (cf & AVF_FIX_RIGHT) {
+					AFloat fixed_space = previousFrame.width - pr.x - pr.width;
+					cr.width *= (frame.width - fixed_space) / (previousFrame.width - fixed_space);
+				} else
 					cr.width *= frame.width / previousFrame.width;
-				else
-					cr.width = (cr.x + cr.width) * frame.width / previousFrame.width - cr.x;
 			}
+			
 			if ((cf & AVF_FIX_HEIGHT) == 0) { // change height only if it's not fixed
-				if (cf & AVF_FIX_BOTTOM)
-					cr.height += deltaH - ( cr.y - pr.y - movY );
-				else if (cf & AVF_FIX_TOP)
+				if ((cf & AVF_FIX_TOP) && (cf & AVF_FIX_BOTTOM))
+					cr.height += deltaH;
+				else if (cf & AVF_FIX_BOTTOM)
+					cr.height *= (frame.height - pr.y) / (previousFrame.height - pr.y);
+				else if (cf & AVF_FIX_TOP) {
+					AFloat fixed_space = previousFrame.height - pr.y - pr.height;
+					cr.height *= (frame.height - fixed_space) / (previousFrame.height - fixed_space);
+				} else
 					cr.height *= frame.height / previousFrame.height;
-				else
-					cr.height = (cr.y + cr.height) * frame.height / previousFrame.height - cr.y;
 			}
 			ALog("  step 2: %f x %f (from %f x %f)", cr.width, cr.height, pr.width, pr.height);
 			if (!ARectsAreEqual(cr, pr))
