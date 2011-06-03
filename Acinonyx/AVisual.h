@@ -50,7 +50,7 @@ protected:
 
 	void setParent(AContainer *parent) { _parent = parent; }
 public:
-	AVisual(AContainer *parent, ARect frame, unsigned int flags) : ARenderer(parent?((ARenderer*)parent)->window():NULL, frame), _parent(parent), _flags(flags),
+	AVisual(AContainer *parent, ARect frame, unsigned int flags = AVF_DEFAULT) : ARenderer(parent?((ARenderer*)parent)->window():NULL, frame), _parent(parent), _flags(flags),
 	_min_size(AUndefSize), _max_size(AUndefSize) { OCLASS(AVisual) };
 	
 	virtual const char *caption() {
@@ -116,6 +116,22 @@ public:
 	// NOTE: setFrame inherited from ARenderer is non-virtual, defined in window coordinates and specific for rendering
 	virtual void moveAndResize(ARect frame) { setFrame(frame); }
 	virtual void move(APoint where) { ARect f = _frame; f.x = where.x; f.y = where.y; setFrame(f); }
+};
+
+/** This is asimple visual box - it is used mainly for debugging */
+class AVisualBox : public AVisual {
+protected:
+	AColor color_;
+public:
+	AVisualBox(AContainer *parent, ARect frame, unsigned int flags, AColor color) : AVisual(parent, frame, flags), color_(color) { OCLASS(AVisualBox) }
+	
+	virtual void draw(vsize_t layer) {
+		if (layer == LAYER_ROOT) {
+			color(color_);
+			rect(_frame);
+			rectO(_frame);
+		}
+	}
 };
 
 #endif
