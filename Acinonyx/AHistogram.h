@@ -98,6 +98,8 @@ protected:
 	ABinning *bin;
 	bool spines;
 	
+	ACueButton *buttonSpine, *buttonBrush;
+
 public:
 	AHistogram(AContainer *parent, ARect frame, int flags, ADataVector *x) : APlot(parent, frame, flags), bin(new ABinning(x, 11, x->range().begin, x->range().length / 11.0, true)), spines(false) {
 		nScales = 2;
@@ -118,6 +120,35 @@ public:
 		add(*ya);
 		ya->release();
 		updatePrimitives(true);
+		
+		
+		ACueWidget *cb = new ACueWidget(this, AMkRect(frame.x, frame.y + frame.height - 17, frame.width, 17), AVF_DEFAULT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_LEFT | AVF_FIX_WIDTH, true);
+		add(*cb);
+		cb->release();
+		
+		ACueButton *b = new ACueButton(cb, AMkRect(frame.x + 3, frame.y + frame.height - 3 - 14, 40, 14), AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Undo");
+		b->setDelegate(this);
+		b->click_action = "undo";
+		cb->add(*b);
+		b->release();
+		ARect f = b->frame();
+		
+		f.x += f.width + 6;
+		f.width += 10;
+		
+		buttonSpine = new ACueButton(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "");
+		buttonSpine->setDelegate(this);
+		buttonSpine->setLabel(spines ? ">Bars" : ">Spines");
+		cb->add(*buttonSpine);
+		buttonSpine->release();
+		
+		f.x += f.width + 6;
+		buttonBrush = new ACueButton(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Brush");
+		buttonBrush->setDelegate(this);
+		buttonBrush->click_action = "brush.by.group";
+		cb->add(*buttonBrush);
+		buttonBrush->release();
+		
 		OCLASS(AHistogram)		
 	}
 	
@@ -166,6 +197,24 @@ public:
 		}		
 	}
 
+	void brushByGroup() {
+		if (pps) {
+			marker->begin();
+			vsize_t bins = pps->length();
+			for(vsize_t i = 0; i < bins; i++) {
+				ABarStatVisual *b = (ABarStatVisual*) pps->objectAt(i);
+				if (b)
+					b->setValue(marker, (bins > 10) ? (COL_HCL + (i * COL_NHCL / (bins + 1))) : (COL_CB1 + i));
+			}
+			marker->end();
+		}
+		
+		buttonBrush->click_action = "brush.clear";
+		buttonBrush->setLabel("Clear");
+		
+		redraw();
+	}
+	
 	virtual void home() {
 		if (spines) {
 			_scales[0]->setDataRange(AMkDataRange(0, data->length()));
@@ -180,6 +229,7 @@ public:
 		_scales[0]->setRange(AMkRange(_frame.x + mLeft, _frame.width - mLeft - mRight));
 		_scales[1]->setRange(AMkRange(_frame.y + mBottom, _frame.height - mBottom - mTop));
 		
+		buttonSpine->setLabel(spines ? ">Bars" : ">Spines");
 		updatePrimitives();
 		APlot::update();
 	}
@@ -210,6 +260,25 @@ public:
 				return false;
 		}
 		return true;
+	}
+	
+	virtual void delegateAction(AWidget *source, const char *action, AObject *aux) {
+		APlot::delegateAction(source, action, aux);
+		if (source == buttonSpine) {
+			spines = !spines;
+			home();
+			update();
+			redraw();
+			return;
+		} else if (AIsAction(action, "brush.by.group")) {
+			brushByGroup();
+			return;
+		} else if (AIsAction(action, "brush.clear")) {
+			buttonBrush->click_action = "brush.by.group";
+			buttonBrush->setLabel("Brush");
+			marker->clearValues();
+			return;
+		}
 	}
 	
 	virtual const char *caption() {

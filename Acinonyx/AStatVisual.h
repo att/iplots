@@ -166,6 +166,21 @@ public:
 		return true;
 	}
 	
+	virtual bool setValue(AMarker *marker, mark_t value) {
+		if (_group == ANoGroup) { // direct indexing
+			// FIXME: what is this (min/maxMark) about?
+			if (n) minMark = maxMark = value;
+			else minMark = maxMark = 0;
+			for (vsize_t i = 0; i < n; i++)
+				if (mark->isHidden(i) == showHidden)
+					marker->setValue(ids[i], value);
+		} else // group indexing
+			for (vsize_t i = 0; i < n; i++)
+				if ((group_t)ids[i] == _group && mark->isHidden(i) == showHidden)
+					marker->setValue(i, value);
+		return true;
+	}
+	
 	virtual void notification(AObject *source, notifid_t nid) {
 		ALog("%s: notification() -> update()", describe());
 		markerChanged();
@@ -190,7 +205,6 @@ public:
 		ALog(" - set %s to '%s'", query->describe(), query_buffer);
 		query->setText(query_buffer);
 	}
-
 };
 
 typedef enum { Up = 1, Down = 2, fromLeft = 3, fromRight = 4 } direction_t;

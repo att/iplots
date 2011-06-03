@@ -30,6 +30,7 @@ public:
 	const char *label() { return label_; }
 
 	void setLabel(const char *newLabel) {
+		if (newLabel == label_) return;
 		AFree(label_);
 		label_ = strdup(newLabel ? newLabel : "");
 		redrawWidget();
