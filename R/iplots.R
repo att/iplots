@@ -75,6 +75,7 @@ add.iContainer.iVisual <- function(x, obj, ...) {
 
 .flag.names <- c("fix.top", "fix.left", "fix.bottom", "fix.right", "fix.width", "fix.height", "xspring", "yspring", "xyspring")
 .flag.values <- c(0x100L, 0x200L, 0x400L, 0x800L, 0x1000L, 0x2000L, 0xa00L, 0x500L, 0xf00L)
+.default.flag.value <- 0L
 
 .flags <- function(x) {
   f <- match(x, .flag.names)
@@ -86,7 +87,7 @@ add.iContainer.iVisual <- function(x, obj, ...) {
   c(100, 100)
 
 .do.plot <- function(callName, className, window, frame, flags, ...) {
-  flags <- if (missing(flags)) 0xf00L else .flags(flags)
+  flags <- if (missing(flags)) .default.flag.value else .flags(flags)
   if (missing(window)) window <- NULL
   if (missing(frame)) frame <- c(0, 0, 400, 300)
   p <- .Call(callName, ..., frame, flags)
