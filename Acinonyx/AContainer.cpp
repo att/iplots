@@ -43,9 +43,12 @@ bool AWindow::event(AEvent event)
 }
 
 void AWindow::setFrame(ARect frame) {
-	_frame = frame;
-	AVisual *rv = (AVisual*) _rootVisual;
-	if (rv)
-		rv->moveAndResize(AMkRect(0.0, 0.0, frame.width, frame.height));
+	if (frame.width != _frame.width || frame.height != _frame.height) {
+		_frame = frame;
+		setRedrawLayer(LAYER_ROOT);
+		AVisual *rv = (AVisual*) _rootVisual;
+		if (rv)
+			rv->moveAndResize(AMkRect(0.0, 0.0, frame.width, frame.height));
+	}
 }
 
