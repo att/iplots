@@ -13,6 +13,7 @@ query <- function(x, ...) UseMethod("query")
 "query<-" <- function(x, value, ...) UseMethod("query<-")
 
 ilines <- function(x, ...) UseMethod("ilines")
+isegments <- function(x, ...) UseMethod("isegments")
 iabline <- function(a, ...) UseMethod("iabline")
 ipoints <- function(x, ...) UseMethod("ipoints")
 itext <- function(x, ...) UseMethod("itext")
@@ -27,7 +28,17 @@ iLine <- function(x, y, color) {
   invisible(o)
 }
 
+iSegments <- function(x1, y1, x2, y2, color) {
+  l <- c(length(x1), length(y1), length(x2), length(y2))
+  if (!all(l == l[1])) stop("all coordinates must be of the same length")
+  o <- .Call("A_SegmentsCreate", as.double(x1), as.double(y1), as.double(x2), as.double(y2))
+  class(o) <- c("iSegments", "primitive", "iObject")
+  if (!missing(color)) color(o, redraw=FALSE) <- color
+  invisible(o)  
+}
+
 iPolygon <- function(x, y, color, fill) {
+  if (length(x) != length(y)) stop("all coordinates must be of the same length")
   o <- .Call("A_PolygonCreate", as.double(x), as.double(y));
   class(o) <- c("iPolygon", "primitive", "iObject")
   if (!missing(color)) color(o, redraw=FALSE) <- color
@@ -163,6 +174,13 @@ iabline.default <- function(a, b, ..., plot=.Last.plot) {
 
 ilines.default <- function(x, y, col, ..., plot=.Last.plot) {
   p <- iPolygon(x, y)
+  if (!missing(col)) p$color <- col
+  add(plot, p)
+  invisible(p)
+}
+
+isegments.default <- function(x0, y0, x1 = x0, y1 = y0, col, ..., plot=.Last.plot) {
+  p <- iSegments(x0, y0, x1, y1)
   if (!missing(col)) p$color <- col
   add(plot, p)
   invisible(p)

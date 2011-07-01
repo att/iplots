@@ -13,6 +13,7 @@
 #include "AMarker.h"
 #include "AVisualPrimitive.h"
 #include "AQuery.h"
+#include "APlot.h"
 
 #define ANoGroup (-1)
 

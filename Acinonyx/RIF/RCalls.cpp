@@ -60,6 +60,7 @@ extern "C" {
 	SEXP A_ScaleValue(SEXP sScale, SEXP sPos);
 	SEXP A_ScalePosition(SEXP sScale, SEXP sPos);
 
+	SEXP A_SegmentsCreate(SEXP sx1, SEXP sy1, SEXP sx2, SEXP sy2);
 	SEXP A_LineCreate(SEXP pos);
 	SEXP A_BarCreate(SEXP pos);
 	SEXP A_PolygonCreate(SEXP sx, SEXP sy);
@@ -751,6 +752,19 @@ SEXP A_ScaleValue(SEXP sScale, SEXP sPos) {
 SEXP A_LineCreate(SEXP pos) {
 	double *pp = REAL(pos);
 	ALinePrimitive* p = new ALinePrimitive(NULL, AMkPoint(pp[0], pp[1]), AMkPoint(pp[2], pp[3]));
+	return A2SEXP(p);
+}
+
+SEXP A_SegmentsCreate(SEXP sx1, SEXP sy1, SEXP sx2, SEXP sy2) {
+	double *x1 = REAL(sx1), *y1 = REAL(sy1), *x2 = REAL(sx2), *y2 = REAL(sy2);
+	vsize_t n = LENGTH(sx1);
+	APoint *p1 = (APoint*) A_alloc(sizeof(APoint), n, R_AllocationDomain);
+	APoint *p2 = (APoint*) A_alloc(sizeof(APoint), n, R_AllocationDomain);
+	for (vsize_t i = 0; i < n; i++) {
+		p1[i] = AMkPoint(x1[i], y1[i]);
+		p2[i] = AMkPoint(x2[i], y2[i]);
+	}
+	ASegmentsPrimitive* p = new ASegmentsPrimitive(NULL, p1, p2, n, false);
 	return A2SEXP(p);
 }
 

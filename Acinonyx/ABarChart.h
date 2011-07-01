@@ -12,6 +12,7 @@
 
 #include "AStatVisual.h"
 #include "APlot.h"
+#include "AAxis.h"
 #include "ACueMenu.h"
 #include "ACueHotButton.h"
 

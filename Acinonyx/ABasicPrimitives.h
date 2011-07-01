@@ -139,6 +139,39 @@ public:
 		if (level == 1) return ext_query_string;
 		return NULL;
 	}
+	
+	
+	// helper functions that can be used by others ...
+	static bool lineIntersectsRect(ARect rect, APoint _s1, APoint _s2) {
+		// if the bounding box of the line doesn't intersect the rectangle then it cannot intersect the line
+		if (rect.x > AMAX(_s1.x, _s2.x) || rect.y > AMAX(_s1.y, _s2.y) ||
+		    rect.x + rect.width < AMIN(_s1.x, _s2.x) || rect.y + rect.height < AMIN(_s1.y, _s2.y)) return false;
+		// since the bounding box intersects, for straight line this implies intersection with the line
+		if (_s1.x == _s2.x || _s1.y == _s2.y) return true;
+		// ok, not a straight line, so we can calculate the distance of the rectangle points from the line along y
+		AFloat m = (_s2.x - _s1.x) / (_s2.y - _s1.y);
+		AFloat d1 = m * (rect.x - _s1.x) + _s1.y;
+		if (rect.y <= d1 && rect.y + rect.height >= d1) return true;
+		AFloat d2 = m * (rect.x + rect.width - _s1.x) + _s1.y;
+		if (rect.y <= d2 && rect.y + rect.height >= d2) return true;
+		// if neither side was hit then the only way it can be an intersection is if each virtual intersection point is on the other side
+		return ((d1 < rect.y && d2 > rect.y + rect.height) || (d1 > rect.y && d2 < rect.y + rect.height));
+	}
+	
+	static bool lineContainsPoint(APoint pt, APoint _s1, APoint _s2) {
+		double ll = (_s1.x - _s2.x) * (_s1.x - _s2.x) + (_s1.y - _s2.y) * (_s1.y - _s2.y);
+		if (ll < 1.0) return ARectContains(AMkRect(_s1.x - 1.0, _s1.y - 1.0, 2.0, 2.0), pt);
+		AFloat lx = (_s1.x < _s2.x) ? _s1.x : _s2.x;
+		AFloat ly = (_s1.y < _s2.y) ? _s1.y : _s2.y;
+		int sig = 1;
+		AFloat w = _s1.x - _s2.x; if (w < 0) { w = -w; sig = -sig; }
+		AFloat h = _s1.y - _s2.y; if (h < 0) { h = -h; sig = -sig; }
+		if (!ARectContains(AMkRect(lx - 1.0, ly - 1.0, w + 2.0, h + 2.0), pt)) return 0;
+		if (_s1.x == _s2.x || _s1.y == _s2.y) return 1;
+		AFloat ppy = (pt.x - lx) / w * h;
+		ppy = (sig == -1) ? ly + h - ppy : ly + ppy;
+		return (pt.y >= ppy - 1.0 && pt.y <= ppy + 1.0);
+	}	
 };
 
 class ALinePrimitive : public AScaledPrimitive {
@@ -158,35 +191,62 @@ public:
 	
 	virtual bool intersects(ARect rect) {
 		APoint _s1 = transformPoint(_p1), _s2 = transformPoint(_p2);
-		// if the bounding box of the line doesn't intersect the rectangle then it cannot intersect the line
-		if (rect.x > AMAX(_s1.x, _s2.x) || rect.y > AMAX(_s1.y, _s2.y) ||
-			rect.x + rect.width < AMIN(_s1.x, _s2.x) || rect.y + rect.height < AMIN(_s1.y, _s2.y)) return false;
-		// since the bounding box intersects, for straight line this implies intersection with the line
-		if (_s1.x == _s2.x || _s1.y == _s2.y) return true;
-		// ok, not a straight line, so we can calculate the distance of the rectangle points from the line along y
-		AFloat m = (_s2.x - _s1.x) / (_s2.y - _s1.y);
-		AFloat d1 = m * (rect.x - _s1.x) + _s1.y;
-		if (rect.y <= d1 && rect.y + rect.height >= d1) return true;
-		AFloat d2 = m * (rect.x + rect.width - _s1.x) + _s1.y;
-		if (rect.y <= d2 && rect.y + rect.height >= d2) return true;
-		// if neither side was hit then the only way it can be an intersection is if each virtual intersection point is on the other side
-		return ((d1 < rect.y && d2 > rect.y + rect.height) || (d1 > rect.y && d2 < rect.y + rect.height));
+		return lineIntersectsRect(rect, _s1, _s2);
 	}
 	
 	virtual bool containsPoint(APoint pt) {
 		APoint _s1 = transformPoint(_p1), _s2 = transformPoint(_p2);
-		double ll = (_s1.x - _s2.x) * (_s1.x - _s2.x) + (_s1.y - _s2.y) * (_s1.y - _s2.y);
-		if (ll < 1.0) return ARectContains(AMkRect(_s1.x - 1.0, _s1.y - 1.0, 2.0, 2.0), pt);
-		AFloat lx = (_s1.x < _s2.x) ? _s1.x : _s2.x;
-		AFloat ly = (_s1.y < _s2.y) ? _s1.y : _s2.y;
-		int sig = 1;
-		AFloat w = _s1.x - _s2.x; if (w < 0) { w = -w; sig = -sig; }
-		AFloat h = _s1.y - _s2.y; if (h < 0) { h = -h; sig = -sig; }
-		if (!ARectContains(AMkRect(lx - 1.0, ly - 1.0, w + 2.0, h + 2.0), pt)) return 0;
-		if (_s1.x == _s2.x || _s1.y == _s2.y) return 1;
-		AFloat ppy = (pt.x - lx) / w * h;
-		ppy = (sig == -1) ? ly + h - ppy : ly + ppy;
-		return (pt.y >= ppy - 1.0 && pt.y <= ppy + 1.0);
+		return lineContainsPoint(pt, _s1, _s2);
+	}
+};
+
+class ASegmentsPrimitive : public AScaledPrimitive {
+protected:
+	APoint *_p1, *_p2;
+	APoint *_cp1, *_cp2;
+	vsize_t _pts;
+public:
+	ASegmentsPrimitive(APlot *plot, APoint *p1, APoint *p2, vsize_t pts, bool copy=true) : AScaledPrimitive(plot), _pts(pts) {
+		_p1 = copy ? (APoint*) memdup(p1, pts * sizeof(APoint)) : p1;
+		AMEM(_p1);
+		_p2 = copy ? (APoint*) memdup(p2, pts * sizeof(APoint)) : p2;
+		AMEM(_p2);
+		if (!copy) {
+			AMemTransferOwnership(_p1, this);
+			AMemTransferOwnership(_p2, this);
+		}
+		_cp1 = (APoint*) AAlloc(pts * sizeof(APoint));
+		AMEM(_cp1);
+		_cp2 = (APoint*) AAlloc(pts * sizeof(APoint));
+		AMEM(_cp2);
+		OCLASS(ASegmentsPrimitive)
+	}
+	
+	virtual void draw(ARenderer &renderer, vsize_t layer) {
+		if (c.a > 0.0f) {
+			renderer.color(c);
+			transformPoints(_cp1, _p1, _pts);
+			transformPoints(_cp2, _p2, _pts);
+			renderer.segments(_cp1, _cp2, _pts);
+		}
+	}
+
+	virtual bool intersects(ARect rect) {
+		vsize_t i;
+		transformPoints(_cp1, _p1, _pts);
+		transformPoints(_cp2, _p2, _pts);
+		for(i = 0; i < _pts; i++)
+			if (lineIntersectsRect(rect, _cp1[i], _cp2[i])) return true;
+		return false;			
+	}
+	
+	virtual bool containsPoint(APoint pt) {
+		vsize_t i;
+		transformPoints(_cp1, _p1, _pts);
+		transformPoints(_cp2, _p2, _pts);
+		for(i = 0; i < _pts; i++)
+			if (lineContainsPoint(pt, _cp1[i], _cp2[i])) return true;
+		return false;			
 	}
 };
 

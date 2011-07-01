@@ -12,6 +12,8 @@
 
 #include "AStatVisual.h"
 #include "APlot.h"
+#include "AAxis.h"
+#include "ACueButton.h"
 
 #define UNDERFLOW_BIN (_bins)
 #define OVERFLOW_BIN (_bins + 1)

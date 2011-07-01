@@ -105,10 +105,14 @@ public:
 		glColor4f(c.r, c.g, c.b, c.a);
 	}
 
-	void color(GLfloat r, GLfloat g, GLfloat b, GLfloat a = 1.0) {
+	void color(GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
 		glColor4f(r, g, b, a);
 	}
 
+	void color(GLfloat r, GLfloat g, GLfloat b) {
+		glColor3f(r, g, b);
+	}
+	
 	void color255(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255) {
 		glColor4b(r, g, b, a);
 	}
@@ -128,10 +132,6 @@ public:
 	
 	void txtcolor(AFloat r, AFloat g, AFloat b, AFloat a = 1.0) {
 		if (_window) _window->setTextColor(AMkColor(r,g,b,a));
-	}
-	
-	void color(GLfloat r, GLfloat g, GLfloat b) {
-		glColor3f(r, g, b);
 	}
 	
 	void rectV(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
@@ -281,6 +281,17 @@ public:
 		glEnd();
 	}
 
+	void segments(const APoint *p1, const APoint *p2, int n) {
+		int i = 0;
+		glBegin(GL_LINES);
+		while (i < n) {
+			glVertex2f(p1[i].x, p1[i].y);
+			glVertex2f(p2[i].x, p2[i].y);
+			i++;
+		}
+		glEnd();
+	}
+	
 	void line(AFloat x1, AFloat y1, AFloat x2, AFloat y2) {
 		glBegin(GL_LINE_STRIP);
 		glVertex2f(x1, y1);
