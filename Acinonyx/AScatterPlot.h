@@ -14,6 +14,8 @@
 #include "AAxis.h"
 #include "AMarker.h"
 
+#include "ACueMenu.h"
+
 class AScatterPlot : public APlot {
 protected:
 	AXAxis *xa;
@@ -45,6 +47,26 @@ public:
 		AZoomEntryBiVar *ze = new AZoomEntryBiVar(_scales[0]->dataRange(), _scales[1]->dataRange());
 		zoomStack->push(ze);
 		ze->release();
+		
+		//------- top menu -------
+		ACueWidget *cb = new ACueWidget(this, AMkRect(frame.x, frame.y + frame.height - 17, frame.width, 17), AVF_DEFAULT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_LEFT | AVF_FIX_WIDTH, true);
+		add(*cb);
+		cb->release();
+		
+		ACueButton *b = new ACueButton(cb, AMkRect(frame.x + 3, frame.y + frame.height - 3 - 14, 40, 14), AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Undo");
+		b->setDelegate(this);
+		b->click_action = "undo";
+		cb->add(*b);
+		b->release();
+		ARect f = b->frame();
+		
+		f.x += f.width + 6;		
+		b = new ACueButton(cb, f, AVF_DEFAULT | AVF_FIX_LEFT | AVF_FIX_TOP | AVF_FIX_HEIGHT | AVF_FIX_WIDTH, "Swap");
+		b->setDelegate(this);
+		b->click_action = "swap";
+		cb->add(*b);
+		b->release();
+		
 		OCLASS(AScatterPlot)
 	}
 	
@@ -142,6 +164,24 @@ public:
 		if (inQuery && _query->isHidden())
 			redraw();
 		APlot::queryOff();
+	}
+	
+	virtual void delegateAction(AWidget *source, const char *action, AObject *aux) {
+		APlot::delegateAction(source, action, aux);
+		if (AIsAction(action, "swap")) {
+			// FIXME: need to signal window to change captions
+			// FIXME: is this really a good way to do it?
+			ADataVector *h = datax;	datax = datay; datay = h;
+			ARange xr = _scales[0]->range();
+			_scales[0]->setRange(_scales[1]->range());
+			_scales[1]->setRange(xr);
+			AScale *t = _scales[0]; _scales[0] = _scales[1]; _scales[1] = t;
+			xa->setScale(_scales[0]);
+			ya->setScale(_scales[1]);
+			setRedrawLayer(LAYER_ROOT);
+			update();
+			redraw();
+		}
 	}
 	
 	virtual void draw(vsize_t layer) {

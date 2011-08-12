@@ -24,6 +24,13 @@ public:
 		if (_scale) _scale->release();
 		DCLASS(AAxis)
 	}
+	
+	/* FIXME: do we need to thing about notification? Or even self-updating? */
+	virtual void setScale(AScale *s) {
+		if (_scale) _scale->release();
+		_scale = s;
+		if (s) s->retain();
+	}
 };
 
 class AXAxis : public AAxis {
