@@ -30,7 +30,7 @@ glut.so: $(ASRC) $(CSRC) $(GLUTSRC)
 	PKG_LIBS='-framework GLUT -framework OpenGL' PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -IGLUT -DGLUT' R CMD SHLIB -o $@ $^
 
 Acinonyx.dll: $(ASRC) $(CSRC) $(WINSRC)
-	PKG_CXXFLAGS='-fpermissive' PKG_LIBS='-lopengl32 -lglu32 -lrgraphapp -lgdi32' PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -IWin32' $(RBIN) CMD SHLIB -o $@ $^
+	PKG_CXXFLAGS='-fpermissive' PKG_LIBS='-lopengl32 -lglu32 -lrgraphapp -lgdi32 -LWin32 -lfreetype' PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -IWin32' $(RBIN) CMD SHLIB -o $@ $^
 
 #Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
 #	g++ -c -IAcinonyx -IAcinonyx/RIF -ICocoa -I/Library/Frameworks/R.framework/Headers -g -O0 $^

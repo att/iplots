@@ -14,6 +14,10 @@
 static int lastButtonState = 0;
 static APoint lastMousePos;
 
+#ifndef WGL_FONTS
+AFreeType *sharedFT;
+#endif
+
 extern "C" {
 	AWin32Window *AWin32_CreateWindow(AVisual *visual, APoint position);
 }
