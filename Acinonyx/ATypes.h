@@ -80,10 +80,12 @@ extern "C" {
 #define AEF_BUTTON1 0x001
 #define AEF_BUTTON2 0x002
 #define AEF_BUTTON3 0x004
+#define AEF_BUTTONS 0x007
 #define AEF_SHIFT   0x010
 #define AEF_CTRL    0x020
 #define AEF_ALT     0x040
 #define AEF_META    0x080
+#define AEF_MKEYS   0x0f0
 
 #define AE_MOUSE_DOWN   0x0101
 #define AE_MOUSE_UP     0x0102

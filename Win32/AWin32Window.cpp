@@ -11,6 +11,9 @@
 
 #ifdef WIN32
 
+static int lastButtonState = 0;
+static APoint lastMousePos;
+
 extern "C" {
 	AWin32Window *AWin32_CreateWindow(AVisual *visual, APoint position);
 }
@@ -42,7 +45,6 @@ static void HelpResize(window w, rect r)
 	if (win) win->resize(AMkRect(0.0, 0.0, r.width, r.height));
 }
 
-static int lastButtonState = 0;
 
 static unsigned int button2flags(int b) {
 	unsigned int f = 0;
@@ -50,6 +52,15 @@ static unsigned int button2flags(int b) {
 	if (b&4) f |= AEF_BUTTON2;
 	if (b&2) f |= AEF_BUTTON3;
 	return f;
+}
+
+static unsigned int update_key_state() {
+	// reset modifier key states
+	lastButtonState &= ~AEF_MKEYS;
+	if (GetAsyncKeyState(VK_SHIFT) & 0xfff0)   lastButtonState |= AEF_SHIFT;
+	if (GetAsyncKeyState(VK_CONTROL) & 0xfff0) lastButtonState |= AEF_CTRL;
+	if (GetAsyncKeyState(VK_MENU) & 0xfff0)    lastButtonState |= AEF_ALT;
+	return lastButtonState;
 }
 
 #define gPoint(X,Y) AMkPoint(X, _frame.height - Y) 
@@ -63,7 +74,7 @@ static void HelpMouseMove(window w, int button, point pt)
 {
 	AWin32Window *win = (AWin32Window*) getdata(w);
 	ARect _frame = win->frame();
-	win->event(AMkEvent(AE_MOUSE_MOVE, lastButtonState, 0, gPoint(pt.x, pt.y)));
+	win->event(AMkEvent(AE_MOUSE_MOVE, update_key_state(), 0, lastMousePos = gPoint(pt.x, pt.y)));
 }
 
 static void HelpMouseUp(window w, int button, point pt)
@@ -74,19 +85,21 @@ static void HelpMouseUp(window w, int button, point pt)
 	Rprintf("mouseUp, button=%d, pt=%g,%g\n", button, (double)pt.x, (double)pt.y);
 #endif
 	unsigned int f = button2flags(button), g = f ^ lastButtonState;
-	lastButtonState = f;
-	win->event(AMkEvent(AE_MOUSE_UP, g, 0, gPoint(pt.x, pt.y)));
+	lastButtonState = g;
+	update_key_state();
+	win->event(AMkEvent(AE_MOUSE_UP, g, 0, lastMousePos = gPoint(pt.x, pt.y)));
 }
 
 static void HelpMouseDown(window w, int button, point pt)
 {
 	AWin32Window *win = (AWin32Window*) getdata(w);
 	ARect _frame = win->frame();
-	lastButtonState = button2flags(button);
+	lastButtonState |= button2flags(button);
+	update_key_state();
 #ifdef DEBUG
 	Rprintf("mouseDown, button=%d, pt=%g,%g\n", button, (double)pt.x, (double)pt.y);
 #endif
-	win->event(AMkEvent(AE_MOUSE_DOWN, lastButtonState, 0, gPoint(pt.x, pt.y)));
+	win->event(AMkEvent(AE_MOUSE_DOWN, lastButtonState, 0, lastMousePos = gPoint(pt.x, pt.y)));
 }
 
 static void HelpKeyDown(control w, int key)
@@ -104,7 +117,8 @@ static void HelpKeyDown(control w, int key)
 		case 'l': key = KEY_L; break;
 		case 'u': key = KEY_U; break;
 	}
-	win->event(AMkEvent(AE_KEY_DOWN, lastButtonState, key, AMkPoint(0.0, 0.0)));
+	update_key_state();
+	win->event(AMkEvent(AE_KEY_DOWN, lastButtonState, key, lastMousePos));
 }
 
 static void HelpKeyAction(control w, int key)
@@ -120,7 +134,8 @@ static void HelpKeyAction(control w, int key)
 		case 8594: ac_key = KEY_RIGHT; break;
 		case 8595: ac_key = KEY_DOWN; break;
 	}
-	if (ac_key) win->event(AMkEvent(AE_KEY_DOWN, lastButtonState, ac_key, AMkPoint(0.0, 0.0)));
+	update_key_state();
+	if (ac_key) win->event(AMkEvent(AE_KEY_DOWN, lastButtonState, ac_key, lastMousePos));
 }
 
 static void SetupPixelFormat(HDC hDC)
