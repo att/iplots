@@ -122,6 +122,8 @@ extern "C" {
 /** This macro is used after memory allocation to check for out of memory issues */
 #define AMEM(x) // FIXME: replace with some error handling if x is NULL
 	
+#include <limits.h>
+	
 extern double NA_double;
 extern float NA_float;
 #define NA_int INT_MIN

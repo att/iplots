@@ -185,10 +185,12 @@ public:
 // AObject *foo = new AObject( ... ); 
 // LOCAL(foo);
 
+#ifndef SWIG
 extern "C" {
 	void AObject_retain(void *o);
 	void AObject_release(void *o);
 }
+#endif
 
 #define LOCAL(X) AObjectSentinel local_os_ ## X = AObjectSentinel(X)
 
