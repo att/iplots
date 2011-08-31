@@ -94,8 +94,8 @@ public:
 #if ! A_EXACT_TEXTURE
 		int rw = width, rh = height;
 		width = height = 32;
-		while (width < rw) width <<= 2;
-		while (height < rh) height <<= 2;
+		while (width < rw) width <<= 1;
+		while (height < rh) height <<= 1;
 		ALog("%s: creating POTS texture %d x %d", describe(), width, height);
 #endif
 
@@ -137,8 +137,8 @@ public:
 
 #if ! A_EXACT_TEXTURE
 		int tw = 32, th = 32;
-		while (tw < width) tw <<= 2;
-		while (th < height) th <<= 2;
+		while (tw < width) tw <<= 1;
+		while (th < height) th <<= 1;
 		double tpw = (double) width / (double) tw;
 		double tph = (double) height / (double) th;
 		ALog("%s: recalling POTS texture %d x %d", describe(), tw, th);

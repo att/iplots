@@ -145,16 +145,12 @@ public:
 	bool setFontSize(AFloat size) {
 		if (FT_Set_Char_Size(face, 0, size * 64.0, dpi_x, dpi_y)) return false;
 		FT_GlyphSlot  slot = face->glyph;
-		//FILE *f = fopen("c:/tmp/debug.txt","a");
-		//if (f) fprintf(f, "NewFace '%s' ok\n", fn);
 		for (int i = 32; i < 128; i++)
 			if (!FT_Load_Char(face, i, FT_LOAD_DEFAULT)) {
 				adx[i] = slot->advance.x;
 				ghs[i] = slot->metrics.height;
 				gbs[i] = slot->metrics.horiBearingY;
-				//		fprintf(f," %c[%d/%d]", (char) i, (int) adx[i], ghs[i]);
 			}
-		//if (f) fclose(f);
 		return true;
 	}
 	
