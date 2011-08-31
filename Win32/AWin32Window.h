@@ -118,6 +118,7 @@ protected:
 	ASize box;
 	int adx[255];
 	int ghs[255];
+	int gbs[255];
 	char *buf;
 	GLuint texName;
 public:
@@ -126,12 +127,13 @@ public:
 	AFreeType() {
 		FT_Init_FreeType(&library);
 		dpi_x = 70; // FIXME: this is a trick to get narrow version of the font
-		dpi_y = 90;
+		dpi_y = 85;
 		texName = 0;
 		twidth = theight = 0;
 		face = 0;
 		memset(adx, 0, sizeof(adx));
 		memset(ghs, 0, sizeof(ghs));
+		memset(gbs, 0, sizeof(gbs));
 		buf = (char*) malloc(bsize = 512*1024);
 	}
 	
@@ -149,6 +151,7 @@ public:
 			if (!FT_Load_Char(face, i, FT_LOAD_DEFAULT)) {
 				adx[i] = slot->advance.x;
 				ghs[i] = slot->metrics.height;
+				gbs[i] = slot->metrics.horiBearingY;
 				//		fprintf(f," %c[%d/%d]", (char) i, (int) adx[i], ghs[i]);
 			}
 		//if (f) fclose(f);
@@ -158,15 +161,28 @@ public:
 	ASize bbox(const char *txt) {
 		fdebug("bbox('%s')", txt);
 		ASize box = AMkSize(0, 0);
+#ifdef PRECISE_BBOX /* this would be the actual bbox, but that's not what we actually use ... */
+		int xasc = 0, xdsc = 0;
 		while (*txt) {
 			int txo = (unsigned char) *txt;
+			int asc = gbs[txo], dsc = ghs[txo] - asc;
 			box.width += adx[txo] / 64.0;
-			if (ghs[txo] > box.height)
-				box.height = ghs[txo];
+			if (asc > xasc) xasc = asc;
+			if (dsc > xdsc) xdsc = dsc;
 			txt++;
 		}
+		box.height = xasc + xdsc;
+#else /* for imprecise boxes we use fixed height to ensure all of them are on the same baseline and integer advance */
+		while (*txt) {
+			int txo = (unsigned char) *txt;
+			box.width += (int) (adx[txo] / 64.0);
+			txt++;
+		}
+		box.height = ghs[(int)'M'] + ghs[(int)'y'] - ghs[(int)'a']; /* ascent of M, descent of y */
+#endif
+
 		box.height /= 64.0;
-		fdebug(" -> %g, %g\n", box.width, box.height);
+		/* fdebug(" -> %g, %g (%g + %g)\n", box.width, box.height, (double) xasc / 64.0, (double) xdsc / 64.0); */
 		return box;
 	}
 	
@@ -261,6 +277,12 @@ public:
 			
 			ll.x += - adj.x * lr.x - adj.y * ul.x;
 			ll.y += - adj.y * ul.y - adj.x * lr.y;
+
+			// baseline shift - we use y-a
+			double bls = ghs[(int)'y'] - ghs[(int)'a']; bls /= 64.0;
+			ll.x += bls * sth;
+			ll.y -= bls * cth;
+
 			// make sure the texture is pixel-aligned
 			ll.x = round(ll.x) - 0.5;
 			ll.y = round(ll.y) - 0.5;
