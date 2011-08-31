@@ -15,6 +15,11 @@
 #include <gl/gl.h>
 #include <gl/glu.h>
 
+#ifndef GL_CLAMP_TO_EDGE
+/* this requires GL 1.2 but Win headers are 1.1 */
+#define GL_CLAMP_TO_EDGE 0x812F 
+#endif
+
 #include "AWindow.h"
 #include "AVisual.h"
 
@@ -87,13 +92,30 @@ static void PrintLastError(const char *fname, BOOL result)
 #include <freetype/freetype.h>
 #include <freetype/ftglyph.h>
 
-#define GL_TEXTURE_RECTANGLE_EXT GL_TEXTURE_2D
+static void fdebug(const char *fmt, ...) {
+#ifdef DEBUG
+	va_list v;
+	va_start(v, fmt);
+	FILE *f = fopen("c:/debug.txt", "a");
+	if (f) {
+		vfprintf(f, fmt, v);
+		fclose(f);
+	}
+#endif
+}
+
+#ifdef DEBUG
+#define GLC(U,X) { X; int ec = glGetError(); if (ec != GL_NO_ERROR) fdebug("*** GL error (%s): %s\n", U, gluErrorString(ec)); }
+#else
+#define GLC(U,X) X
+#endif
 
 class AFreeType {
 protected:
 	FT_Library library;
 	FT_Face face;
-	int width, height, bsize;
+	int twidth, theight, bsize;
+	ASize box;
 	int adx[255];
 	int ghs[255];
 	char *buf;
@@ -103,12 +125,14 @@ public:
 	
 	AFreeType() {
 		FT_Init_FreeType(&library);
-		dpi_x = 100;
-		dpi_y = 100;
+		dpi_x = 70; // FIXME: this is a trick to get narrow version of the font
+		dpi_y = 90;
 		texName = 0;
+		twidth = theight = 0;
+		face = 0;
 		memset(adx, 0, sizeof(adx));
 		memset(ghs, 0, sizeof(ghs));
-		buf = (char*) malloc(bsize = 256*1024);
+		buf = (char*) malloc(bsize = 512*1024);
 	}
 	
 	bool setFont(const char *fn) {
@@ -132,60 +156,84 @@ public:
 	}
 	
 	ASize bbox(const char *txt) {
-		FILE *f = fopen("c:/tmp/debug.txt","a");
-		if (f) fprintf(f, "bbox('%s')\n", txt);
+		fdebug("bbox('%s')", txt);
 		ASize box = AMkSize(0, 0);
 		while (*txt) {
-			box.width += adx[*txt] / 64.0;
-			if (ghs[*txt] > box.height)
-				box.height = ghs[*txt];
+			int txo = (unsigned char) *txt;
+			box.width += adx[txo] / 64.0;
+			if (ghs[txo] > box.height)
+				box.height = ghs[txo];
 			txt++;
 		}
 		box.height /= 64.0;
-		if (f) fprintf(f, " -> %g, %g\n", box.width, box.height);
-		if (f) fclose(f);
+		fdebug(" -> %g, %g\n", box.width, box.height);
 		return box;
 	}
 	
+	/* Win32 doesn't support 1-component textures, so we can't use GL_LUMINANCE, unfortunately */
+#define TX_PLANES 4
+
 	/* FIXME: simplified rendering - we are advancing only in whole pixels */
 	bool generateTexture(const char *txt) {
 		// compute texture size
 		if (!txt) return false;
-		ASize bb = bbox(txt);
+		box = bbox(txt);
 		int txw = 8, txh = 8;
-		while (txw < bb.width) txw <<= 1;
-		while (txh < bb.height) txh <<= 1;
-		if (txw * txh > bsize) // texture bigger than the buffer - bail out for sanity
+		while (txw < box.width + 0.5) txw <<= 1;
+		while (txh < box.height + 1.1) txh <<= 1;
+		if (txw * txh * TX_PLANES > bsize) // texture bigger than the buffer - bail out for sanity
 			return false;
-		memset(buf, 0, txw* txh);
+		memset(buf, 0, txw * txh * TX_PLANES);
 		
 		FT_GlyphSlot  slot = face->glyph;
 		FT_UInt       glyph_index;
-		int           x = 0, y = 0;
+		int           x = 0, y = 0, bline = ghs[(int)'M'] >> 6;
 		while (*txt) {
 			if (FT_Load_Char(face, *txt, FT_LOAD_RENDER)) continue;
+			int left = slot->bitmap_left, shift = bline - slot->bitmap_top;
 			FT_Bitmap bitmap = slot->bitmap;
+			if (shift + bitmap.rows > txh) shift = txh - bitmap.rows;
+			if (shift < 0) shift = 0;
 			for (int i = 0; i < bitmap.rows; i++)
-				memcpy(buf + i * txw + x, bitmap.buffer + i * bitmap.pitch, bitmap.width);
+				for (int j = 0; j < bitmap.width; j++) {
+					char *bp = buf + TX_PLANES * ((i + shift) * txw + x + left + j);
+					bp[0] = bp[1] = bp[2] = bp[3] = bitmap.buffer[i * bitmap.pitch + j];
+				}
 			x += slot->advance.x >> 6;
 			txt++;
 		}
-		
-		glPushAttrib(GL_TEXTURE_BIT);
+		fdebug("texture %d x %d ", txw, txh);
+#if 0
+		for (int i = 0; i < txh * 16; i++) fdebug((i & 15) ? " %02x" : "\n %02x", (int) ((unsigned char*)buf)[(i & 15) + (i / 16) * txw]);
+		fdebug("\n");
+#endif
+		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 		if (texName == 0) glGenTextures (1, &texName);
-		glBindTexture (GL_TEXTURE_RECTANGLE_EXT, texName);
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, txw, txh, GL_ALPHA, GL_UNSIGNED_BYTE, buf);
+		GLC("glBiglBindTexture", glBindTexture (A_TEXTURE_TYPE, texName));
+		fdebug(" - name = %d\n", texName);
+		glDisable(GL_DEPTH_TEST);
+		if (1 /* txw != twidth || txh != theight */) {
+			GLC("glTExEnv",glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
+			glTexParameterf(A_TEXTURE_TYPE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(A_TEXTURE_TYPE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			/* those are actually irrelevant since we make sure the texture doesn't exceed the area */
+			glTexParameterf(A_TEXTURE_TYPE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameterf(A_TEXTURE_TYPE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			GLC("glTexImage2D",glTexImage2D(A_TEXTURE_TYPE, 0, GL_RGBA, txw, txh, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf));
+		} else
+			GLC("glTexSubImage2D",glTexSubImage2D(A_TEXTURE_TYPE, 0, 0, 0, txw, txh, GL_INTENSITY, GL_UNSIGNED_BYTE, buf));
 		glPopAttrib();
-		width = txw;
-		height = txh;
+		twidth = txw;
+		theight = txh;
 		return true;
 	}
 	
-	bool drawTexture(APoint point, APoint adj, AFloat rot) {
+	bool drawTexture(APoint point, APoint adj, AFloat rot, AColor text_color) {
 		if (texName) {
 			APoint ll, lr, ul, ur;
 			
 			ll = point;
+			double width = box.width, height = box.height;
 			double th = rot * 3.14159265 / 180.0; // theta
 			double cth = cos(th), sth = sin(th); // cos(theta), sin(theta)
 			// base point in x (width) and y (height) direction (delta from point of text origin)
@@ -242,20 +290,22 @@ public:
 			glDisable (GL_DEPTH_TEST); // ensure text is not remove by depth buffer test.
 			glEnable (GL_BLEND); // for text fading
 			glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // ditto
-			glEnable (GL_TEXTURE_RECTANGLE_EXT);  
+			glEnable (A_TEXTURE_TYPE);  
 			
-			glBindTexture (GL_TEXTURE_RECTANGLE_EXT, texName);
+			GLC("glBindTexture", glBindTexture (A_TEXTURE_TYPE, texName));
+			glColor4f(text_color.r, text_color.g, text_color.b, text_color.a); // set text color
 			glBegin (GL_QUADS);
 			glTexCoord2f (0.0f, 0.0f); // draw upper left in world coordinates
 			glVertex2f (ul.x, ul.y);
 			
-			glTexCoord2f (0.0f, height); // draw lower left in world coordinates
+			ASize trs = box; trs.width /= twidth; trs.height /= theight;
+			glTexCoord2f (0.0f, trs.height); // draw lower left in world coordinates
 			glVertex2f (ll.x, ll.y);
 			
-			glTexCoord2f (width, height); // draw lower right in world coordinates
+			glTexCoord2f (trs.width, trs.height); // draw lower right in world coordinates
 			glVertex2f (lr.x, lr.y);
 			
-			glTexCoord2f (width, 0.0f); // draw upper right in world coordinates
+			glTexCoord2f (trs.width, 0.0f); // draw upper right in world coordinates
 			glVertex2f (ur.x, ur.y);
 			glEnd ();
 			
@@ -309,9 +359,26 @@ public:
 		if (sharedFT)
 			ft = sharedFT;
 		else {
+			/* our desired font */
+			const char *fpath = "\\Fonts\\arial.ttf";
+			char *tp = 0;
+			char *c = getenv("WinDir"); /* NOTE: MinGW doesn't have working Get[System]WindowsDirectory() !!! */
+			if (!c || !*c) c = getenv("SystemRoot");
+			if (c && *c) {
+				tp = (char*) malloc(strlen(c) + strlen(fpath) + 4);
+				if (tp) {
+					strcpy(tp, c);
+					strcat(tp, fpath);
+				}
+			}
 			ft = new AFreeType();
-			ft->setFont("C:/Windows/Fonts/arial.ttf");
-			ft->setFontSize(font_size);
+			if (tp && *tp) {
+				fdebug("Found font file: %s\n", tp);
+				ft->setFont(tp);
+				ft->setFontSize(font_size);
+			} else { /* FIXME: issue an error? */
+				fdebug("ERROR ** cannot find font file!\n");
+			}
 			sharedFT = ft;
 		}
 #endif
@@ -327,7 +394,7 @@ public:
 			
 			get_R_window();
 			
-			{ FILE *f=fopen("c:\\debug.txt","w"); fprintf(f,"init W32; isMDI=%d, parent=%x\n", isMDI, (unsigned int) parent); fclose(f); }
+			fdebug("init W32; isMDI=%d, parent=%x\n", isMDI, (unsigned int) parent);
 			
 			wc.style=0; wc.lpfnWndProc=WindowProc;
 			wc.cbClsExtra=0; wc.cbWndExtra=0;
@@ -426,7 +493,7 @@ public:
 													(LONG) (LPMDICREATESTRUCT) &mcs);
 				Rprintf("MDICREATE result: %x\n", l->w);
 			}
-			{ FILE *f=fopen("c:\\debug.txt","a"); fprintf(f,"parent: %x\nMDIclient: %x\ndoc: %x\n", parent, mdiClient, l->w); fclose(f); }
+			fdebug("parent: %x\nMDIclient: %x\ndoc: %x\n", parent, mdiClient, l->w);
 		} else {
 			l->w = xd->wh = CreateWindow("RCairoWindow","Cairo",WS_OVERLAPPEDWINDOW,
 										 100,100,width,height,
@@ -493,6 +560,7 @@ public:
 			begin();
 			draw();
 			end();
+			SwapBuffers(hDC);
 			if (dirtyFlag) dirtyFlag[0] = 0;
 		}
 #ifndef USE_GDI
@@ -528,7 +596,7 @@ public:
 	
 	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {
 		ft->generateTexture(txt);
-		ft->drawTexture(pt, adj, rot);
+		ft->drawTexture(pt, adj, rot, text_color);
 	}
 	
 	virtual void glfont(const char *name, AFloat size) {
