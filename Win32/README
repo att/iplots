@@ -1,0 +1,35 @@
+iPlots eXtreme for Windows make use of the FreeType library to render
+text. FreeType is available from http://www.freetype.org/
+
+Due to the complications involved in building FreeType binary and the
+general unavailability of such static build, this directory contains a
+full, static build of FreeType 2.4.6 library using Rtools 2.13
+toolchain for both 32-bit and 64-bit Windows. Since iPlots eXtreme are
+licensed under GPLv2 that makes those binaries also licensed under
+GPLv2 (otherwise FreeType has a choice of licenses).
+
+In order to build FreeType on Windows using the above toolchain, the
+"config.mk" file was created with the following content:
+
+include $(TOP_DIR)/builds/ansi/ansi-def.mk
+include $(TOP_DIR)/builds/compiler/gcc.mk
+include $(TOP_DIR)/builds/link_std.mk
+
+and the 32-bit build built simply by running "make"
+
+For the 64-bit build the file "builds/compiler/gcc.mk" was modified
+by replacing the line
+CC           := gcc
+with
+CC           := x86_64-w64-mingw32-gcc
+
+and the resulting libfreetype.a was post-processed by running
+x86_64-w64-mingw32-ranlib libfreetype.a
+
+The FreeType sources are available from the FreeType website and
+alternatively also from iPlots eXtreme files section on RForge.net:
+http://rforge.net/Acinonyx/files/freetype-2.4.6.tar.bz2
+
+---
+Simon Urbanek
+Sep 2011
