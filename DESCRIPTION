@@ -1,9 +1,9 @@
 Package: Acinonyx
 Version: 3.0-0
-Title: iPlots Extreme
+Title: iPlots eXtreme
 Author: Simon Urbanek <simon.urbanek@r-project.org>
 Maintainer: Simon Urbanek <simon.urbanek@r-project.org>
 Depends: R (>= 2.5.0)
-Description: iPlots extreme
+Description: iPlots eXtreme - high-performance interactive graphics for analysis of large data
 License: GPL-2
 URL: http://www.rforge.net/Acinonyx/

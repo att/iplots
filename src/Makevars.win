@@ -1,2 +1,2 @@
 all:
-	$(MAKE) -C .. Acinonyx.dll && cp ../Acinonyx.dll .
+	$(MAKE) -C .. 'WINARCH=$(WIN)' Acinonyx.dll && cp ../Acinonyx.dll . && $(MAKE) -C .. clean

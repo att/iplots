@@ -7,6 +7,12 @@
  *
  */
 
+/* ARenderer must be the first include, because OpenGL in mingw-w64
+   will break due to some R defines so it must be included before R
+   is touched.
+*/
+#include "ARenderer.h"
+
 #include "RCalls.h"
 
 #include "REngine.h"

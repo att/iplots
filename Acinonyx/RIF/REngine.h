@@ -13,6 +13,9 @@
 /* for getenv/setenv */
 #include <stdlib.h>
 
+/* must come before R due to clash between GL in mingw-w64 and R */
+#include "ARenderer.h"
+
 #ifdef __i386__
 static const char *rarch = "/i386";
 #elif defined __x86_64__

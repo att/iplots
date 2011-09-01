@@ -7,6 +7,10 @@
  *
  */
 
+/* must be the first include due to clashes of R with OpenGL
+   includes in mingw-w64 so gl must be included before R */
+#include "ARenderer.h"
+
 #include <stdlib.h>
 
 #ifdef HAVE_CONFIG_H
