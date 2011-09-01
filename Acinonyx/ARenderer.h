@@ -29,13 +29,7 @@
 #ifndef A_RENDERER_H_
 #define A_RENDERER_H_
 
-#if __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h> /* for polygon tessellation */
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include "AOpenGL.h"
 #include "AObject.h"
 #include "AWindow.h"
 #include <math.h>

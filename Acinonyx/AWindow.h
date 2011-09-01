@@ -20,19 +20,6 @@
 #define GLC(X) X
 #endif
 
-/* #define TEXTURE_RECTANGLE_ARB 0x84F5  (name "GL_ARB_texture_rectangle") -- it is equivalent to GL_TEXTURE_RECTANGLE_EXT (name "GL_EXT_texture_rectangle") on OS X */
-
-#ifdef GL_TEXTURE_RECTANGLE_EXT
-#define A_TEXTURE_TYPE GL_TEXTURE_RECTANGLE_EXT
-#define A_EXACT_TEXTURE 1
-#elif defined GL_TEXTURE_RECTANGLE_ARB
-#define A_TEXTURE_TYPE GL_TEXTURE_RECTANGLE_ARB
-#define A_EXACT_TEXTURE 1
-#else
-#define A_TEXTURE_TYPE GL_TEXTURE_2D
-#define A_EXACT_TEXTURE 0
-#endif
-
 typedef GLuint texture_t;
 
 static int first_gl = 1;

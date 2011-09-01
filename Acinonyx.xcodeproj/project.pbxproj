@@ -63,6 +63,8 @@
 		687EE5950D79DFAF003E56F9 /* AVisual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVisual.h; sourceTree = "<group>"; };
 		687EE6720D7A485B003E56F9 /* AObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AObject.cpp; sourceTree = "<group>"; };
 		687EE6900D7B0FAB003E56F9 /* ARenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARenderer.h; sourceTree = "<group>"; };
+		68840200140FF11A006C731A /* AFreeType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFreeType.h; sourceTree = "<group>"; };
+		68840203140FF33B006C731A /* AOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AOpenGL.h; sourceTree = "<group>"; };
 		688A31970FC16E7B00532F79 /* RCalls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCalls.h; sourceTree = "<group>"; };
 		688A31980FC16E7B00532F79 /* RCalls.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RCalls.cpp; sourceTree = "<group>"; };
 		689250C30F2A25CB00842A4B /* GLString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLString.h; sourceTree = "<group>"; };
@@ -284,6 +286,8 @@
 				68B2569E11E7CAEB00975EE5 /* AIndex.h */,
 				6873A2361397CC6A004AC532 /* ASort.h */,
 				6824240A1398098A006AE748 /* APermutation.h */,
+				68840200140FF11A006C731A /* AFreeType.h */,
+				68840203140FF33B006C731A /* AOpenGL.h */,
 			);
 			path = Acinonyx;
 			sourceTree = "<group>";
