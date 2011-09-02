@@ -231,6 +231,24 @@ public:
 			addto(gawin);
 			newmenubar(NULL);
 			newmdimenu();
+			
+			/* Set clear BG brush to avoid flicker. Note that it can't be NULL because that will cause
+			 * Windows to set the fErase flag which in turn makes GA clear the window (with no way
+			 * to override it). GA doesn't handle WM_ERASEBKGND so it falls through to the Windows
+			 * default handler.
+			 *
+			 * FIXME: test on multiple Win versions - if Windows decides that the brush is "invalid"
+			 * then we're back in trouble due to the fallback to fErase. Win7 accepts transparent brush,
+			 * but if some other version doesn't we can fall back to the solid, background color which
+			 * will flicker on resize (that one is forced) but won't flicker on redraw().
+			 *
+			 * NOTE: this affects *all* windows of the class - and since we don't subclass (we can't,
+			 *       really) it will affect all windows in the Rgui. It's unclear what the effect may
+			 *       be ... but this is the *only* way to avoid flicker on redraw (short of hacking GA)
+			 *       so we bite the bullet..
+			 */
+			SetClassLongPtr(wh, GCLP_HBRBACKGROUND, GetStockObject(NULL_BRUSH));
+			
 			show(gawin); /* twice, for a Windows bug */
 			show(gawin);
 			//BringToTop(gawin, 0);
@@ -316,7 +334,9 @@ public:
 	}
 
 	virtual void redraw() {
-		//if (gawin) GA_redraw(gawin);
+		/* GA calls don't always work - we have to use Win's even loop to make sure it is handled properly */
+		//if (gawin) GA_draw(gawin);
+		//if (gawin) GA_redraw(gawin); /* redraw = clear+draw so it's bad anyway */
 		if (wh) InvalidateRect(wh, NULL, FALSE);
 	}
 
@@ -333,10 +353,13 @@ public:
 			end();
 			SwapBuffers(hDC);
 			if (dirtyFlag) dirtyFlag[0] = 0;
+		} else { /* I'm not sure this branching is realistic or even necessary ... */
+			if (dirtyFlag) dirtyFlag[0] = 0;
+			wglMakeCurrent(hDC, hRC);
+			begin();
+			end();
+			SwapBuffers(hDC);
 		}
-#ifndef USE_GDI
-		SwapBuffers(hDC);
-#endif
 	}
 	
 	virtual void close() {
