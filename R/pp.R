@@ -5,12 +5,12 @@ primitives <- function(plot)
 
 color <- function(x, ...) UseMethod("color")
 fill <- function(x, ...) UseMethod("fill")
-"color<-" <- function(x, value, ...) UseMethod("color<-")
-"fill<-" <- function(x, value, ...) UseMethod("fill<-")
+"color<-" <- function(x, ..., value) UseMethod("color<-")
+"fill<-" <- function(x, ..., value) UseMethod("fill<-")
 hidden <- function(x, ...) UseMethod("hidden")
-"hidden<-" <- function(x, value, ...) UseMethod("hidden<-")
+"hidden<-" <- function(x, ..., value) UseMethod("hidden<-")
 query <- function(x, ...) UseMethod("query")
-"query<-" <- function(x, value, ...) UseMethod("query<-")
+"query<-" <- function(x, ..., value) UseMethod("query<-")
 
 ilines <- function(x, ...) UseMethod("ilines")
 isegments <- function(x, ...) UseMethod("isegments")
@@ -56,40 +56,40 @@ iText <- function(x, y, text, color) {
 
 ##--- add/delete
 
-add.iPlot.primitive <- function(x, what, ...) {
-  .Call("A_PlotAddPrimitive", x, what)
+add.iPlot.primitive <- function(x, obj, ...) {
+  .Call("A_PlotAddPrimitive", x, obj)
   redraw(x) # just to make sure for now
 }
 
-add.iPlot.pairlist <- function(x, what, ...) {
-  .Call("A_PlotAddPrimitives", x, what)
+add.iPlot.pairlist <- function(x, obj, ...) {
+  .Call("A_PlotAddPrimitives", x, obj)
   redraw(x) # just to make sure for now
 }
 
-add.primitive.primitive <- function(x, what, ...)
-  CONS(x, CONS(what))
+add.primitive.primitive <- function(x, obj, ...)
+  CONS(x, CONS(obj))
 
-add.pairlist.primitive <- function(x, what, ...)
-  CONS(what, x)
+add.pairlist.primitive <- function(x, obj, ...)
+  CONS(obj, x)
 
-delete.iPlot.primitive <- function(x, what, ...) {
-  .Call("A_PlotRemovePrimitive", x, what)
+delete.iPlot.primitive <- function(x, obj, ...) {
+  .Call("A_PlotRemovePrimitive", x, obj)
   redraw(x) # just to make sure for now
 }
 
-delete.iPlot.pairlist <- function(x, what, ...) {
-  .Call("A_PlotRemovePrimitives", x, what)
+delete.iPlot.pairlist <- function(x, obj, ...) {
+  .Call("A_PlotRemovePrimitives", x, obj)
   redraw(x) # just to make sure for now
 }
 
-delete.primitive.primitive <- function(x, what, ...)
-  CONS(x, CONS(what))
+delete.primitive.primitive <- function(x, obj, ...)
+  CONS(x, CONS(obj))
 
-delete.pairlist.primitive <- function(x, what, ...)
-  CONS(what, x)
+delete.pairlist.primitive <- function(x, obj, ...)
+  CONS(obj, x)
 
-delete.iPlot.character <- function(x, what, ...) {
-  if (all(what == "all")) {
+delete.iPlot.character <- function(x, obj, ...) {
+  if (all(obj == "all")) {
     .Call("A_PlotRemoveAllPrimitives", x)
     redraw(x)
   } else stop("invalid argument")
@@ -98,14 +98,14 @@ delete.iPlot.character <- function(x, what, ...) {
 
 ##--- primitive properties
 
-`color<-.primitive` <- function(x, value, redraw=TRUE, ...) {
+`color<-.primitive` <- function(x, redraw=TRUE, ..., value) {
   value <- col2rgb(value[1], TRUE)[,1] / 255
   .Call("A_VPSetColor", x, as.double(value))
   if (redraw) .Call("A_VPRedraw", x)
   invisible(x)
 }
 
-`fill<-.primitive` <- function(x, value, redraw=TRUE, ...) {
+`fill<-.primitive` <- function(x, redraw=TRUE, ..., value) {
   value <- col2rgb(value[1], TRUE)[,1] / 255
   .Call("A_VPSetFill", x, as.double(value))
   if (redraw) .Call("A_VPRedraw", x)
@@ -125,13 +125,13 @@ fill.primitive <- function(x, ...) {
 hidden.primitive <- function(x, ...)
   .Call("A_VPGetHidden", x)
 
-`hidden<-.primitive` <- function(x, value, ...)
+`hidden<-.primitive` <- function(x, ..., value)
   .Call("A_VPSetHidden", x, as.logical(value))
 
 query.primitive <- function(x, ...)
   .Call("A_VPGetQuery", x)
 
-`query<-.primitive` <- function(x, value, ...)
+`query<-.primitive` <- function(x, ..., value)
   .Call("A_VPSetQuery", x, value)
 
 `$.primitive` <- function(x, name) {
@@ -179,8 +179,8 @@ ilines.default <- function(x, y, col, ..., plot=.Last.plot) {
   invisible(p)
 }
 
-isegments.default <- function(x0, y0, x1 = x0, y1 = y0, col, ..., plot=.Last.plot) {
-  p <- iSegments(x0, y0, x1, y1)
+isegments.default <- function(x, y, x1 = x, y1 = y, col, ..., plot=.Last.plot) {
+  p <- iSegments(x, y, x1, y1)
   if (!missing(col)) p$color <- col
   add(plot, p)
   invisible(p)

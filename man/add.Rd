@@ -17,11 +17,10 @@
 add(x, ...)
 delete(x, ...)
 
-add.iPlot(x, obj, ...)
-add.iContainer(x, obj, ...)
-add.primitive(x, obj, ...)
-add.default(x, obj, ...)
-
+\method{add}{iPlot}(x, obj, ...)
+\method{add}{iContainer}(x, obj, ...)
+\method{add}{primitive}(x, obj, ...)
+\method{add}{default}(x, obj, ...)
 
 }
 %- maybe also 'usage' for other objects documented here.

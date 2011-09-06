@@ -123,7 +123,7 @@ public:
 	}
 	
 	void createPrimitives() {
-		AFactorVector *data = (AFactorVector*) _scales[0]->data();
+		AFactorVector *data = static_cast<AFactorVector*> (_scales[0]->data());
 		AUnivarTable *tab = data->table();
 		if (pps && pps->length() != bars) {
 			pps->release();
@@ -163,20 +163,20 @@ public:
 			return;
 		} else if (AIsAction(action, "sort.by.size")) {
 			APermutation *p = _scales[0]->permutation();
-			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			AFactorVector *data = static_cast<AFactorVector*> (_scales[0]->data());
 			AUnivarTable *tab = data->table();
 			p->orderAccordingToVSizes(tab->counts());
 			update();
 			redraw();
 		} else if (AIsAction(action, "sort.by.name")) {
 			APermutation *p = _scales[0]->permutation();
-			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			AFactorVector *data = static_cast<AFactorVector*> (_scales[0]->data());
 			p->orderLexicographically(data->levelStrings());
 			update();
 			redraw();
 		} else if (AIsAction(action, "sort.by.number")) {
 			APermutation *p = _scales[0]->permutation();
-			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			AFactorVector *data = static_cast<AFactorVector*> (_scales[0]->data());
 			p->orderNumerically(data->levelStrings());
 			update();
 			redraw();
@@ -213,7 +213,7 @@ public:
 		if (!pps)
 			createPrimitives();
 		else {
-			AFactorVector *data = (AFactorVector*) _scales[0]->data();
+			AFactorVector *data = static_cast<AFactorVector*> (_scales[0]->data());
 			AUnivarTable *tab = data->table();
 			vsize_t i = 0, bars = pps->length();
 			while (i < bars) {
@@ -229,7 +229,7 @@ public:
 	}
 	
 	void brushByGroup() {
-		AFactorVector *data = (AFactorVector*) _scales[0]->data();
+		AFactorVector *data = static_cast<AFactorVector*> (_scales[0]->data());
 		vsize_t l = data->levels();
 		AUnivarTable *tab = new AUnivarTable(l);
 		vsize_t n = data->length();

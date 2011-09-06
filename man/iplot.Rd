@@ -11,7 +11,7 @@ method.
 }
 \usage{
 iplot(x, ...)
-iplot.default(x, y, xname = deparse(substitute(x)), yname = deparse(substitute(y)),
+\method{iplot}{default}(x, y, xname = deparse(substitute(x)), yname = deparse(substitute(y)),
     ..., window, frame, flags)
 }
 \arguments{

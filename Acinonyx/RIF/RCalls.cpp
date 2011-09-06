@@ -129,7 +129,7 @@ extern "C" {
 
 static void AObjFinalizer(SEXP ref) {
 	if (TYPEOF(ref) == EXTPTRSXP) {
-		AObject *o = (AObject*) R_ExternalPtrAddr(ref);
+		AObject *o = static_cast<AObject*> (R_ExternalPtrAddr(ref));
 		if (o) o->release();
 	}
 }
@@ -147,7 +147,7 @@ static SEXP PTR2SEXP(void *ptr) {
 AObject *SEXP2A(SEXP o) {
 	if (TYPEOF(o) != EXTPTRSXP)
 		Rf_error("invalid object");
-	return (AObject*) R_ExternalPtrAddr(o);
+	return static_cast<AObject*> (R_ExternalPtrAddr(o));
 }
 
 
@@ -262,7 +262,7 @@ SEXP A_VarRegister(SEXP v, SEXP mark, SEXP sName)
 			vo = new ARIntVector(m, v);
 	} else Rf_error("unsupported data type");
 	if (vo && TYPEOF(sName) == STRSXP && LENGTH(sName) > 0)
-		((ADataVector*)vo)->setName(CHAR(STRING_ELT(sName, 0)));
+		static_cast <ADataVector*> (vo)->setName(CHAR(STRING_ELT(sName, 0)));
 	return A2SEXP(vo);	
 }
 

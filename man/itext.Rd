@@ -19,7 +19,7 @@ itext(x, ...)
   undefined
 }
 \seealso{
-\code{\link{ilines}}, \code{\link{ipoints}}
+\code{\link{ilines}} %, \code{\link{ipoints}}
 }
 %\examples{
 %}

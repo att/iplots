@@ -9,7 +9,7 @@ Create an interactive bar chart or spine plot
 }
 \usage{
 ibar(x, ...)
-ibar.factor(x, xname = deparse(substitute(x)), ..., window, frame, flags)
+\method{ibar}{factor}(x, xname = deparse(substitute(x)), ..., window, frame, flags)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

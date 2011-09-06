@@ -9,7 +9,7 @@ Add lines to an interactive plot
 }
 \usage{
 ilines(x, ...)
-ilines.default(x, y, col, ..., plot = .Last.plot)
+\method{ilines}{default}(x, y, col, ..., plot = .Last.plot)
 }
 \arguments{
   \item{x}{specification of the lines (generic) or numeric vector of the

@@ -40,10 +40,10 @@ redraw <- function(x, ...) UseMethod("redraw")
 selected <- function(x, ...) UseMethod("selected")
 select <- function(x, ...) UseMethod("select")
 move <- function(x, ...) UseMethod("move")
-visible <- function(x, ...) UseMethod("visible")
-`visible<-` <- function(x, ...) UseMethod("visible<-")
-values <- function(x, ...) UseMethod("values")
-`values<-` <- function(x, ...) UseMethod("values<-")
+visible <- function(x) UseMethod("visible")
+`visible<-` <- function(x, value) UseMethod("visible<-")
+values <- function(x) UseMethod("values")
+`values<-` <- function(x, value) UseMethod("values<-")
 marker <- function(x, ...) UseMethod("marker")
 
 as.marker <- function(x, ...) UseMethod("as.marker")
@@ -190,10 +190,10 @@ visible.iMarker <- function(x)
   invisible(.Call("A_MarkerSetVisible", x, value))
 }
 
-selected.iMarker <- function(x)
+selected.iMarker <- function(x, ...)
   .Call("A_MarkerSelected", x)
 
-select.iMarker <- function(x, which) {
+select.iMarker <- function(x, which, ...) {
   if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
   invisible(.Call("A_MarkerSelect", x, which))
 }
@@ -213,7 +213,7 @@ values.iMarker <- function(x)
   if (name == "values") return(values(x))
   if (name == "selected") return(selected(x))
   if (name == "visible") return(visible(x))
-  if (name == "callbacks") return(.Call("A_MarkerCallbacks", x))
+  if (name == "onChange") return(.Call("A_MarkerCallbacks", x))
   NULL
 }
 
@@ -225,16 +225,16 @@ values.iMarker <- function(x)
   x
 }
 
-names.iMarker <- function(x) c("values", "selected", "visible")
+names.iMarker <- function(x) c("values", "selected", "visible", "onChange")
 
-add.iMarker.function <- function(x, FUN, ...)
-  .callback(.Call("A_MarkerDependentCreate", x, FUN))
+add.iMarker.function <- function(x, obj, ...)
+  .callback(.Call("A_MarkerDependentCreate", x, obj))
 
-add.iMarker.iCallback <- function(x, callback, ...)
-  invisible(.Call("A_MarkerAdd", x, callback))
+add.iMarker.iCallback <- function(x, obj, ...)
+  invisible(.Call("A_MarkerAdd", x, obj))
 
-delete.iMarker.iCallback <- function(x, callback, ...)
-  invisible(.Call("A_MarkerRemove", x, callback))
+delete.iMarker.iCallback <- function(x, obj, ...)
+  invisible(.Call("A_MarkerRemove", x, obj))
 
 as.marker.iMarker <- function(x, ...) x
 as.marker.iObject <- function(x, ...) { class(x) = c("iMarker", "iObject"); x }
@@ -292,7 +292,7 @@ as.marker.iObject <- function(x, ...) { class(x) = c("iMarker", "iObject"); x }
   x
 }
 
-move.iVisual <- function(x, xpos, ypos, redraw=TRUE) {
+move.iVisual <- function(x, xpos, ypos, redraw=TRUE, ...) {
   f <- .Call("A_VisualGetFrame", x)
   if (!missing(xpos)) f[1] <- as.double(xpos)[1]
   if (!missing(ypos)) f[2] <- as.double(ypos)[1]
@@ -301,7 +301,7 @@ move.iVisual <- function(x, xpos, ypos, redraw=TRUE) {
   invisible(x)
 }
 
-move.iWindow <- function(x, xpos, ypos) {
+move.iWindow <- function(x, xpos, ypos, ...) {
   if (missing(xpos) || !is.numeric(xpos) || !length(xpos) == 1 ||
       missing(ypos) || !is.numeric(ypos) || !length(ypos) == 1)
     stop("invalid window position specification")
@@ -331,22 +331,22 @@ names.iPlot <- function(x)
 
 iset.selected <- function() {
   if (is.null(.ipe$m)) stop("no active iSet");
-  .Call("A_MarkerSelected", m)
+  .Call("A_MarkerSelected", .ipe$m)
 }  
 
 iset.select <- function(what) {
   if (is.null(.ipe$m)) stop("no active iSet");
   if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
-  invisible(.Call("A_MarkerSelect", m, which))
+  invisible(.Call("A_MarkerSelect", .ipe$m, which))
 }
 
-selected.iPlot <- function(x) {
+selected.iPlot <- function(x, ...) {
   m <- x$marker
   if (is.null(m)) stop("plot has no primary marker")
   .Call("A_MarkerSelected", m)
 }
 
-select.iPlot <- function(x, which) {
+select.iPlot <- function(x, which, ...) {
   m <- x$marker
   if (is.null(m)) stop("plot has no primary marker")
   if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
@@ -370,21 +370,21 @@ iset.set.visible <- function(what) {
 	invisible(.Call("A_MarkerVisible", m, which))
 }
 
-`visible.iPlot<-` <- function(x, which) {
+`visible.iPlot<-` <- function(x, value) {
 	m <- x$marker
 	if (is.null(m)) stop("plot has no primary marker")
-	if (!is.integer(which) && is.numeric(which)) which <- as.integer(which)
-	invisible(.Call("A_MarkerVisible", m, which))
+	if (!is.integer(value) && is.numeric(value)) value <- as.integer(value)
+	invisible(.Call("A_MarkerVisible", m, value))
 }
 
-marker.NULL <- function(x) {
+marker.NULL <- function(x, ...) {
 	if (is.null(.ipe$m)) stop("no active iSet");
 	.marker(.ipe$m)
 }
 
 values.NULL <- function(x) values(marker())
 visible.NULL <- function(x) visible(marker())
-selected.NULL <- function() selected(marker())
+selected.NULL <- function(x, ...) selected(marker())
 
 idev <- function(width=640, height=480, ps=12, bg=0, canvas=0, dpi=90, window, flags) {
   flags <- if (missing(flags)) 0L else .flags(flags)

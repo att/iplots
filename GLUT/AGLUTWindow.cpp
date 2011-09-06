@@ -36,7 +36,7 @@ static void a_glut_draw() {
 static void a_glut_key(unsigned char c, int x, int y) {
 	int w = glutGetWindow();
 	if (w >=0 && w < gwin_max && gwin[w]) {
-		AVisual *v = (AVisual*) gwin[w]->rootVisual();
+		AVisual *v = static_cast<AVisual*> (gwin[w]->rootVisual());
 		// if (v) v->
 	}
 }
@@ -49,7 +49,7 @@ static void a_glut_reshape(int w, int h)
 	glViewport(0,0,(GLsizei)w,(GLsizei)h);
 	int wi = glutGetWindow();
 	if (wi >=0 && wi < gwin_max && gwin[wi]) {
-		AVisual *v = (AVisual*) gwin[wi]->rootVisual();
+		AVisual *v = static_cast<AVisual*> (gwin[w]->rootVisual());
 		if (v) {
 			ARect f = v->frame();
 			printf("change from %g,%g to %d,%d\n", f.width, f.height, w, h);

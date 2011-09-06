@@ -9,7 +9,7 @@ Create an interactive parallel coordinates plot
 }
 \usage{
 ipcp(x, ...)
-ipcp.default(x, ..., window, frame, flags) 
+\method{ipcp}{default}(x, ..., window, frame, flags) 
 }
 \arguments{
   \item{x}{data frame, list of variables or the first column to plot}
@@ -20,7 +20,7 @@ ipcp.default(x, ..., window, frame, flags)
   \item{frame}{optional numeric vector with entries c(x, y, width,
     height)}
   \item{flags}{optional flags specifying the behavior when the
-    enclosing window is resized - see \code{\link{iconatiner}}}
+    enclosing window is resized - see \code{\link{icontainer}}}
 }
 %\details{
 %}

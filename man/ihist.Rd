@@ -9,7 +9,7 @@ Create an interactive histogram or spinogram
 }
 \usage{
 ihist(x, ...)
-ihist.default(x, xname = deparse(substitute(x)), ..., window, frame, flags)
+\method{ihist}{default}(x, xname = deparse(substitute(x)), ..., window, frame, flags)
 }
 \arguments{
 \item{x}{a vector to create a histogram from}
@@ -20,7 +20,7 @@ ihist.default(x, xname = deparse(substitute(x)), ..., window, frame, flags)
   window and fill it with itself.}
 \item{frame}{optional numeric vector with entries c(x, y, width, height)}
 \item{flags}{optional flags specifying the behavior when the
-  enclosing window is resized - see \code{\link{iconatiner}}}
+  enclosing window is resized - see \code{\link{icontainer}}}
 }
 %\details{
 %}
