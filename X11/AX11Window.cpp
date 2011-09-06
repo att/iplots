@@ -7,6 +7,8 @@
  *
  */
 
+#ifdef USE_X11
+
 #include "AX11Window.h"
 
 static int lastButtonState = 0;
@@ -59,3 +61,6 @@ static DWORD WINAPI AWin32Heartbeat( LPVOID lpParam ) {
 }
 
 #endif
+
+#endif
+

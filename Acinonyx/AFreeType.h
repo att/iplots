@@ -11,6 +11,15 @@
 #ifndef A_FREE_TYPE_H
 #define A_FREE_TYPE_H
 
+/* Most implementations don't support 1-component textures, so we can't use GL_LUMINANCE/GL_INTENSITY, unfortunately */
+#if 1
+#define TX_PLANES 4
+#define TX_FORMAT GL_RGBA
+#else
+#define TX_PLANES 1
+#define TX_FORMAT GL_INTENSITY
+#endif
+
 /* FreeType Headers */
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -101,16 +110,7 @@ public:
 		/* fdebug(" -> %g, %g (%g + %g)\n", box.width, box.height, (double) xasc / 64.0, (double) xdsc / 64.0); */
 		return box;
 	}
-	
-	/* Win32 doesn't support 1-component textures, so we can't use GL_LUMINANCE/GL_INTENSITY, unfortunately */
-#ifdef WIN32
-#define TX_PLANES 4
-#define TX_FORMAT GL_RGBA
-#else
-#define TX_PLANES 1
-#define TX_FORMAT GL_INTENSITY
-#endif
-	
+		
 	bool generateTexture(const char *txt) {
 		// compute texture size
 		if (!txt) return false;

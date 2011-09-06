@@ -35,8 +35,13 @@ WINARCH=32
 endif
 
 ifeq ($(OS),Darwin)
+ifeq ($(USE_X11),1)
+Acinonyx.so: $(ASRC) $(CSRC) $(X11SRC)
+	PKG_LIBS='-L/usr/X11/lib -lX11 -lGLU -lGL $(FTLIB)' PKG_CPPFLAGS='$(DEBUGCPPFLAGS) -IAcinonyx -IAcinonyx/RIF -IX11 -I/usr/X11/include -DUSE_X11 $(FTCF)' R CMD SHLIB -o $@ $^
+else
 Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
 	PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -ICocoa' R CMD SHLIB -o $@ $^
+endif
 else
 Acinonyx.so: $(ASRC) $(CSRC) $(X11SRC)
 	PKG_LIBS='-lX11 -lGLU -lGL $(FTLIB)' PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -IX11 -DUSE_X11 $(FTCF)' R CMD SHLIB -o $@ $^

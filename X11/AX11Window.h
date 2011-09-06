@@ -10,6 +10,8 @@
 #ifndef A_X11_WINDOW_H__
 #define A_X11_WINDOW_H__
 
+#ifdef USE_X11
+
 #include <X11/Xlib.h>
 #include "AOpenGL.h"
 
@@ -42,11 +44,13 @@ protected:
 	int wins;
 	InputHandler *rhand;
 public:
+	int lastButtonState;
 	
 	/* name can be NULL */
 	AX11Display(const char *name) {
 		wins = 0;
 		rhand = 0;
+		lastButtonState = 0;
 		xdisplay = XOpenDisplay(name);
 		if (xdisplay) {
 			rhand = addInputHandler(R_InputHandlers, ConnectionNumber(xdisplay), AX11_rhand, XActivity);
@@ -167,15 +171,8 @@ public:
 		
 		attrib.colormap = XCreateColormap(xdisplay, xparent, xvinfo->visual, AllocNone);
 		attrib.border_pixel = 0;
-		attrib.event_mask = ButtonMotionMask
-		| PointerMotionHintMask
-		| VisibilityChangeMask 
-		| ExposureMask
-		| StructureNotifyMask 
-		| ButtonPressMask 
-		| KeyPressMask
-		| KeyReleaseMask
-		| ButtonReleaseMask;
+		attrib.event_mask = PointerMotionMask | VisibilityChangeMask | ExposureMask |
+		StructureNotifyMask | ButtonPressMask | KeyPressMask | KeyReleaseMask | ButtonReleaseMask;
 		
 		xwindow = XCreateWindow(xdisplay, xparent,
 					0, 0, frame.width, frame.height, 0, 
@@ -187,6 +184,8 @@ public:
 
 		display->addWindow(this);
 
+		XMapWindow(xdisplay, xwindow);
+		XRaiseWindow(xdisplay, xwindow);
 		XSync(xdisplay, False);
 		
 		glxctx = glXCreateContext(xdisplay, xvinfo, NULL, True);
@@ -255,10 +254,14 @@ public:
 	}
 
 	virtual void redraw() {
-		/* GA calls don't always work - we have to use Win's even loop to make sure it is handled properly */
-		//if (gawin) GA_draw(gawin);
-		//if (gawin) GA_redraw(gawin); /* redraw = clear+draw so it's bad anyway */
-		//if (wh) InvalidateRect(wh, NULL, FALSE);
+		if (xdisplay) {
+#if 0 /* this is not working .. the quiestion is why ... */
+			XExposeEvent ev = { Expose, 0, 1, xdisplay, xwindow, 0, 0, _frame.width, _frame.height, 0 };
+			XSendEvent(xdisplay, xwindow, False, ExposureMask, (XEvent*) &ev);
+			display->processEvents();
+#endif
+			expose();
+		}
 	}
 
 	void expose() {
@@ -306,14 +309,59 @@ public:
 		ft->setFontSize(size);
 	}
 
+	virtual void setTitle(const char *txt) {
+		if (xdisplay)
+			XStoreName(xdisplay, xwindow, txt);
+	}
+
+	static unsigned int update_key_state(XEvent ev) {
+		// reset modifier key states
+		unsigned int lastButtonState = 0;
+		if (ev.xbutton.state & ShiftMask)   lastButtonState |= AEF_SHIFT;
+		if (ev.xbutton.state & ControlMask) lastButtonState |= AEF_CTRL;
+		if (ev.xbutton.state & Mod1Mask)    lastButtonState |= AEF_ALT;
+		return lastButtonState;
+	}
+	
+#define AXPoint(X,Y) AMkPoint(X, _frame.height - Y)
+	
 	void processX11Event(XEvent ev) {
 		switch (ev.xany.type) {
+			case ButtonPress:
+				switch(ev.xbutton.button) {
+					case 1: {
+						event(AMkEvent(AE_MOUSE_DOWN, update_key_state(ev) | AEF_BUTTON1, 0, AXPoint(ev.xbutton.x, ev.xbutton.y)));
+						break; }
+					case 2: {
+						event(AMkEvent(AE_MOUSE_DOWN, update_key_state(ev) | AEF_BUTTON2, 0, AXPoint(ev.xbutton.x, ev.xbutton.y)));
+						break; }
+					case 3: {
+						event(AMkEvent(AE_MOUSE_DOWN, update_key_state(ev) | AEF_BUTTON3, 0, AXPoint(ev.xbutton.x, ev.xbutton.y)));
+						break; }
+				}
+				break;
+			case ButtonRelease:
+				switch(ev.xbutton.button) {
+					case 1: {
+						event(AMkEvent(AE_MOUSE_UP, update_key_state(ev) | AEF_BUTTON1, 0, AXPoint(ev.xbutton.x, ev.xbutton.y)));
+						break; }
+					case 2: {
+						event(AMkEvent(AE_MOUSE_UP, update_key_state(ev) | AEF_BUTTON2, 0, AXPoint(ev.xbutton.x, ev.xbutton.y)));
+						break; }
+					case 3: {
+						event(AMkEvent(AE_MOUSE_UP, update_key_state(ev) | AEF_BUTTON3, 0, AXPoint(ev.xbutton.x, ev.xbutton.y)));
+						break; }
+				}
+				break;
+			case MotionNotify: {
+				event(AMkEvent(AE_MOUSE_MOVE, update_key_state(ev), 0, AXPoint(ev.xmotion.x, ev.xmotion.y)));
+				break; }
 			case Expose:
 				if (ev.xexpose.count == 0)
 					expose();
 				break;
 			case ConfigureNotify:
-				setFrame(AMkRect(_frame.x, _frame.y, ev.xconfigure.width, ev.xconfigure.height ));
+			{ setFrame(AMkRect(_frame.x, _frame.y, ev.xconfigure.width, ev.xconfigure.height )); }
 				break;
 			case DestroyNotify:
 				close();
@@ -339,5 +387,7 @@ static void AX11_rhand(void* userData) {
 			}
 	}
 }
+
+#endif
 
 #endif

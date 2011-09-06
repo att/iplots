@@ -153,6 +153,10 @@ AObject *SEXP2A(SEXP o) {
 
 /*------------- initialization --------------*/
 
+#if ( defined USE_X11 ) && ( defined HAVE_AQUA )
+#undef HAVE_AQUA /* in X11 mode wae can't use native libraries so behave is if there is no AQUA */
+#endif
+
 #ifdef HAVE_AQUA
 /* we use Quartz to make sure the event loop is running */
 #undef DEBUG
@@ -967,7 +971,7 @@ SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 	return PTR2SEXP(win);
 }
 
-#elif __APPLE__ /* ACocoaWindow */
+#elif ( defined __APPLE__ ) && (! defined USE_X11 ) /* ACocoaWindow */
 extern "C" { void *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
 
 SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
@@ -992,8 +996,6 @@ SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 }
 
 #else /* AX11Window */
-
-/* #include "AX11Window.h" */
 
 extern "C" { void *AX11_CreateWindow(AVisual *visual, APoint position);  }
 
