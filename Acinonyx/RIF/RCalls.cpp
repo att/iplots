@@ -956,19 +956,7 @@ SEXP A_PolygonSetPoints(SEXP vp, SEXP xp, SEXP yp)
 
 /*------------- AWindow --------------*/
 
-#ifndef GLUT
-#if __APPLE__
-extern "C" { void *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
-
-SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
-{
-	AVisual *vis = (AVisual*) SEXP2A(sVis);
-	double *pos = REAL(sPos);
-	void *win = ACocoa_CreateWindow(vis, AMkPoint(pos[0], pos[1]));
-	return PTR2SEXP(win);
-}
-#else
-#ifdef WIN32
+#ifdef WIN32  /* AWin32Window */
 extern "C" { void *AWin32_CreateWindow(AVisual *visual, APoint position);  }
 
 SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
@@ -978,9 +966,20 @@ SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 	void *win = AWin32_CreateWindow(vis, AMkPoint(pos[0], pos[1]));
 	return PTR2SEXP(win);
 }
-#endif
-#endif
-#else
+
+#elif __APPLE__ /* ACocoaWindow */
+extern "C" { void *ACocoa_CreateWindow(AVisual *visual, APoint position);  }
+
+SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
+{
+	AVisual *vis = (AVisual*) SEXP2A(sVis);
+	double *pos = REAL(sPos);
+	void *win = ACocoa_CreateWindow(vis, AMkPoint(pos[0], pos[1]));
+	return PTR2SEXP(win);
+}
+
+#elif GLUT /* AGLUTWindow */
+
 #include "AGLUTWindow.h"
 
 SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
@@ -991,6 +990,21 @@ SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
 	AGLUTWindow *win = new AGLUTWindow(AMkRect(pos[0], pos[1], frame.width, frame.height));
 	return PTR2SEXP(win);
 }
+
+#else /* AX11Window */
+
+/* #include "AX11Window.h" */
+
+extern "C" { void *AX11_CreateWindow(AVisual *visual, APoint position);  }
+
+SEXP A_WindowCreate(SEXP sVis, SEXP sPos)
+{
+	AVisual *vis = (AVisual*) SEXP2A(sVis);
+	double *pos = REAL(sPos);
+	void *win = AX11_CreateWindow(vis, AMkPoint(pos[0], pos[1]));
+	return PTR2SEXP(win);
+}
+
 #endif
 
 SEXP A_WindowMoveAndResize(SEXP w, SEXP pos, SEXP size)

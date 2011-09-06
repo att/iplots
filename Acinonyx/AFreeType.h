@@ -133,7 +133,7 @@ public:
 			if (shift < 0) shift = 0;
 			for (int i = 0; i < bitmap.rows; i++)
 #if (TX_PLANES == 1)
-				memcpy(buf + (i + shift) * txw + x + left + j, bitmap.buffer + i * bitmap.pitch, bitmap.width);
+				memcpy(buf + (i + shift) * txw + x + left, bitmap.buffer + i * bitmap.pitch, bitmap.width);
 #else
 				for (int j = 0; j < bitmap.width; j++) {
 					char *bp = buf + TX_PLANES * ((i + shift) * txw + x + left + j);

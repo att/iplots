@@ -171,4 +171,4 @@ public:
 	}
 };
 
-#endif;
+#endif

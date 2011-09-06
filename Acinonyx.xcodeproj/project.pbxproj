@@ -21,6 +21,7 @@
 		68BF1BF50D79C7350095B772 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68BF1BF40D79C7350095B772 /* OpenGL.framework */; };
 		68BF1C1A0D79CC900095B772 /* CocoaWindow.mm in Sources */ = {isa = PBXBuildFile; fileRef = 68BF1C190D79CC900095B772 /* CocoaWindow.mm */; };
 		68C25C9F0D7B68190065C27A /* ATools.c in Sources */ = {isa = PBXBuildFile; fileRef = 68C25C9E0D7B68190065C27A /* ATools.c */; };
+		68D92898141661AF007AEE28 /* AX11Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 68D92896141661AF007AEE28 /* AX11Window.cpp */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -98,6 +99,8 @@
 		68C3DAF91396B93F00C3852F /* ACueMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACueMenu.h; sourceTree = "<group>"; };
 		68C3DBC51396D9FB00C3852F /* ACueHotButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACueHotButton.h; sourceTree = "<group>"; };
 		68D71E5311E62A9200E20FC0 /* ATable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATable.h; sourceTree = "<group>"; };
+		68D92896141661AF007AEE28 /* AX11Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AX11Window.cpp; sourceTree = "<group>"; };
+		68D92897141661AF007AEE28 /* AX11Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AX11Window.h; sourceTree = "<group>"; };
 		68DED9C70FFD729C00C1DB43 /* AQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AQuery.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Acinonyx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Acinonyx.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -251,6 +254,7 @@
 		68BF1C220D79CD440095B772 /* Acinonyx */ = {
 			isa = PBXGroup;
 			children = (
+				68D92895141661AF007AEE28 /* X11 */,
 				68C3D71D13952F8900C3852F /* Widgets */,
 				688A321E0FC1AFF100532F79 /* GLUT */,
 				687CA53A0FB447DA00D249DB /* StatVis */,
@@ -304,6 +308,15 @@
 			);
 			name = Widgets;
 			sourceTree = "<group>";
+		};
+		68D92895141661AF007AEE28 /* X11 */ = {
+			isa = PBXGroup;
+			children = (
+				68D92896141661AF007AEE28 /* AX11Window.cpp */,
+				68D92897141661AF007AEE28 /* AX11Window.h */,
+			);
+			path = X11;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -379,6 +392,7 @@
 				688A31990FC16E7B00532F79 /* RCalls.cpp in Sources */,
 				682DCBB90FFAAA9E00E8F17C /* RGrDevice.cpp in Sources */,
 				682296640FFC158100223DB8 /* AWin32Window.cpp in Sources */,
+				68D92898141661AF007AEE28 /* AX11Window.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

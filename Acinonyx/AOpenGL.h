@@ -19,6 +19,9 @@
 #include <OpenGL/glu.h> /* for polygon tessellation */
 #else
 #include <GL/gl.h>
+#ifndef WIN32
+#include <GL/glx.h>
+#endif
 #include <GL/glu.h>
 #endif
 
