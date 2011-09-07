@@ -16,9 +16,11 @@ static APoint lastMousePos;
 
 AFreeType *sharedFT;
 AX11Display *mainDisplay;
+char *core_font_path;
 
 extern "C" {
 	AX11Window *AX11_CreateWindow(AVisual *visual, APoint position);
+	SEXP A_SetCoreFontPath(SEXP sPath);
 }
 
 AX11Window *AX11_CreateWindow(AVisual *visual, APoint position)
@@ -62,5 +64,21 @@ static DWORD WINAPI AWin32Heartbeat( LPVOID lpParam ) {
 
 #endif
 
+/* -- this part must be last -- disable memory allocation tracking -- */
+#ifdef strdup
+#undef strdup
+#endif
+#ifdef free
+#undef free
 #endif
 
+SEXP A_SetCoreFontPath(SEXP sPath) {
+	if (TYPEOF(sPath) != STRSXP || LENGTH(sPath) < 1)
+		Rf_error("invalid font path");
+	if (core_font_path)
+		free(core_font_path);
+	core_font_path = strdup(CHAR(STRING_ELT(sPath, 0)));
+	return R_NilValue;
+}
+
+#endif

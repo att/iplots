@@ -26,17 +26,21 @@
 #define fdebug(X, ...) {}
 #endif
 
+/* use AFreeType for text drawing */
 #include "AFreeType.h"
 extern AFreeType *sharedFT;
+extern char *core_font_path;
 
 #include <R_ext/eventloop.h>
-
-extern Display   *xdisplay;
 
 class AX11Window;
 
 static void AX11_rhand(void*);
 
+/* AX11Display is a simple class that abstracts out the X11 display
+   and monitors windows attached to the display. For its life it also
+   attaches itself into the R even loop in order to process events
+   and dispatch them to the corresponding AX11Window objects. */
 class AX11Display {
 protected:
 	Display *xdisplay;
@@ -44,13 +48,11 @@ protected:
 	int wins;
 	InputHandler *rhand;
 public:
-	int lastButtonState;
 	
 	/* name can be NULL */
 	AX11Display(const char *name) {
 		wins = 0;
 		rhand = 0;
-		lastButtonState = 0;
 		xdisplay = XOpenDisplay(name);
 		if (xdisplay) {
 			rhand = addInputHandler(R_InputHandlers, ConnectionNumber(xdisplay), AX11_rhand, XActivity);
@@ -59,9 +61,17 @@ public:
 		}
 	}
 	
-	~AX11Display() {
+	void close() {
 		if (xdisplay)
 			XCloseDisplay(xdisplay);
+		xdisplay = 0;
+		if (rhand)
+			removeInputHandler(&R_InputHandlers, rhand);
+		rhand = 0;
+	}
+
+	~AX11Display() {
+		close();
 	}
 	
 	bool isValid() {
@@ -124,13 +134,11 @@ public:
 		if (sharedFT)
 			ft = sharedFT;
 		else {
-#ifdef __APPLE__
-			const char *fpath = "/Library/Fonts/Arial.ttf";
-#else
-			const char *fpath = "/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf";
-#endif
 			ft = new AFreeType();
-			ft->setFont(fpath);
+			if (!core_font_path)
+				Rf_error("Missing core font path!");
+				
+			ft->setFont(core_font_path);
 			ft->setFontSize(font_size);
 			sharedFT = ft;
 		}

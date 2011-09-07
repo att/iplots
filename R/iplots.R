@@ -373,7 +373,7 @@ iset.set.visible <- function(what) {
 	invisible(.Call(A_MarkerSetVisible, .ipe$m, which))
 }
 
-`visible.iPlot<-` <- function(x, value) {
+`visible<-.iPlot` <- function(x, value) {
 	m <- x$marker
 	if (is.null(m)) stop("plot has no primary marker")
 	if (!is.integer(value) && is.numeric(value)) value <- as.integer(value)
