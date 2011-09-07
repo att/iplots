@@ -528,7 +528,7 @@ SEXP A_ContainerAdd(SEXP sCont, SEXP sVis) {
 SEXP A_VisualSetFrame(SEXP sPlot, SEXP sFrame)
 {
 	AVisual *pl = (AVisual*) SEXP2A(sPlot);
-	if (pl) pl->setFrame(visual_frame(sFrame));
+	if (pl) pl->moveAndResize(visual_frame(sFrame));
 	return sPlot;
 }
 

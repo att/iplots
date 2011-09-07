@@ -1,5 +1,5 @@
 primitives <- function(plot)
-  lapply(.Call("A_PlotPrimitives", plot), function(x) { class(x) <- c("primitive", "iObject"); x })
+  lapply(.Call(A_PlotPrimitives, plot), function(x) { class(x) <- c("primitive", "iObject"); x })
 
 ##--- methods
 
@@ -22,7 +22,7 @@ ipolygon <- function(x, ...) UseMethod("ipolygon")
 ##--- primitives constructors ---
 
 iLine <- function(x, y, color) {
-  o <- .Call("A_LineCreate", as.double(c(x[1],y[1],x[2],y[2])))
+  o <- .Call(A_LineCreate, as.double(c(x[1],y[1],x[2],y[2])))
   class(o) <- c("iLine", "primitive", "iObject")
   if (!missing(color)) color(o, redraw=FALSE) <- color
   invisible(o)
@@ -31,7 +31,7 @@ iLine <- function(x, y, color) {
 iSegments <- function(x1, y1, x2, y2, color) {
   l <- c(length(x1), length(y1), length(x2), length(y2))
   if (!all(l == l[1])) stop("all coordinates must be of the same length")
-  o <- .Call("A_SegmentsCreate", as.double(x1), as.double(y1), as.double(x2), as.double(y2))
+  o <- .Call(A_SegmentsCreate, as.double(x1), as.double(y1), as.double(x2), as.double(y2))
   class(o) <- c("iSegments", "primitive", "iObject")
   if (!missing(color)) color(o, redraw=FALSE) <- color
   invisible(o)  
@@ -39,7 +39,7 @@ iSegments <- function(x1, y1, x2, y2, color) {
 
 iPolygon <- function(x, y, color, fill) {
   if (length(x) != length(y)) stop("all coordinates must be of the same length")
-  o <- .Call("A_PolygonCreate", as.double(x), as.double(y));
+  o <- .Call(A_PolygonCreate, as.double(x), as.double(y));
   class(o) <- c("iPolygon", "primitive", "iObject")
   if (!missing(color)) color(o, redraw=FALSE) <- color
   if (!missing(fill)) fill(o, redraw=FALSE) <- fill
@@ -48,7 +48,7 @@ iPolygon <- function(x, y, color, fill) {
 
 iText <- function(x, y, text, color) {
   if (!length(text)) stop("missing text")
-  o <- .Call("A_TextCreate", as.double(c(x,y)), as.character(text))
+  o <- .Call(A_TextCreate, as.double(c(x,y)), as.character(text))
   class(o) <- c("iText", "primitive", "iObject")
   if (!missing(color)) color(o, redraw=FALSE) <- color
   invisible(o)
@@ -57,12 +57,12 @@ iText <- function(x, y, text, color) {
 ##--- add/delete
 
 add.iPlot.primitive <- function(x, obj, ...) {
-  .Call("A_PlotAddPrimitive", x, obj)
+  .Call(A_PlotAddPrimitive, x, obj)
   redraw(x) # just to make sure for now
 }
 
 add.iPlot.pairlist <- function(x, obj, ...) {
-  .Call("A_PlotAddPrimitives", x, obj)
+  .Call(A_PlotAddPrimitives, x, obj)
   redraw(x) # just to make sure for now
 }
 
@@ -73,12 +73,12 @@ add.pairlist.primitive <- function(x, obj, ...)
   CONS(obj, x)
 
 delete.iPlot.primitive <- function(x, obj, ...) {
-  .Call("A_PlotRemovePrimitive", x, obj)
+  .Call(A_PlotRemovePrimitive, x, obj)
   redraw(x) # just to make sure for now
 }
 
 delete.iPlot.pairlist <- function(x, obj, ...) {
-  .Call("A_PlotRemovePrimitives", x, obj)
+  .Call(A_PlotRemovePrimitives, x, obj)
   redraw(x) # just to make sure for now
 }
 
@@ -90,7 +90,7 @@ delete.pairlist.primitive <- function(x, obj, ...)
 
 delete.iPlot.character <- function(x, obj, ...) {
   if (all(obj == "all")) {
-    .Call("A_PlotRemoveAllPrimitives", x)
+    .Call(A_PlotRemoveAllPrimitives, x)
     redraw(x)
   } else stop("invalid argument")
 }
@@ -100,49 +100,49 @@ delete.iPlot.character <- function(x, obj, ...) {
 
 `color<-.primitive` <- function(x, redraw=TRUE, ..., value) {
   value <- col2rgb(value[1], TRUE)[,1] / 255
-  .Call("A_VPSetColor", x, as.double(value))
-  if (redraw) .Call("A_VPRedraw", x)
+  .Call(A_VPSetColor, x, as.double(value))
+  if (redraw) .Call(A_VPRedraw, x)
   invisible(x)
 }
 
 `fill<-.primitive` <- function(x, redraw=TRUE, ..., value) {
   value <- col2rgb(value[1], TRUE)[,1] / 255
-  .Call("A_VPSetFill", x, as.double(value))
-  if (redraw) .Call("A_VPRedraw", x)
+  .Call(A_VPSetFill, x, as.double(value))
+  if (redraw) .Call(A_VPRedraw, x)
   invisible(x)
 }
 
 color.primitive <- function(x, ...) {
-  v <- .Call("A_VPGetColor", x)
+  v <- .Call(A_VPGetColor, x)
   rgb(v[1], v[2], v[3], v[4])
 }
 
 fill.primitive <- function(x, ...) {
-  v <- .Call("A_VPGetFill", x)
+  v <- .Call(A_VPGetFill, x)
   rgb(v[1], v[2], v[3], v[4])
 }
 
 hidden.primitive <- function(x, ...)
-  .Call("A_VPGetHidden", x)
+  .Call(A_VPGetHidden, x)
 
 `hidden<-.primitive` <- function(x, ..., value)
-  .Call("A_VPSetHidden", x, as.logical(value))
+  .Call(A_VPSetHidden, x, as.logical(value))
 
 query.primitive <- function(x, ...)
-  .Call("A_VPGetQuery", x)
+  .Call(A_VPGetQuery, x)
 
 `query<-.primitive` <- function(x, ..., value)
-  .Call("A_VPSetQuery", x, value)
+  .Call(A_VPSetQuery, x, value)
 
 `$.primitive` <- function(x, name) {
-  if (name == "plot") return(.po(.Call("A_VPPlot", x)))
+  if (name == "plot") return(.po(.Call(A_VPPlot, x)))
   if (name == "color" || name == "col") return(color(x))
   if (name == "fill") return(fill(x))
   if (name == "query") return(query(x))
   if (name == "hidden") return(hidden(x))
-  if (name == "context") return(.Call("A_VPGetContext", x))
-  if (name == "callback" || name == "onChange") return (.Call("A_VPGetCallback", x))
-  vl <- .Call("A_VPGetValue", x)
+  if (name == "context") return(.Call(A_VPGetContext, x))
+  if (name == "callback" || name == "onChange") return (.Call(A_VPGetCallback, x))
+  vl <- .Call(A_VPGetValue, x)
   vl[[name]]
 }
 
@@ -151,10 +151,13 @@ query.primitive <- function(x, ...)
   if (name == "fill") fill(x) <- value else
   if (name == "hidden") hidden(x) <- value else
   if (name == "query") query(x) <- value else
-  if (name == "callback" || name == "onChange") .Call("A_VPSetCallback", x, value) else
-  if (name == "context") .Call("A_VPSetContext", x, value) else
-  if (name == "onSelect") .Call("A_VPSetSelCallback", x, value) else
-  { vl <- .Call("A_VPGetValue", x); vl[[name]] <- value; .Call("A_VPSetValue", x, vl) }
+  if (name == "callback" || name == "onChange") .Call(A_VPSetCallback, x, value) else
+  if (name == "context") .Call(A_VPSetContext, x, value) else
+  if (name == "onSelect") .Call(A_VPSetSelCallback, x, value) else
+  { vl <- .Call(A_VPGetValue, x)
+    vl[[name]] <- value
+    .Call(A_VPSetValue, x, vl)
+  }
   x
 }
 
@@ -199,4 +202,4 @@ ipolygon.default <- function(x, y, border, col = NA, ..., plot=.Last.plot) {
 `-.iObject` <- function(e1, e2) delete(e1, e2)
 
 replacePoints <- function(p, x, y)
-  .Call("A_PolygonSetPoints", p, as.double(x), as.double(y))
+  .Call(A_PolygonSetPoints, p, as.double(x), as.double(y))

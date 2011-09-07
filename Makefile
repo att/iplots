@@ -15,6 +15,9 @@ MSRC = Cocoa/GLString.m
 GLUTSRC = GLUT/AGLUTWindow.cpp
 X11SRC = X11/AX11Window.cpp
 WINSRC = Win32/AWin32Window.cpp
+RSRC=$(shell ls R/*.R | grep -v entry)
+
+REP=R/entry_points.R
 
 OBJ = $(ASRC:%.cpp=%.o) $(CSRC:%.c=%.o) $(MMSRC:%.mm=%.o) $(MSRC:%.m=%.o) $(WINSRC:%.cpp=%.o) $(X11SRC:%.cpp=%.o)
 
@@ -40,7 +43,7 @@ Acinonyx.so: $(ASRC) $(CSRC) $(X11SRC)
 	PKG_LIBS='-L/usr/X11/lib -lX11 -lGLU -lGL $(FTLIB)' PKG_CPPFLAGS='$(DEBUGCPPFLAGS) -IAcinonyx -IAcinonyx/RIF -IX11 -I/usr/X11/include -DUSE_X11 $(FTCF)' R CMD SHLIB -o $@ $^
 else
 Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
-	PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -ICocoa' R CMD SHLIB -o $@ $^
+	PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -ICocoa' PKG_LIBS='-framework Cocoa -framework OpenGL' R CMD SHLIB -o $@ $^
 endif
 else
 Acinonyx.so: $(ASRC) $(CSRC) $(X11SRC)
@@ -52,6 +55,13 @@ glut.so: $(ASRC) $(CSRC) $(GLUTSRC)
 
 Acinonyx.dll: $(ASRC) $(CSRC) $(WINSRC)
 	PKG_CXXFLAGS='-fpermissive' PKG_LIBS='-lopengl32 -lglu32 -lrgraphapp -lgdi32 Win32/lib$(WINARCH)/libfreetype.a' PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -IWin32' $(RBIN) CMD SHLIB -o $@ $^
+
+$(REP): $(RSRC)
+	cat $(RSRC) | sed -n 's:.*\.Call("\{0,1\}\(A_[^" ,)]\{1,\}\).*:\1:p' | sort | uniq > /tmp/entry_points
+	( echo '.sym <- '; Rscript -e 'dput(readLines("/tmp/entry_points"))') > $@
+	rm -f /tmp/entry_points
+
+sym: $(REP)
 
 clean:
 	rm -rf $(OBJ) $(FOBJ) Acinonyx.so Acinonyx.dll glut.so
