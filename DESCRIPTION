@@ -5,5 +5,6 @@ Author: Simon Urbanek <simon.urbanek@r-project.org>
 Maintainer: Simon Urbanek <simon.urbanek@r-project.org>
 Depends: R (>= 2.5.0)
 Description: iPlots eXtreme - high-performance interactive graphics for analysis of large data
+SystemRequirements: OpenGL, (X11 with GLX + GLU + FreeType | Windows | Mac OS X), GNU Make
 License: GPL-2
 URL: http://www.rforge.net/Acinonyx/
