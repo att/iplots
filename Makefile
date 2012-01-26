@@ -40,10 +40,10 @@ endif
 ifeq ($(OS),Darwin)
 ifeq ($(USE_X11),1)
 Acinonyx.so: $(ASRC) $(CSRC) $(X11SRC)
-	PKG_LIBS='-L/usr/X11/lib -lX11 -lGLU -lGL $(FTLIB)' PKG_CPPFLAGS='$(DEBUGCPPFLAGS) -IAcinonyx -IAcinonyx/RIF -IX11 -I/usr/X11/include -DUSE_X11 $(FTCF)' R CMD SHLIB -o $@ $^
+	PKG_MAKE_DSYM=1 PKG_LIBS='-L/usr/X11/lib -lX11 -lGLU -lGL $(FTLIB)' PKG_CPPFLAGS='$(DEBUGCPPFLAGS) -IAcinonyx -IAcinonyx/RIF -IX11 -I/usr/X11/include -DUSE_X11 $(FTCF)' R CMD SHLIB -o $@ $^
 else
 Acinonyx.so: $(ASRC) $(CSRC) $(MMSRC) $(MSRC)
-	PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -ICocoa' PKG_LIBS='-framework Cocoa -framework OpenGL' R CMD SHLIB -o $@ $^
+	PKG_MAKE_DSYM=1 PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -ICocoa' PKG_LIBS='-framework Cocoa -framework OpenGL' R CMD SHLIB -o $@ $^
 endif
 else
 Acinonyx.so: $(ASRC) $(CSRC) $(X11SRC)
@@ -54,7 +54,7 @@ glut.so: $(ASRC) $(CSRC) $(GLUTSRC)
 	PKG_LIBS='-framework GLUT -framework OpenGL' PKG_CPPFLAGS='-IAcinonyx -IAcinonyx/RIF -IGLUT -DGLUT' R CMD SHLIB -o $@ $^
 
 Acinonyx.dll: $(ASRC) $(CSRC) $(WINSRC)
-	PKG_CXXFLAGS='-fpermissive' PKG_LIBS='-lopengl32 -lglu32 -lrgraphapp -lgdi32 Win32/lib$(WINARCH)/libfreetype.a' PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -IWin32' $(RBIN) CMD SHLIB -o $@ $^
+	PKG_CXXFLAGS='-fpermissive' PKG_LIBS='-lopengl32 -lglu32 -lrgraphapp -lgdi32 Win32/lib$(WINARCH)/libfreetype.a -static-libgcc -static-libstdc++' PKG_CPPFLAGS='$(DEBUG) -IAcinonyx -IAcinonyx/RIF -IWin32' $(RBIN) CMD SHLIB -o $@ $^
 
 $(REP): $(RSRC)
 	cat $(RSRC) | sed -n 's:.*\.Call("\{0,1\}\(A_[^" ,)]\{1,\}\).*:\1:p' | sort | uniq > /tmp/entry_points
