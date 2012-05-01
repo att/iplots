@@ -51,17 +51,18 @@ static const char *device_name = "Acinonyx";
 class ARGraphicsDevice;
 
 typedef struct DeviceSpecific_s {
-    pDevDesc      dev;             /* device structure holding this one */
+        pDevDesc      dev;             /* device structure holding this one */
 	ARGraphicsDevice *agd;         /* associated Acinonyx visual */
-    double        ps;              /* point size */
-    double        width, height;   /* size (in device coordinates) */
+        double        ps;              /* point size */
+        double        width, height;   /* size (in device coordinates) */
 	double        dpix, dpiy;      /* mapping from device coords to real-word coords */
-    int           bg;              /* background color */
-    int           canvas;          /* background color */
-    int           flags;           /* additional flags */
-    int           redraw;          /* redraw flag is set when replaying
-		                              and inhibits syncs on Mode */
+        int           bg;              /* background color */
+        int           canvas;          /* background color */
+        int           flags;           /* additional flags */
+        int           redraw;          /* redraw flag is set when replaying
+                                          and inhibits syncs on Mode */
 	int           dirty;
+        int           holdlevel;
 
 } DeviceSpecific_t;
 
@@ -110,6 +111,7 @@ public:
 	}
 	
 	void new_page() {
+		if (dss->holdlevel) return;
 		clip(_frame);
 		glClearColor(R_RED(dss->canvas), R_GREEN(dss->canvas), R_BLUE(dss->canvas), 0);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -130,7 +132,14 @@ public:
 		txtcolor((double) R_RED(col) / 255.0, (double) R_GREEN(col) / 255.0, (double) R_BLUE(col) / 255.0, (double) R_ALPHA(col) / 255.0);
 		if (!dss->redraw) dss->dirty = 1;
 		return true;
-	}							
+	}
+        
+        void gdRedraw() {
+                if (_window) {
+                        _window->setRedrawLayer(LAYER_ROOT);
+                        _window->redraw();
+                }
+        }
 };
 
 #if 0
@@ -196,6 +205,7 @@ static void     RAcinonyxDevice_Polygon(int, double*, double*, const pGEcontext,
 static Rboolean RAcinonyxDevice_Locator(double*, double*, pDevDesc);
 static void     RAcinonyxDevice_Mode(int mode, pDevDesc);
 static void     RAcinonyxDevice_MetricInfo(int, const pGEcontext , double*, double*, double*, pDevDesc);
+static int      RAcinonyxDevice_HoldFlush(pDevDesc, int);
 
 #pragma mark Device implementation
 
@@ -231,7 +241,9 @@ static DeviceSpecific_t* RAcinonyxDevice_Create(pDevDesc dev, double width, doub
     dev->hasTextUTF8  = TRUE;
     dev->textUTF8     = RAcinonyxDevice_Text;
     dev->strWidthUTF8 = RAcinonyxDevice_StrWidth;
-
+#if R_GE_version >= 9
+        dev->holdflush = RAcinonyxDevice_HoldFlush;
+#endif
     dev->left = 0;
     dev->top  = 0;
 
@@ -262,6 +274,7 @@ static DeviceSpecific_t* RAcinonyxDevice_Create(pDevDesc dev, double width, doub
 	qd->dpiy       = dpiy;
 	qd->flags      = flags;
 	qd->dirty      = 0;
+        qd->holdlevel  = 0;
 
     dev->deviceSpecific = qd;
     qd->dev             = dev;
@@ -313,6 +326,7 @@ static void RAcinonyxDevice_Clip(double x0, double x1, double y1, double y0, pDe
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	if (xd->agd) {
+		if (xd->holdlevel) return;
 		xd->agd->clip(AMkRect(x0, xd->height - y1, x1 - x0 + 1, y1 - y0 + 1));
 		// printf("clip (%g,%g %g,%g)\n", x0, y0, x1, y1);
 	}
@@ -330,6 +344,7 @@ static void RAcinonyxDevice_Text(double x, double y, const char *text, double ro
 	DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	double height = xd->height;
 	if (xd->agd && xd->agd->prepare_text_color(gc->col)) {
+		if (xd->holdlevel) return;
 		xd->agd->font(gc->fontfamily, gc->cex * gc->ps);
 		xd->agd->text(AMkPoint(x, height - y), text, /* AMkPoint(hadj * cos(rot * PI / 180.0), hadj * sin(rot * PI / 180.0)) */ AMkPoint(hadj, 0), rot);
 #ifdef DEBUG
@@ -345,6 +360,7 @@ static void RAcinonyxDevice_Rect(double x0, double y0, double x1, double y1, con
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	if (xd->agd) {
 		double height = xd->height;
+		if (xd->holdlevel) return;
 		if (xd->agd->prepare_color(gc->fill))
 			xd->agd->rect(x0, height - y0, x1, height - y1);
 		if (xd->agd->prepare_color(gc->col))
@@ -357,6 +373,7 @@ static void RAcinonyxDevice_Circle(double x, double y, double r, const pGEcontex
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	if (xd->agd) {
 		double height = xd->height;
+		if (xd->holdlevel) return;
 		if (xd->agd->prepare_color(gc->fill))
 			xd->agd->circle(x, height - y, r);
 		if (xd->agd->prepare_color(gc->col))
@@ -368,13 +385,17 @@ static void RAcinonyxDevice_Line(double x1, double y1, double x2, double y2, con
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	double height = xd->height;
-	if (xd->agd && xd->agd->prepare_color(gc->col)) xd->agd->line(x1, height - y1, x2, height - y2);
+	if (xd->agd && xd->agd->prepare_color(gc->col)) {
+		if (xd->holdlevel) return;
+		xd->agd->line(x1, height - y1, x2, height - y2);
+	}
 }
 
 static void RAcinonyxDevice_Polyline(int n, double *x, double *y, const pGEcontext gc, pDevDesc dd)
 {
     DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
 	if (xd->agd && xd->agd->prepare_color(gc->col)) {
+		if (xd->holdlevel) return;
 		double height = xd->height;
 		for (vsize_t i = 0; i < n; i++) y[i] = height - y[i];
 		xd->agd->polyline(x, y, n); // FIXME: this will only work as long as AFloat is double
@@ -388,6 +409,7 @@ static void RAcinonyxDevice_Polygon(int n, double *x, double *y, const pGEcontex
 
     if (n < 2) return;
 	if (xd->agd) {
+		if (xd->holdlevel) return;
 		double height = xd->height;
 		for (vsize_t i = 0; i < n; i++) y[i] = height - y[i];
 		if (xd->agd->prepare_color(gc->fill))
@@ -435,6 +457,22 @@ static Rboolean RAcinonyxDevice_Locator(double *x, double *y, pDevDesc dd)
 
     return FALSE;
 }
+
+static int RAcinonyxDevice_HoldFlush(pDevDesc dd, int level)
+{
+	DeviceSpecific_t *xd = (DeviceSpecific_t*) dd->deviceSpecific;
+        int ol = xd->holdlevel;
+        xd->holdlevel += level;
+        if (xd->holdlevel < 0) xd->holdlevel = 0;
+        if (xd->holdlevel == 0) { /* flush */
+                /* trigger flush */
+		if (xd->agd) xd->agd->gdRedraw();
+        } else if (ol == 0) { /* first hold */
+                /* could display a wait cursor or something ... */
+        }
+        return xd->holdlevel;
+}
+
 
 #pragma mark -
 #pragma mark R Interface
