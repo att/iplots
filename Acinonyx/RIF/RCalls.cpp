@@ -180,6 +180,11 @@ SEXP A_Init() {
 #ifdef HAVE_AQUA
 	const char* rapp=getenv("R_GUI_APP_VERSION");
 	if (!rapp || !rapp[0]) { /* if we're not inside R.app, use Quartz to start the event loop */
+#if R_VERSION >= R_Version(3,0,0)
+		/* use quartz(); dev.off() instead - getQuartzFunctions() is not available */
+		Rf_eval(Rf_lcons(Rf_install("quartz"), R_NilValue), R_GlobalEnv);
+		Rf_eval(Rf_lcons(Rf_install("dev.off"), R_NilValue), R_GlobalEnv);
+#else
 		QuartzFunctions_t *qf = getQuartzFunctions();
 		if (qf) {
 			/* check embedding parameters to see if Rapp (or other Cocoa app) didn't do the work for us */
@@ -195,6 +200,7 @@ SEXP A_Init() {
 				QuartzCocoa_SetupEventLoop(QCF_SET_PEPTR|QCF_SET_FRONT, 100);
 #endif
 		}
+#endif
 	} else /* we're in R.app, all should be set */
 		inside_Rapp = true;
 #endif
