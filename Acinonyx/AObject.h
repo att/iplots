@@ -147,7 +147,7 @@ extern "C" void* A_alloc(vsize_t size, vsize_t elt_size, AObject *owner);
 extern "C" void* A_calloc(vsize_t size, vsize_t elt_size, AObject *owner);
 extern "C" void* A_realloc(void *ptr, vsize_t size, AObject *owner);
 extern "C" void A_free(void *ptr);
-extern "C" void A_transfer(void *ptr, AObject *ptr);
+extern "C" void A_transfer(void *ptr, AObject *ptr2);
 #else
 #define A_alloc(X, Y, O) malloc(((vsize_t)(X)) * ((vsize_t)(Y)))
 #define A_calloc(X, Y, O) calloc(X, Y)
