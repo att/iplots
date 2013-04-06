@@ -103,7 +103,7 @@ public:
 
 	void setScales(AUnivarTable* tab){
 		_scales[0]->setPermutation(new APermutation(bars));
-		_scales[0]->setDataRange(AMkDataRange(0.0, bars - 1));
+		_scales[0]->setDataRange(AMkDataRange(0.0, bars));
 		_scales[0]->setN(bars);
 		_scales[1]->setPermutation(new APermutation(tab->maxCount() + 1));
 		_scales[1]->setDataRange(AMkDataRange(0.0, tab->maxCount()));

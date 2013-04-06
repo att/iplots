@@ -116,7 +116,8 @@ public:
 			tab = ((AFactorVector*)dv)->table();
 		for (vsize_t i = 0;i <= n; i++) {
 			ARange dr = _scale->discreteRange(i);
-			AFloat c = dr.begin + (dr.length * 0.5);
+                // AFloat c = _dr.begin + (dr.length * 0.5);
+            AFloat c = _scale->discreteCenter(i);
 			char *txt = 0, buf[32];
 			line(c, _frame.y + _frame.height, c, _frame.y + _frame.height * 0.8);
 			if (tab && tab->name(i))

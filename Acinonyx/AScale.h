@@ -56,7 +56,7 @@ public:
 		OCLASS(AScale)
 	}
 	
-	AScale(AVector *data, ARange graphicsRange, vsize_t entries) : _data(data), gr(graphicsRange), dr(AMkDataRange(0.0, entries - 1)), n(entries), _locations(NULL), nLoc(0), perm(new APermutation(entries)), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
+	AScale(AVector *data, ARange graphicsRange, vsize_t entries) : _data(data), gr(graphicsRange), dr(AMkDataRange(0.0, entries)), n(entries), _locations(NULL), nLoc(0), perm(new APermutation(entries)), shareRange(false), shareDataRange(false), _prev(NULL), _next(NULL) {
 		if (data) {
 			data->retain();
 			perm = data->permutation();
@@ -176,20 +176,18 @@ public:
 	AFloat discreteCenter(vsize_t value) {
 		vsize_t i = permutationOf(value);
 		if (i >= n) return ANotFound;
-		AFloat width = gr.length / ((AFloat) (n));
-		return gr.begin + (0.5 + (AFloat) i) * width;
+        return position(0.5 + (double) i);
 	}
-	
+    	
 	ARange discreteRange(vsize_t value) {
 		vsize_t i = permutationOf(value);
 		if (i >= n) return AUndefRange;
-		AFloat width = gr.length / ((AFloat) (n));
-		AFloat left = gr.begin + ((AFloat) i) * width;
-		return AMkRange(left, width);
+        AFloat left = position(i);
+		return AMkRange(left, position(i + 1) - left);
 	}
 
-	AFloat discreteWidth(vsize_t value) { 
-		return gr.length / ((AFloat) (n));
+	AFloat discreteWidth(vsize_t value) {
+        return position(1) - position(0);
 	}
 	
 	const char *stringForDoubleValue(double val) {
