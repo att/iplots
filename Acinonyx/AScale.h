@@ -157,19 +157,15 @@ public:
 		
 	vsize_t discreteValue(AFloat pos) {
 		if (gr.length == 0.0) return ANotFound;
-		if (n == 1) return (gr.begin >= pos && gr.begin + gr.length <= pos) ? 0 : ANotFound;
-		AFloat width = gr.length / ((AFloat) (n));
-		int i = (int) ((pos - gr.begin) / width);
-		if (i < 0 || i >= n) return ANotFound;
+        int i = (int) value(pos);
+        if (i < 0 || i >= n) return ANotFound;
 		return (vsize_t) permutationAt(i);
 	}
 
 	vsize_t discreteIndex(AFloat pos) {
 		if (gr.length == 0.0) return ANotFound;
-		if (n == 1) return (gr.begin >= pos && gr.begin + gr.length <= pos) ? 0 : ANotFound;
-		AFloat width = gr.length / ((AFloat) (n));
-		int i = (int) ((pos - gr.begin) / width);
-		if (i < 0 || i >= n) return ANotFound;
+        int i = (int) value(pos);
+        if (i < 0 || i >= n) return ANotFound;
 		return (vsize_t) i;
 	}
 	

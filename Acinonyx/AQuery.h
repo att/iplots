@@ -58,6 +58,10 @@ public:
 		redraw();
 	}
 	
+    APoint point() {
+        return AMkPoint(_frame.x, _frame.y);
+    }
+    
 	const char *text() {
 		return q_text;
 	}
