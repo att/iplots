@@ -87,9 +87,9 @@ void ACocoa_Init() {
 	// FIXME: we should assign the result or something ...
 	visual->release();
 	
-	ADataVector *pcv[] = { vx, vy, fv };
+	ADataVector *pcv[] = { vx, vy, fv, vx, vx, vx, vy, vy };
 	
-	visual = new AParallelCoordPlot(NULL, aFrame, 0, 3, pcv);
+	visual = new AParallelCoordPlot(NULL, aFrame, 0, 8, pcv);
 	ACocoa_CreateWindow(visual, AMkPoint(500, 100));
 	visual->release();
 	
