@@ -155,7 +155,8 @@ public:
 #ifdef DEBUG
 	NSLog(@"%@: request redraw", self);
 #endif
-	if (view) [view setNeedsDisplay:YES];
+    // FIXME: [view display] is synchronous and needed for idev() if used with dev.hold()/flush(), however, it's unclear we we are not better off using [view setNeedsDisplay:YES] which is asynchronous
+	if (view) [view display];
 }
 
 - (void) dealloc
