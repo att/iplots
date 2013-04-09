@@ -184,7 +184,7 @@ public:
 	AColor textColor() { return text_color; }
 	
 	/** this method is called to setup the OpenGL environemnt on a redraw. */
-	void begin() {
+	virtual void begin() {
 		current_frame++;
 		profStart()
 		if (_layers == 0) {

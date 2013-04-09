@@ -40,6 +40,20 @@ public:
 		[window setTitle:[NSString stringWithUTF8String:txt]];
 	}
 	
+    virtual void begin() {
+        AWindow::begin();
+#ifdef RETINA_SUPPORT /* FIXME: Retina support is still not working properly */
+        // we may need to change the viewport if Retina scaling is on
+        float scale = [[window contentView] convertSizeToBacking:CGSizeMake(1,1)].width;
+        if (scale <= 0.0) scale = 1.0;
+        if (scale < 0.99 || scale > 1.01) {
+            glViewport(0.0f, 0.0f, _frame.width * scale, _frame.height * scale);
+            glOrtho(0.0f, scale, 0.0f, scale, -1, 1);
+            // glScalef(scale, scale, 1.0);
+        }
+#endif
+    }
+    
 	virtual void glstring(APoint pt, APoint adj, AFloat rot, const char *txt) {
 		NSColor *c = [NSColor colorWithDeviceRed:text_color.r green:text_color.g blue:text_color.b alpha:text_color.a];
 		NSDictionary *attr = [[NSDictionary alloc] initWithObjectsAndKeys:font, NSFontAttributeName, c, NSForegroundColorAttributeName, nil];
@@ -47,8 +61,17 @@ public:
 		GLString *gs = [[GLString alloc] initWithString:[NSString stringWithUTF8String:txt] withAttributes:attr color:c];
 		NSPoint loc = NSMakePoint(pt.x, pt.y), adjp = NSMakePoint(adj.x, adj.y);
 		[gs genTexture];
-		NSSize ts = [gs texSize];
-		[gs drawAtPoint:loc withAdjustment:adjp rotation:rot];
+
+#ifndef RETINA_SUPPORT
+        /* adjust scale for Retina -- we do this when we are not using hi-res
+           so the text has to be scaled down */
+        const float scale = 1.0 / [window backingScaleFactor];
+#else
+        const float scale = 1.0;
+        /* if we wanted to know the scale factor from pixels to points, we'd use this
+        [[window contentView] convertSizeToBacking:CGSizeMake(1,1)].width; */
+#endif
+		[gs drawAtPoint:loc withAdjustment:adjp rotation:rot scale:scale];
 		[gs release];
 		[attr release];
 	}
@@ -88,7 +111,7 @@ public:
 		[str release];
 		[attr release];
 		[ns release];
-		return AMkSize(ss.width, ss.height);;
+		return AMkSize(ss.width, ss.height);
 	}
 };
 

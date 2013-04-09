@@ -54,7 +54,10 @@ static APoint NSEventLoc2AEPoint(NSEvent *e) {
 	0 };
     self = [super initWithFrame:frame pixelFormat:[[NSOpenGLPixelFormat alloc] initWithAttributes:(NSOpenGLPixelFormatAttribute*)attrs]];
     if (self) {
-		ARect aFrame = AMkRect(0,0,frame.size.width,frame.size.height);
+#ifdef RETINA_SUPPORT
+        // Should we use hi-res on Retina?
+        [self  setWantsBestResolutionOpenGLSurface:YES];
+#endif
 		// visual = new MyVisual(AMkRect(frame.origin.x,frame.origin.y,frame.size.width,frame.size.height));
 		visual = (AVisual*) aVisual->retain();
     }

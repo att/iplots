@@ -178,7 +178,7 @@
 	{ int i = 0, n = (int) [bitmap pixelsWide] * (int) [bitmap pixelsHigh]; for(; i < n; i++) { unsigned char a = foo[i * 4 + 3]; if (a) { foo[i * 4] = SC(R); foo[i * 4 + 1] = SC(G); foo[i * 4 + 2] = SC(B); } } }
 	 */
 #endif
-	if (cgl_ctx = CGLGetCurrentContext ()) { // if we successfully retrieve a current context (required)
+	if ((cgl_ctx = CGLGetCurrentContext())) { // if we successfully retrieve a current context (required)
 		glPushAttrib(GL_TEXTURE_BIT);
 		if (0 == texName) glGenTextures (1, &texName);
 		glBindTexture (GL_TEXTURE_RECTANGLE_EXT, texName);
@@ -392,21 +392,21 @@
 	}
 }
 
-- (void) drawAtPoint:(NSPoint)point withAdjustment: (NSPoint) adj rotation: (float) rot
+- (void) drawAtPoint:(NSPoint)point withAdjustment: (NSPoint) adj rotation: (float) rot scale: (float) scale
 {
 	if (requiresUpdate)
 		[self genTexture];
 	if (texName) {
 		NSPoint ll, lr, ul, ur;
-		
+        
 		ll = point;
-		double th = rot * pi / 180.0; // theta
+		double th = rot * M_PI / 180.0; // theta
 		double cth = cos(th), sth = sin(th); // cos(theta), sin(theta)
 		// base point in x (width) and y (height) direction (delta from point of text origin)
-		lr.x = texSize.width * cth;
-		lr.y = texSize.width * sth;
-		ul.x = - texSize.height * sth;
-		ul.y = texSize.height * cth;
+		lr.x = (texSize.width * scale) * cth;
+		lr.y = (texSize.width * scale) * sth;
+		ul.x = - (texSize.height * scale) * sth;
+		ul.y = (texSize.height * scale) * cth;
 		// diagonal point
 		ur.x = lr.x + ul.x;
 		ur.y = lr.y + ul.y;
